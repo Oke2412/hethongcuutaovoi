@@ -23,6 +23,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "⚔️ *Hệ Thống Khởi Động*\n\n"
         f"Chào mừng, *{user.full_name}*.\n\n"
         "Các lệnh có sẵn:\n"
+        "• /onboard — Thiết lập thông tin cá nhân (context) ban đầu\n"
         "• /status — Xem tổng quan hiện tại\n"
         "• /report — Cập nhật thể trạng & tiến độ\n"
         "• /remind — Quản lý nhắc nhở\n"

@@ -1,65 +1,65 @@
-# RULES.md � Agent Ph?i �?c File N�y Tru?c M?i Session
+# RULES.md — Agent Phải Đọc File Này Trước Mỗi Session
 
-> **B?T BU?C**: �?c file n�y V� `PROMPT_HISTORY.md` tru?c khi l�m b?t k? vi?c g� trong project.
+> **BẮt BUỘC**: Đọc file này VÀ `PROMPT_HISTORY.md` trước khi làm bất kỳ việc gì trong project.
 
 ---
 
-## ?? V? D? �n
+## 🧠 Về Dự Án
 
-**T�n project:** Amazing Nobel  
-**M?c ti�u:** H? th?ng AI h? tr? c� nh�n ki?u "system" trong phim chuy?n sinh � theo d�i th? tr?ng, ti?n d? c�ng vi?c, nang l?c hi?n t?i, l?ch sinh ho?t, v� nh?c nh? th�ng minh.
+**Tên project:** Amazing Nobel
+**Mục tiêu:** Hệ thống AI hỗ trợ cá nhân kiểu "system" trong phim chuyển sinh — theo dõi thể trạng, tiến độ công việc, năng lực hiện tại, lịch sinh hoạt, và nhắc nhở thông minh.
 
-**Deploy:** Local server ? expose qua Tailscale  
-**Interface ch�nh:** Telegram Bot (ngu?i d�ng d�ng iPhone)  
+**Deploy:** Local server → expose qua Tailscale
+**Interface chính:** Telegram Bot (người dùng dùng iPhone)
 **Backend:** FastAPI + Docker Compose
 
 ---
 
-## ?? Th�ng Tin Ngu?i D�ng (C?p nh?t li�n t?c)
+## 👤 Thông Tin Người Dùng (Cập nhật liên tục)
 
-### Nang l?c hi?n t?i (Current Max)
-> C?p nh?t m?i khi ngu?i d�ng b�o c�o ho?c h? th?ng d�nh gi� l?i.
+### Năng lực hiện tại (Current Max)
+> Cập nhật mỗi khi người dùng báo cáo hoặc hệ thống đánh giá lại.
 
-| Linh v?c | M?c hi?n t?i | Ghi ch� |
+| Lĩnh vực | Mức hiện tại | Ghi chú |
 |---|---|---|
-| _(chua c� d? li?u)_ | � | C?p nh?t sau khi onboard |
+| _(chưa có dữ liệu)_ | — | Cập nhật sau khi onboard |
 
-### Th? tr?ng
-> Tr?ng th�i th? ch?t v� tinh th?n g?n nh?t.
+### Thể trạng
+> Trạng thái thể chất và tinh thần gần nhất.
 
-- **Ghi nh?n l?n cu?i:** _(chua c�)_
-- **T�nh tr?ng:** _(chua c�)_
+- **Ghi nhận lần cuối:** _(chưa có)_
+- **Tình trạng:** _(chưa có)_
 
-### Ti?n tr�nh c�ng vi?c
-> C�c task/project dang ch?y v� ti?n d?.
+### Tiến trình công việc
+> Các task/project đang chạy và tiến độ.
 
-- _(chua c� d? li?u � c?p nh?t khi onboard)_
+- _(chưa có dữ liệu — cập nhật khi onboard)_
 
 ---
 
-## ??? Ki?n Tr�c H? Th?ng
+## 🏗️ Kiến Trúc Hệ Thống
 
 ```
 [User / iPhone]
-     �
-     ?
-[Telegram Bot]  ?-- Interface ch�nh
-     �
-     ?
+     │
+     ▼
+[Telegram Bot]  <── Interface chính
+     │
+     ▼
 [FastAPI Backend]  (Docker, Local Server, Tailscale)
-     �
-     +-- [SQLite DB]           � Long-term state: memory, stats, goals, logs
-     +-- [LLM API]             � Google Gemini 2.5 Flash (primary), Groq (fallback)
-     +-- [APScheduler]         � Reminders th�ng minh, spaced repetition (SM-2)
-     +-- [Google Calendar API] � Sync l?ch, t?o event, nh?c vi?c
+     │
+     ├── [SQLite DB]           — Long-term state: memory, stats, goals, logs
+     ├── [LLM API]             — Google Gemini 2.5 Flash (primary), Groq (fallback)
+     ├── [APScheduler]         — Reminders thông minh, spaced repetition (SM-2)
+     └── [Google Calendar API] — Sync lịch, tạo event, nhắc việc
 ```
 
-### Stack ch�nh
-| Layer | C�ng ngh? |
+### Stack chính
+| Layer | Công nghệ |
 |---|---|
-| Interface | python-telegram-bot |
+| Interface | python-telegram-bot 22.8 |
 | Backend | FastAPI + uvicorn |
-| Scheduler | APScheduler (ch?y trong FastAPI process) |
+| Scheduler | APScheduler (AsyncIOScheduler, Asia/Ho_Chi_Minh) |
 | Database | SQLite + SQLModel (ORM) |
 | LLM | Google Gemini 2.5 Flash (free tier) |
 | Calendar | Google Calendar API |
@@ -68,50 +68,59 @@
 
 ---
 
-## ? Nh?ng G� KH�NG L�m
+## ❌ Những Gì KHÔNG Làm
 
-- **Kh�ng c� streak/penalty mechanics** � ngu?i d�ng kh�ng mu?n gamification ki?u streak
-- **Kh�ng l�m native iOS app** � d�ng Telegram Bot thay th?
-- **Kh�ng over-engineer** � b?t d?u don gi?n, extend d?n
-
----
-
-## ? Nh?ng G� C?N L�m
-
-- H? th?ng nh? context d�i h?n (SQLite) � bot ph?i "nh?" ngu?i d�ng
-- Tracker nang l?c / th? tr?ng / ti?n d? � ngu?i d�ng b�o c�o, bot ghi nh?n v� ph�n t�ch
-- Reminders th�ng minh theo SM-2 (d�y khi m?i, thua khi quen) � kh�ng d?a v�o streak
-- LLM ph�n t�ch v� t?ng h?p, kh�ng ch? relay th�ng tin
+- **Không có streak/penalty mechanics** — người dùng không muốn gamification kiểu streak
+- **Không làm native iOS app** — dùng Telegram Bot thay thế
+- **Không over-engineer** — bắt đầu đơn giản, extend dần
 
 ---
 
-## ?? Coding Conventions
+## ✅ Những Gì CẦN Làm
 
-- Language: **Python 3.11+**
-- Async: d�ng `async/await` xuy�n su?t (FastAPI + python-telegram-bot d?u async)
-- Type hints: b?t bu?c tr�n t?t c? function signatures
-- Config: d�ng `.env` + `pydantic-settings`, kh�ng hardcode secrets
-- Database: migrations b?ng Alembic n?u schema thay d?i
-- Logging: d�ng `logging` c� format c� c?u tr�c
-- Error handling: kh�ng d? exception uncaught ? handler level
+- Hệ thống nhớ context dài hạn (SQLite) — bot phải "nhớ" người dùng
+- Tracker năng lực / thể trạng / tiến độ — người dùng báo cáo, bot ghi nhận và phân tích
+- Reminders thông minh theo SM-2 (dày khi mới, thưa khi quen) — không dựa vào streak
+- LLM phân tích và tổng hợp, không chỉ relay thông tin
 
 ---
 
-## ?? C?u Tr�c Thu M?c (Target)
+## 📐 Coding Conventions
+
+- Language: **Python 3.11+** (máy đang dùng Python 3.13)
+- Async: dùng `async/await` xuyên suốt
+- Type hints: bắt buộc trên tất cả function signatures
+- Config: dùng `.env` + `pydantic-settings`, không hardcode secrets
+- Logging: dùng `logging` có format cấu trúc (xem bot/main.py)
+- Error handling: không để exception uncaught ở handler level
+
+### ⚠️ Quy tắc ghi file có Unicode (BẮt BUỘC)
+
+**KHÔNG** dùng PowerShell `Set-Content` hay `@'...'@` here-string để ghi file chứa:
+- Tiếng Việt (dấu thanh, đặc biệt như ạ, ặ, ở, ư, ...)
+- Emoji (👤, ⚡, ✔️, ...)
+
+**CÁCH ĐÚNG:** Viết nội dung file bằng Python dùng Unicode escapes (`\u`, `\U`),
+lưu vào artifact directory bằng `write_to_file` tool, rồi chạy script đó bằng `python script.py`
+từ project directory. Python xử lý Unicode đúng — PowerShell thì không.
+
+---
+
+## 📁 Cấu Trúc Thư Mục
 
 ```
 amazing-nobel/
-+-- RULES.md                  ? File n�y � agent d?c m?i session
-+-- PROMPT_HISTORY.md         ? L?ch s? prompt � agent d?c m?i session
-+-- docker-compose.yml
-+-- .env.example
-+-- bot/                      ? Telegram bot handlers
-+-- api/                      ? FastAPI routes
-+-- core/                     ? Business logic (memory, scheduler, LLM)
-+-- db/                       ? SQLite models, migrations
-+-- tests/
+├── RULES.md                  <- File này — agent đọc mỗi session
+├── PROMPT_HISTORY.md         <- Lịch sử prompt — agent đọc mỗi session
+├── docker-compose.yml
+├── .env.example
+├── bot/                      <- Telegram bot handlers
+├── api/                      <- FastAPI routes
+├── core/                     <- Business logic (memory, scheduler, LLM)
+├── db/                       <- SQLite models
+└── tests/
 ```
 
 ---
 
-*File n�y du?c duy tr� b?i coding agent. C?p nh?t khi c� quy?t d?nh ki?n tr�c m?i.*
+*File này được duy trì bởi coding agent. Cập nhật khi có quyết định kiến trúc mới.*
