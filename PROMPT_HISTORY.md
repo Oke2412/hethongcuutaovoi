@@ -151,3 +151,37 @@
 - Push branch lên Github để user có thể pull.
 **Files thay đổi:** bot/handlers/document.py, bot/main.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 04:11] — Lên ý tưởng biến bot giống Raphael và tự sinh System Quest
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** nghĩ xem nó cần cái gì nữa để giống raphael? và nếu muốn làm nhắc nhở với tự sinh task...
+**Kết quả / Quyết định:**
+- Git pull origin main thành công.
+- Đề xuất thiết kế bảng SystemQuest trong DB.
+- Đề xuất tạo một Cronjob chạy vào buổi sáng, gom context gửi LLM sinh JSON nhiệm vụ kèm phần thưởng/hình phạt tự động.
+- Thêm nút bấm Inline cho phép user xác nhận hoàn thành và nhận phần thưởng.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 04:20] — Thảo luận về phản hồi nhiệm vụ khi thiếu context (Function Calling)
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** à còn kiểu phản ứng với nhiệm vụ nếu thiếu context, như kiểu tôi vốn dĩ đã làm rồi...
+**Kết quả / Quyết định:**
+- Nhận ra điểm yếu của việc sinh task cứng nhắc là thiếu thương lượng (negotiation).
+- Đề xuất nâng cấp LLM thành Agent bằng tính năng Function Calling. Khi người dùng "cãi" hoặc phản hồi lại (ví dụ "tôi cài ROS2 hôm qua rồi"), AI sẽ tự động hiểu, gọi hàm update Memory vào DB, và gọi hàm tái tạo lại Nhiệm vụ mới.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 04:28] — Code hoàn chỉnh Tính năng Raphael Quest System
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** ok phang
+**Kết quả / Quyết định:**
+- Tạo nhánh `feature/system-quests`.
+- Bổ sung bảng `SystemQuest` vào `db/models.py`.
+- Tạo `core/llm_tools.py` định nghĩa các hàm can thiệp CSDL: `update_memory`, `cancel_quest`, `complete_quest`.
+- Refactor `core/llm.py` kích hoạt JSON Function Calling của Gemini 2.5 Flash, giúp bot tự động phân tích chat và gọi tools.
+- Thêm `core/quest_generator.py` dùng LLM để tự động phân tích bối cảnh và đẻ ra Nhiệm vụ + Phần thưởng giải trí.
+- Gắn lịch cronjob lúc 6:30 sáng vào `core/scheduler.py` để chạy quest generator và báo cáo Telegram.
+- Tạo màn hình xem `/quests`.
+**Files thay đổi:** db/models.py, core/memory.py, core/llm.py, core/llm_tools.py, core/quest_generator.py, core/scheduler.py, bot/handlers/quest.py, bot/handlers/start.py, bot/main.py, PROMPT_HISTORY.md
+---

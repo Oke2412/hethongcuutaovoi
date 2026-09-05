@@ -90,6 +90,19 @@ async def build_user_context(session: AsyncSession, user: User) -> str:
         lines.append("\n## Ký ức quan trọng")
         for m in memories:
             lines.append(f"- {m.content}")
+    # Add System Quests
+    try:
+        from db.models import SystemQuest
+        res = await session.execute(
+            select(SystemQuest).where(SystemQuest.user_id == user.id, SystemQuest.status == "pending")
+        )
+        quests = res.scalars().all()
+        if quests:
+            lines.append("\n## Nhiệm vụ Hệ thống Đang chờ")
+            for q in quests:
+                lines.append(f"- [ID:{q.id}] {q.title} (Thưởng: {q.reward})")
+    except Exception:
+        pass
 
     return "\n".join(lines)
 
