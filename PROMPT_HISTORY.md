@@ -140,3 +140,14 @@
 - Đề xuất tạo thêm tính năng xử lý Document Upload (.txt/.md) với Gemini JSON parsing trong tương lai.
 **Files thay đổi:** ingest.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 03:56] — Thêm tính năng Document Handler trích xuất file .txt/.md
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** ok, với push lên github, branch sang nhánh khác, làm việc xong rồi push 1 lần nữa
+**Kết quả / Quyết định:**
+- Chuyển sang nhánh `feature/document-handler`.
+- Viết file `bot/handlers/document.py` hỗ trợ xử lý file upload, gửi LLM với `response_mime_type="application/json"` để ép lấy JSON.
+- Đăng ký vào `bot/main.py`.
+- Push branch lên Github để user có thể pull.
+**Files thay đổi:** bot/handlers/document.py, bot/main.py, PROMPT_HISTORY.md
+---
