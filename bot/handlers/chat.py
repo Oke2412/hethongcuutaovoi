@@ -20,5 +20,5 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             session, tg_user.id, tg_user.full_name, tg_user.username
         )
         user_context = await build_user_context(session, user)
-    response = await generate_response(user_context, message.text)
+    response = await generate_response(user.id, user_context, message.text)
     await message.reply_text(response)

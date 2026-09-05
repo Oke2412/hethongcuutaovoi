@@ -25,6 +25,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Các lệnh có sẵn:\n"
         "• /onboard — Thiết lập thông tin cá nhân (context) ban đầu\n"
         "• /status — Xem tổng quan hiện tại\n"
+        "• /quests — Danh sách Nhiệm vụ hệ thống\n"
         "• /report — Cập nhật thể trạng & tiến độ\n"
         "• /remind — Quản lý nhắc nhở\n"
         "• Hoặc chỉ cần nhắn tin bình thường.",

@@ -11,6 +11,7 @@ from bot.handlers import start, status, chat
 from bot.handlers.report import build_report_handler
 from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
+from bot.handlers.quest import build_quest_handler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,6 +44,7 @@ def main() -> None:
     # Commands
     app.add_handler(CommandHandler("start", start.handle))
     app.add_handler(CommandHandler("status", status.handle))
+    app.add_handler(build_quest_handler())
 
     # Conversations (order matters: more specific first)
     app.add_handler(build_onboard_handler())   # /onboard
