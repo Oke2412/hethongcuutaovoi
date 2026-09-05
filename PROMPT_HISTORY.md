@@ -214,3 +214,14 @@
 - Đợi user xác nhận trước khi rẽ nhánh code Hướng 1 theo quy định.
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 05:03] — Lên ý tưởng Desktop Popup UI (Giao diện hiển thị máy tính)
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** không chưa làm vội, tôi còn định làm mỗi lần thông báo thì nó hiện lên toàn màn hình máy tính có được không...
+**Kết quả / Quyết định:**
+- Đã chạy `git pull` theo quy tắc trước session (code up-to-date).
+- Phân tích kỹ thuật: Do Backend chạy trong Docker nên không thể bắn popup trực tiếp lên màn hình Host Windows.
+- Đề xuất kiến trúc: Tạo cổng WebSocket trên FastAPI Backend + Code một Desktop Client bằng `tkinter` chạy trên máy host để hứng sự kiện và vẽ cửa sổ nổi (overlay) trên màn hình.
+- Đang chờ user duyệt phương án kiến trúc trước khi rẽ nhánh code.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
