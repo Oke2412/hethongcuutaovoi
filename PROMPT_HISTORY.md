@@ -203,3 +203,14 @@
 - Đưa ra định hướng lộ trình (Roadmap) kết hợp Giác quan (Edge AI/ROS2) -> Não bộ phần cứng (FPGA/NPU) -> Năng lượng tái tạo.
 **Files thay đổi:** RULES.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 04:59] — Phân tích mô hình Trợ lý giọng nói (Wake word) & Voice Chat
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** giờ tôi không muốn nhấn nút mà chỉ cần chat với bot là nó biết... với giờ làm nào để nó chạy liên tục như kiểu call msg nhể xong rồi tự động lấy giọng nói...
+**Kết quả / Quyết định:**
+- Đã chạy `git pull` và merge thành công nhánh `chore/update-rules` vào `main`.
+- Giải thích cho user rằng tính năng chat tự nhiên thay cho bấm nút **đã hoạt động** nhờ Function Calling (làm ở phiên trước).
+- Đưa ra 2 kiến trúc cho Trợ lý giọng nói: (1) Voice Message qua Telegram; (2) Local Always-on Script (Porcupine Wake Word + Whisper STT + Edge-TTS) chạy trên Edge AI Homelab.
+- Đợi user xác nhận trước khi rẽ nhánh code Hướng 1 theo quy định.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
