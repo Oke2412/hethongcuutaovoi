@@ -85,6 +85,12 @@
 
 ---
 
+
+## ✅ Quy tắc làm việc của Agent (BẮT BUỘC)
+
+- **Giải thích trước khi hành động:** Trong mỗi session, trước khi tiến hành viết code hay chạy lệnh, Agent PHẢI giải thích rõ kế hoạch/logic định làm cho người dùng hiểu.
+- **Quản lý Branch:** Bất cứ khi nào làm một TÍNH NĂNG MỚI, LUÔN LUÔN tạo một nhánh mới (`git checkout -b feature/...`), code xong mới push và merge. KHÔNG code tính năng mới trực tiếp trên nhánh `main`.
+
 ## 📐 Coding Conventions
 
 - Language: **Python 3.11+** (máy đang dùng Python 3.13)

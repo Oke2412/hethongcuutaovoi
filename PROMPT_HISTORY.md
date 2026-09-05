@@ -185,3 +185,12 @@
 - Tạo màn hình xem `/quests`.
 **Files thay đổi:** db/models.py, core/memory.py, core/llm.py, core/llm_tools.py, core/quest_generator.py, core/scheduler.py, bot/handlers/quest.py, bot/handlers/start.py, bot/main.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 04:40] — Cập nhật quy tắc làm việc & Bàn về năng lực tính toán của Raphael/Jarvis
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** giờ thêm vào file rule.md này, mỗi session nếu muốn làm gì đều phải giải thích trước rồi mới chạy...
+**Kết quả / Quyết định:**
+- Cập nhật `RULES.md` bổ sung 2 quy tắc cốt lõi: (1) Phải giải thích/chốt kế hoạch với người dùng trước khi thực thi; (2) Khi làm tính năng mới luôn phải rẽ nhánh (branch `feature/...`).
+- Trả lời người dùng về sức mạnh tính toán cần thiết (Computing Power) để tạo ra một AI thực thụ như Raphael (Slime) hoặc Jarvis (Iron Man) trong thực tế.
+**Files thay đổi:** RULES.md, PROMPT_HISTORY.md
+---
