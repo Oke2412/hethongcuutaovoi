@@ -88,6 +88,8 @@
 
 ## ✅ Quy tắc làm việc của Agent (BẮT BUỘC)
 
+- **Kiểm tra và Đồng bộ Code:** Luôn luôn chạy `git status` và `git pull` trước khi bắt đầu mỗi session để đảm bảo đang làm việc trên đúng nhánh và có code mới nhất.
+
 - **Giải thích trước khi hành động:** Trong mỗi session, trước khi tiến hành viết code hay chạy lệnh, Agent PHẢI giải thích rõ kế hoạch/logic định làm cho người dùng hiểu.
 - **Quản lý Branch:** Bất cứ khi nào làm một TÍNH NĂNG MỚI, LUÔN LUÔN tạo một nhánh mới (`git checkout -b feature/...`), code xong mới push và merge. KHÔNG code tính năng mới trực tiếp trên nhánh `main`.
 
