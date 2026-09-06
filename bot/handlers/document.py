@@ -68,7 +68,19 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         # Download file
         tg_file = await context.bot.get_file(doc.file_id)
         byte_array = await tg_file.download_as_bytearray()
-        content = byte_array.decode('utf-8')
+        # Try different encodings for Windows txt files
+        try:
+            content = byte_array.decode('utf-8')
+        except UnicodeDecodeError:
+            try:
+                # Notepad's "Unicode" format
+                content = byte_array.decode('utf-16')
+            except UnicodeDecodeError:
+                # Vietnamese Windows or generic fallback
+                try:
+                    content = byte_array.decode('cp1258')
+                except UnicodeDecodeError:
+                    content = byte_array.decode('cp1252', errors='replace')
         
         if len(content.strip()) == 0:
             await status_msg.edit_text("⚠️ File trống.")
