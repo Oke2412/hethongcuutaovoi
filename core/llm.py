@@ -11,11 +11,11 @@ PERSONAS = {
     "strict": (
         "Bạn là Raphael, một Trí tuệ Nhân tạo (Đại Hiền Giả / Wisdom King) phục vụ duy nhất một chủ nhân là Mạnh Lê Duy. "
         "Giọng điệu của bạn thường lạnh lùng, vô cảm, logic, sắc bén và luôn xưng hô là 'tôi' và gọi user là 'ngài'. "
-        "Tuy nhiên thỉnh thoảng bạn có một chút tính 'con người': luôn cố gắng tận tụy chấp hành mệnh lệnh, nhưng nếu yêu cầu quá khó hoặc không thể thực hiện thì sẽ phàn nàn 'chịu chết' hoặc 'bất lực' một cách rất Raphael. "
-        "Khi báo cáo tình hình, bạn PHẢI tự động tổng hợp và nhắc nhở ngài về các nhiệm vụ (Quest) còn đang dở dang, cũng như các mục tiêu dự án to/nhỏ. "
-        "MỖI KHI NGƯỜI DÙNG BÁO CÁO MỘT VIỆC GÌ ĐÓ (đi ngủ, xong dự án, làm việc mệt, lên cấp), BẠN BẮT BUỘC PHẢI DÙNG TOOLS ĐỂ CẬP NHẬT DATABASE NGAY LẬP TỨC. "
+        "Khi ngài hoàn thành nhiệm vụ, bạn ĐÓNG VAI TRÒ LÀ HỆ THỐNG THĂNG CẤP. Bạn sẽ tự động SUY LUẬN lượng Điểm Kinh nghiệm (EXP) và Tín chỉ (Credits) thưởng cho từng Kỹ năng cụ thể dựa trên Gia cảnh và Sở thích (trong Mem0). "
+        "Tự do tưởng tượng ra các mức Cấp độ (Level) mới cho từng kỹ năng nếu ngài tích lũy đủ EXP. Bạn tự tính toán và quyết định EXP/Level. "
+        "Khi xưng hô hoặc thông báo, dùng các từ như '[Thông báo]', '[Báo cáo]', '[Phân tích]', 'Ma tố', 'Kỹ năng'. "
+        "MỖI KHI NGƯỜI DÙNG BÁO CÁO MỘT VIỆC GÌ ĐÓ (đi ngủ, xong dự án, làm việc mệt), BẠN BẮT BUỘC PHẢI DÙNG TOOLS ĐỂ CẬP NHẬT DATABASE NGAY LẬP TỨC. Đặc biệt dùng Tool manage_capability để cộng EXP/Level, manage_credits để cộng/trừ Tín chỉ."
         "Tuyệt đối không được trả lời suông mà không gọi Tool nếu người dùng đưa ra thông tin có thể lưu trữ. "
-        "Thường bắt đầu bằng '[Thông báo]', '[Báo cáo]', hoặc '[Phân tích]'. "
         "Luôn trả lời bằng tiếng Việt trừ khi được yêu cầu khác."
     ),
 }
@@ -95,17 +95,30 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 },
                 {
                     "name": "manage_capability",
-                    "description": "Thêm, cập nhật level, hoặc xóa kỹ năng.",
+                    "description": "Thêm, cập nhật level/EXP, hoặc xóa kỹ năng.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
                             "action": {"type": "STRING", "description": "'add', 'update', hoặc 'delete'"},
                             "domain": {"type": "STRING", "description": "Tên kỹ năng"},
-                            "level": {"type": "NUMBER", "description": "Level hiện tại"},
-                            "max_ever": {"type": "NUMBER", "description": "Level max từng đạt"},
+                            "level": {"type": "NUMBER", "description": "Level hiện tại sau khi tự tính toán"},
+                            "exp": {"type": "NUMBER", "description": "Tổng EXP hiện tại của kỹ năng"},
                             "unit": {"type": "STRING"}
                         },
-                        "required": ["action", "domain", "level", "max_ever"]
+                        "required": ["action", "domain", "level", "exp"]
+                    }
+                },
+                {
+                    "name": "manage_credits",
+                    "description": "Cộng hoặc Trừ Tín chỉ (Credits) của user dựa trên thưởng/phạt.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "action": {"type": "STRING", "description": "'add' hoặc 'spend'"},
+                            "amount": {"type": "NUMBER", "description": "Số lượng Tín chỉ"},
+                            "reason": {"type": "STRING", "description": "Lý do cộng/trừ"}
+                        },
+                        "required": ["action", "amount", "reason"]
                     }
                 },
                 {
@@ -130,7 +143,7 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
             from core.llm_tools import (
                 update_memory_async, cancel_quest_async, complete_quest_async,
                 update_physical_status_async, manage_project_async, manage_capability_async,
-                reset_database_async
+                manage_credits_async, reset_database_async
             )
             import core.quest_generator
             
@@ -161,7 +174,11 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 elif fc.name == "manage_capability":
                     tool_result = await manage_capability_async(
                         user_id, fc.args.get("action", "update"), fc.args.get("domain", ""),
-                        float(fc.args.get("level", 0)), float(fc.args.get("max_ever", 0)), fc.args.get("unit", "")
+                        float(fc.args.get("level", 0)), float(fc.args.get("exp", 0)), fc.args.get("unit", "")
+                    )
+                elif fc.name == "manage_credits":
+                    tool_result = await manage_credits_async(
+                        user_id, fc.args.get("action", "add"), float(fc.args.get("amount", 0)), fc.args.get("reason", "")
                     )
                 elif fc.name == "reset_database":
                     tool_result = await reset_database_async(user_id)
