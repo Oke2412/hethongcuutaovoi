@@ -291,3 +291,13 @@
 - Tạo nhánh `chore/ensure-utf8` và log lại lịch sử theo quy tắc.
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 19:58] — Sửa lỗi không đọc được file .txt upload từ Windows
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** ok lên rồi, nhưng mà không đọc được file text nếu gửi từ telegram web bên window
+**Kết quả / Quyết định:**
+- Nguyên nhân: File `.txt` tạo bằng Notepad trên Windows thường bị lưu dưới dạng `UTF-16` hoặc `ANSI` (cp1252/cp1258). Khi load file bằng chuẩn `utf-8` nguyên ngặt trên Bot sẽ văng lỗi `UnicodeDecodeError`.
+- Giải pháp: Viết thêm cơ chế Fallback Encoding. Nếu đọc `utf-8` thất bại, tự động chuyển sang thử `utf-16` (Notepad), rồi tới `cp1258` (Vietnamese Windows), và cuối cùng là `cp1252` với chế độ thay thế ký tự lỗi.
+- Đã tạo nhánh `fix/telegram-document-encoding` và push lên để merge.
+**Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
+---
