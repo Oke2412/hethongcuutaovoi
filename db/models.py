@@ -13,11 +13,12 @@ class User(SQLModel, table=True):
     telegram_id: int = Field(unique=True, index=True)
     name: str
     username: Optional[str] = None
+    credits: float = Field(default=0.0)  # Tín chỉ tích luỹ để đổi thưởng
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 # ---------------------------------------------------------------------------
-# Capability tracking  �  "Current Max" per domain
+# Capability tracking    "Current Max" per domain
 # ---------------------------------------------------------------------------
 
 class CapabilityLog(SQLModel, table=True):
@@ -25,7 +26,8 @@ class CapabilityLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     domain: str          # e.g. "coding", "fitness", "focus", "reading"
-    current_level: float # subjective 1-10 or objective metric
+    current_level: float # Mức độ đẳng cấp hiện tại (level)
+    exp: float = 0.0     # Kinh nghiệm tích luỹ trong kỹ năng này
     max_ever: float      # personal record for this domain
     unit: str = ""       # e.g. "push-ups", "pages/day", "hours of focus"
     notes: str = ""

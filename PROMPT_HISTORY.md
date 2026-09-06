@@ -357,3 +357,14 @@
 - Đã tách nhánh `feature/mem0-multimodal-brain` để user tự deploy và kiểm tra sau khi có Paid Tier.
 **Files thay đổi:** RULES.md, PROMPT_HISTORY.md, core/brain.py, bot/handlers/chat.py, bot/handlers/document.py, requirements.txt
 ---
+
+### [2026-09-07 01:25] — Hệ thống Thăng cấp & Tín chỉ Cá nhân hóa
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** để model tự suy luận cái này dựa trên các thông tin về mức độ đẳng cấp trên mạng đi / level của từng kỹ năng ấy / cáo thị nghe vc quá đổi sang từ khác đi / ok phang
+**Kết quả / Quyết định:**
+- Nâng cấp Database (`db/models.py`): Thêm `credits` vào bảng `User`, thêm `exp` vào bảng `CapabilityLog`.
+- Cập nhật Tool (`core/llm_tools.py`): Sửa `manage_capability` để nhận cả Level và EXP (LLM tự suy luận và truyền vào). Thêm Tool `manage_credits` để cộng/trừ điểm thưởng quy đổi.
+- Cập nhật Não bộ (`core/llm.py`): Dạy LLM đóng vai trò Hệ thống thăng cấp. Tự do tính toán EXP, Level dựa trên gia cảnh/thể trạng trong Mem0. Thay đổi xưng hô sang `[Thông báo]`, `[Phân tích]` (bỏ Cáo thị).
+- Đã tạo và push nhánh `feature/exp-reward-system`.
+**Files thay đổi:** db/models.py, core/llm_tools.py, core/llm.py, PROMPT_HISTORY.md
+---

@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import AsyncSessionLocal
-from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog
+from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog, User
 
 logger = logging.getLogger(__name__)
 
@@ -78,8 +78,8 @@ async def manage_project_async(user_id: int, action: str, name: str, progress_pe
             
         return "Action không hợp lệ."
 
-async def manage_capability_async(user_id: int, action: str, domain: str, level: float, max_ever: float, unit: str = "") -> str:
-    """Quản lý kỹ năng của user. action có thể là 'add', 'update', 'delete'."""
+async def manage_capability_async(user_id: int, action: str, domain: str, level: float, exp: float, unit: str = "") -> str:
+    """Quản lý kỹ năng (Level/EXP) của user. action có thể là 'add', 'update', 'delete'."""
     async with AsyncSessionLocal() as session:
         stmt = select(CapabilityLog).where(CapabilityLog.user_id == user_id, CapabilityLog.domain == domain)
         result = await session.execute(stmt)
@@ -95,23 +95,49 @@ async def manage_capability_async(user_id: int, action: str, domain: str, level:
         if action in ["add", "update"]:
             if cap:
                 cap.current_level = level
-                cap.max_ever = max_ever
+                cap.exp = exp
+                if level > cap.max_ever:
+                    cap.max_ever = level
             else:
-                cap = CapabilityLog(user_id=user_id, domain=domain, current_level=level, max_ever=max_ever, unit=unit)
+                cap = CapabilityLog(user_id=user_id, domain=domain, current_level=level, exp=exp, max_ever=level, unit=unit)
                 session.add(cap)
             await session.commit()
-            return f"Đã cập nhật kỹ năng {domain} thành công."
+            return f"Đã cập nhật kỹ năng {domain}: Lv.{level} (EXP: {exp})."
+            
+        return "Action không hợp lệ."
+
+async def manage_credits_async(user_id: int, action: str, amount: float, reason: str) -> str:
+    """Quản lý Tín chỉ (Credits) của user (Cộng/Trừ khi thưởng/phạt)."""
+    async with AsyncSessionLocal() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            return "Không tìm thấy User."
+            
+        if action == "add":
+            user.credits += amount
+            await session.commit()
+            return f"Đã cộng {amount} Tín chỉ. Số dư: {user.credits}. Lý do: {reason}."
+        elif action == "spend":
+            if user.credits < amount:
+                return f"Giao dịch thất bại. Số dư ({user.credits}) không đủ để trừ {amount} Tín chỉ."
+            user.credits -= amount
+            await session.commit()
+            return f"Đã trừ {amount} Tín chỉ. Số dư: {user.credits}. Lý do: {reason}."
             
         return "Action không hợp lệ."
 
 async def reset_database_async(user_id: int) -> str:
     """Xóa trắng toàn bộ dữ liệu của user trong hệ thống."""
     async with AsyncSessionLocal() as session:
-        # Xóa theo thứ tự
         for model in [Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog]:
             stmt = select(model).where(model.user_id == user_id)
             result = await session.execute(stmt)
             for row in result.scalars().all():
                 await session.delete(row)
+                
+        user = await session.get(User, user_id)
+        if user:
+            user.credits = 0.0
+            
         await session.commit()
     return "Đã xóa trắng (Reset) toàn bộ dữ liệu của ngài thành công."
