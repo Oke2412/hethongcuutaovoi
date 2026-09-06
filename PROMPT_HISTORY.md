@@ -311,3 +311,13 @@
 - Đã tạo nhánh `fix/gemini-model-update` và push lên để merge.
 **Files thay đổi:** core/llm.py, core/quest_generator.py, bot/handlers/document.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 21:06] — Sửa lỗi Constraint NOT NULL khi lưu dữ liệu từ AI
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** sqlite3.IntegrityError: NOT NULL constraint failed: capabilitylog.current_level
+**Kết quả / Quyết định:**
+- Nguyên nhân: LLM trả về giá trị `null` cho các trường `current_level` và `max_ever` vì không tìm thấy thông tin này trong file text. Do hàm `dict.get(key, default)` của Python sẽ trả về `None` nếu key đó tồn tại nhưng mang giá trị `null`, hệ thống đã đẩy `None` vào SQLite, vi phạm điều kiện NOT NULL.
+- Giải pháp: Cập nhật lại logic bóc tách JSON, sử dụng `value if value is not None else 0.0` thay vì `.get(key, default)` để đảm bảo luôn lấy giá trị an toàn ngay cả khi AI chủ động trả về `null`.
+- Đã tạo nhánh `fix/db-null-constraint` và push lên để merge.
+**Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
+---

@@ -116,11 +116,11 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             if phys_data:
                 session.add(PhysicalStatus(
                     user_id=user.id,
-                    energy=phys_data.get("energy", 5),
-                    mood=phys_data.get("mood", 5),
-                    health=phys_data.get("health", 5),
-                    sleep_hours=phys_data.get("sleep_hours", 0.0),
-                    notes=phys_data.get("notes", "")
+                    energy=phys_data.get("energy") if phys_data.get("energy") is not None else 5,
+                    mood=phys_data.get("mood") if phys_data.get("mood") is not None else 5,
+                    health=phys_data.get("health") if phys_data.get("health") is not None else 5,
+                    sleep_hours=phys_data.get("sleep_hours") if phys_data.get("sleep_hours") is not None else 0.0,
+                    notes=phys_data.get("notes") or ""
                 ))
                 stats["phys"] = True
                 
@@ -129,10 +129,10 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             for cap in caps_data:
                 session.add(CapabilityLog(
                     user_id=user.id,
-                    domain=cap.get("domain", "Unknown"),
-                    current_level=cap.get("current_level", 0.0),
-                    max_ever=cap.get("max_ever", 0.0),
-                    unit=cap.get("unit", "")
+                    domain=cap.get("domain") or "Unknown",
+                    current_level=cap.get("current_level") if cap.get("current_level") is not None else 0.0,
+                    max_ever=cap.get("max_ever") if cap.get("max_ever") is not None else 0.0,
+                    unit=cap.get("unit") or ""
                 ))
                 stats["caps"] += 1
                 
@@ -141,8 +141,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             for proj in projs_data:
                 session.add(WorkProject(
                     user_id=user.id,
-                    name=proj.get("name", "Unknown"),
-                    progress_percent=proj.get("progress_percent", 0),
+                    name=proj.get("name") or "Unknown",
+                    progress_percent=proj.get("progress_percent") if proj.get("progress_percent") is not None else 0,
                     updated_at=datetime.utcnow()
                 ))
                 stats["projs"] += 1
