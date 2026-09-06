@@ -8,7 +8,6 @@ from config import settings
 from db.database import init_db
 from core.scheduler import setup_scheduler
 from bot.handlers import start, status, chat
-from bot.handlers.report import build_report_handler
 from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
 from bot.handlers.quest import build_quest_handler
@@ -48,7 +47,6 @@ def main() -> None:
 
     # Conversations (order matters: more specific first)
     app.add_handler(build_onboard_handler())   # /onboard
-    app.add_handler(build_report_handler())    # /report
 
     # Document upload
     app.add_handler(build_document_handler())

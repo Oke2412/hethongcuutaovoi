@@ -322,6 +322,7 @@
 **Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
 ---
 
+<<<<<<< HEAD
 ### [2026-09-06 21:23] — Xóa bỏ hệ thống Onboard thủ công rườm rà
 **Agent:** Antigravity (Gemini 3.1 Pro)
 **Prompt:** khi tôi nhấn onboard và gửi file text, xử lí xong, output status nhưng vẫn bắt tôi phải nhập onboard? với không cho hủy hoặc quay lại thao tác nhập liệu...
@@ -330,4 +331,17 @@
 - Giải pháp: Xóa bỏ hoàn toàn luồng Q&A thủ công trong `onboard.py`. Thay vào đó, lệnh `/onboard` giờ đây chỉ in ra hướng dẫn người dùng sử dụng AI (gửi file text hoặc ra lệnh qua chat). Điều này phù hợp 100% với định hướng thiết kế Voice Assistant (Jarvis) đã thống nhất trước đó.
 - Đã tạo nhánh `feature/remove-rigid-onboard` và push lên để merge.
 **Files thay đổi:** bot/handlers/onboard.py, PROMPT_HISTORY.md
+=======
+### [2026-09-06 22:45] — Kỷ nguyên Chat 100% (Agentic Mode)
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** bỏ hết tất cả mọi thứ chỉ dùng chat thôi được không? / tự sinh tool / nhắc nhở / lưu offline.
+**Kết quả / Quyết định:**
+- Đã xóa hoàn toàn `bot/handlers/report.py` (menu báo cáo thủ công cuối ngày).
+- Tích hợp thêm hàng loạt Tool mới vào `core/llm_tools.py`: `update_physical_status`, `manage_project`, `manage_capability`, và đặc biệt là `reset_database` để ngài có thể xóa trắng hệ thống bằng một câu nói.
+- Nâng cấp `core/llm.py` để hỗ trợ gọi nhiều tool cùng lúc (Parallel Function Calling), giúp thực hiện các câu lệnh phức tạp (như vừa cập nhật thể trạng vừa xóa dự án).
+- Ép chặt Persona "Raphael" trong `config.py` và `llm.py`: Lạnh lùng, gọi "tôi - ngài", luôn dùng Tool.
+- Trả lời user: Database hiện tại ĐÃ LÀ OFFLINE (lưu trực tiếp trong file SQLite ở thư mục docker của Server).
+- Đã tạo nhánh `feature/agentic-chat-mode` và push lên để merge.
+**Files thay đổi:** bot/main.py, bot/handlers/report.py, core/llm_tools.py, core/llm.py, core/scheduler.py, PROMPT_HISTORY.md
+>>>>>>> origin/feature/model-update-and-persona
 ---
