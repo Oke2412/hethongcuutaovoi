@@ -10,6 +10,7 @@ from core.scheduler import setup_scheduler
 from bot.handlers import start, status, chat
 from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
+from bot.handlers.location import build_location_handler
 from bot.handlers.quest import build_quest_handler
 
 logging.basicConfig(

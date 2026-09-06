@@ -180,6 +180,21 @@ async def create_quest_async(user_id: int, title: str, description: str, reward:
         await session.refresh(quest)
         return f"Đã tạo Quest ID {quest.id}: {title} thành công."
 
+
+def calculate_distance_sync(lat1: float, lon1: float, lat2: float, lon2: float) -> str:
+    """Tính khoảng cách (mét) giữa 2 tọa độ GPS bằng công thức Haversine (không tốn API)."""
+    import math
+    R = 6371000  # Bán kính Trái Đất tính bằng mét
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = R * c
+    return f"Khoảng cách: {distance:.2f} mét."
+
 async def reset_database_async(user_id: int) -> str:
     """Xóa trắng toàn bộ dữ liệu của user trong hệ thống."""
     async with AsyncSessionLocal() as session:

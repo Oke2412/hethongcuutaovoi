@@ -51,6 +51,18 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
         {
             "function_declarations": [
                 {
+                    "name": "calculate_distance",
+                    "description": "Tính khoảng cách (mét) giữa 2 tọa độ GPS. Hữu ích khi tính khoảng cách từ vị trí hiện tại tới các Điểm neo (Waypoint).",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "lat1": {"type": "NUMBER"}, "lon1": {"type": "NUMBER"},
+                            "lat2": {"type": "NUMBER"}, "lon2": {"type": "NUMBER"}
+                        },
+                        "required": ["lat1", "lon1", "lat2", "lon2"]
+                    }
+                },
+                {
                     "name": "update_memory",
                     "description": "Lưu trữ thông tin, sự kiện, hoàn cảnh mới vào DB của user.",
                     "parameters": {"type": "OBJECT", "properties": {"content": {"type": "STRING"}}, "required": ["content"]}
@@ -166,7 +178,7 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
             from core.llm_tools import (
                 update_memory_async, cancel_quest_async, complete_quest_async, create_quest_async,
                 manage_user_status_async, update_physical_status_async, manage_project_async, 
-                manage_capability_async, manage_credits_async
+                manage_capability_async, manage_credits_async, calculate_distance_sync
             )
             
             tool_responses = []

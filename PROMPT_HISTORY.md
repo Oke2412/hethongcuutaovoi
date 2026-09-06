@@ -380,3 +380,25 @@
 - Đã tạo và push nhánh `feature/tensura-skills-os`.
 **Files thay đổi:** db/models.py, core/llm_tools.py, core/llm.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-07 02:01] — Đọc lại toàn bộ dự án và cập nhật context hiện tại
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** đọc lại dự án và cập nhật đến hiện tại đi, đừng làm gì cả
+**Kết quả / Quyết định:**
+- Đã kiểm tra `git status`, `git pull`, đọc toàn bộ `RULES.md` và `PROMPT_HISTORY.md`.
+- Ghi nhận context hiện tại của dự án đang dừng ở nhánh `feature/tensura-skills-os`: Kỷ nguyên Chat 100% Agentic, não bộ RaphaelBrain độc lập kết hợp Mem0, hệ thống Tín chỉ (Credits) & EXP cây kỹ năng (Skill Tree), và 5 Kỹ năng Tối thượng Tensura OS với persona cực kỳ lạnh lùng (chống bám víu tình cảm).
+- Tuân thủ yêu cầu: chỉ đọc, nắm bắt và báo cáo tình hình, không thực hiện thêm thay đổi code nào.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-07 01:58] — Tính năng Săn quái địa phương & Điểm Neo Không Gian (Waypoint Location)
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** à ko ko cái săn quái địa phương này có thể thêm làm kiểu thấy mệt hay làm tốt thêm phần thưởng được ko hoặc thấy rảnh thì cho làm side quest dựa theo địa điểm ấy / ok phang
+**Kết quả / Quyết định:**
+- Chuyển hướng tính năng "Spatial Motion": Thay vì sinh quái ngẫu nhiên, hệ thống sẽ sử dụng Tọa độ GPS (Live Location) làm Hệ quy chiếu kết hợp với `Mem0` (Điểm neo không gian - Waypoint).
+- Bổ sung Tool `calculate_distance` vào `core/llm_tools.py` và `core/llm.py` để LLM tự tính toán khoảng cách Haversine (Hoàn toàn miễn phí, không gọi Google Maps API).
+- Tạo mới `bot/handlers/location.py` để lắng nghe Live Location từ Telegram, dịch tọa độ và ép LLM suy luận ra Reward hoặc Side Quest dựa trên thể trạng (PhysicalStatus).
+- Cập nhật `bot/main.py` để tích hợp Location Handler.
+- Đã push nhánh `feature/waypoint-location`.
+**Files thay đổi:** core/llm_tools.py, core/llm.py, bot/handlers/location.py, bot/main.py, PROMPT_HISTORY.md
+---
