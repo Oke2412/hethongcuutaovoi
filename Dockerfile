@@ -1,9 +1,9 @@
-# Dockerfile — Telegram Bot (long polling)
+# Dockerfile â€” Telegram Bot (long polling)
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies for ChromaDB\nRUN apt-get update && apt-get install -y build-essential gcc && rm -rf /var/lib/apt/lists/*\n\n# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
