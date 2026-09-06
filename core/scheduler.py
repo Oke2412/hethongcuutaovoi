@@ -87,7 +87,7 @@ async def _send_daily_checkin(bot: Bot) -> None:
                 chat_id=user.telegram_id,
                 text=(
                     "📋 *Điểm danh cuối ngày*\n\n"
-                    "Hôm nay thế nào? Dùng /report để cập nhật."
+                    "Hôm nay thế nào? Hãy báo cáo lại tình trạng của bạn."
                 ),
                 parse_mode="Markdown",
             )
