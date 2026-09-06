@@ -345,3 +345,15 @@
 **Files thay đổi:** bot/main.py, bot/handlers/report.py, core/llm_tools.py, core/llm.py, core/scheduler.py, PROMPT_HISTORY.md
 >>>>>>> origin/feature/model-update-and-persona
 ---
+
+### [2026-09-07 00:30] — Kiến trúc Não bộ Độc lập & Tích hợp Mem0
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** không code thì cứ branch ra mà code đi còn deploy bot thì để tôi tự deploy, à mà code với system bắt đầu out of hand rồi đấy, nhớ cập nhật rules với log đầy đủ nhé...
+**Kết quả / Quyết định:**
+- Đã viết lại `RULES.md` rõ ràng: chia hệ thống thành Frontend Adapter (Telegram) và Core Brain. Cấm dùng ConversationHandler, bắt buộc dùng Chat Agentic.
+- Tạo class `RaphaelBrain` trong `core/brain.py`. Class này nhận input độc lập (văn bản, hình ảnh) và gọi Mem0 để trích xuất ký ức, ghim vào Prompt, sau đó gọi Gemini.
+- Chỉnh sửa `bot/handlers/chat.py` và `bot/handlers/document.py` để biến Telegram thành một cái "Adapter" đơn thuần, hứng text/file và đẩy hết vào `RaphaelBrain.process_input()`.
+- Thêm `mem0ai` và `chromadb` vào `requirements.txt`.
+- Đã tách nhánh `feature/mem0-multimodal-brain` để user tự deploy và kiểm tra sau khi có Paid Tier.
+**Files thay đổi:** RULES.md, PROMPT_HISTORY.md, core/brain.py, bot/handlers/chat.py, bot/handlers/document.py, requirements.txt
+---

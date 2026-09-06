@@ -3,11 +3,10 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 from db.database import AsyncSessionLocal
-from core.memory import get_or_create_user, build_user_context
-from core.llm import generate_response
+from core.memory import get_or_create_user
+from core.brain import brain
 
 logger = logging.getLogger(__name__)
-
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     tg_user = update.effective_user
@@ -19,6 +18,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user = await get_or_create_user(
             session, tg_user.id, tg_user.full_name, tg_user.username
         )
-        user_context = await build_user_context(session, user)
-    response = await generate_response(user.id, user_context, message.text)
+    
+    # Delegate entirely to the Core Brain
+    response = await brain.process_input(user_id=str(user.id), text_content=message.text)
     await message.reply_text(response)

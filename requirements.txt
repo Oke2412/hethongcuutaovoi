@@ -10,3 +10,5 @@ apscheduler==3.10.4
 httpx==0.27.2
 python-dotenv==1.0.1
 structlog==24.4.0
+mem0ai
+chromadb
