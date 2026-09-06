@@ -28,7 +28,7 @@ PERSONAS: dict[str, str] = {
 def _get_gemini_model() -> genai.GenerativeModel:
     genai.configure(api_key=settings.gemini_api_key)
     system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
-    return genai.GenerativeModel(model_name="gemini-2.5-flash", system_instruction=system_prompt)
+    return genai.GenerativeModel(model_name="gemini-3.6-flash", system_instruction=system_prompt)
 
 
 async def generate_response(user_id: int, user_context: str, user_message: str) -> str:

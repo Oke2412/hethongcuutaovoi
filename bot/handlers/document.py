@@ -89,7 +89,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         # Call Gemini LLM
         genai.configure(api_key=settings.gemini_api_key)
         model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
+            model_name="gemini-3.6-flash",
             generation_config={"response_mime_type": "application/json"}
         )
         

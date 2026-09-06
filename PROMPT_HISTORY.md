@@ -301,3 +301,13 @@
 - Đã tạo nhánh `fix/telegram-document-encoding` và push lên để merge.
 **Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 20:50] — Cập nhật phiên bản Model Gemini
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** google.api_core.exceptions.NotFound: 404 This model models/gemini-2.5-flash is no longer available to new users...
+**Kết quả / Quyết định:**
+- Nguyên nhân: Google đã đóng luồng truy cập mới cho model `gemini-2.5-flash` và yêu cầu nâng cấp lên `gemini-3.6-flash`.
+- Giải pháp: Quét toàn bộ source code tìm các đoạn code gọi model cũ và thay thế bằng `gemini-3.6-flash`.
+- Đã tạo nhánh `fix/gemini-model-update` và push lên để merge.
+**Files thay đổi:** core/llm.py, core/quest_generator.py, bot/handlers/document.py, PROMPT_HISTORY.md
+---
