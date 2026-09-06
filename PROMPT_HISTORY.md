@@ -321,3 +321,13 @@
 - Đã tạo nhánh `fix/db-null-constraint` và push lên để merge.
 **Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 21:23] — Xóa bỏ hệ thống Onboard thủ công rườm rà
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** khi tôi nhấn onboard và gửi file text, xử lí xong, output status nhưng vẫn bắt tôi phải nhập onboard? với không cho hủy hoặc quay lại thao tác nhập liệu...
+**Kết quả / Quyết định:**
+- Nguyên nhân: Lệnh `/onboard` cũ sử dụng `ConversationHandler` của Telegram, nó tạo ra một luồng hỏi đáp "cứng" (rigid). Khi người dùng gửi file text, Handler của file text nhảy vào xử lý nhưng luồng Onboard vẫn không chịu thoát, gây kẹt trạng thái.
+- Giải pháp: Xóa bỏ hoàn toàn luồng Q&A thủ công trong `onboard.py`. Thay vào đó, lệnh `/onboard` giờ đây chỉ in ra hướng dẫn người dùng sử dụng AI (gửi file text hoặc ra lệnh qua chat). Điều này phù hợp 100% với định hướng thiết kế Voice Assistant (Jarvis) đã thống nhất trước đó.
+- Đã tạo nhánh `feature/remove-rigid-onboard` và push lên để merge.
+**Files thay đổi:** bot/handlers/onboard.py, PROMPT_HISTORY.md
+---
