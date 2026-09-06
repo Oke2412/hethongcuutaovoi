@@ -271,3 +271,13 @@
 - Lưu ý: Không push `.env` lên Github vì vi phạm bảo mật, chỉ push log cập nhật.
 **Files thay đổi:** .env (local), PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 19:07] — Fix file .env.example bị lỗi Unicode trên Git
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** vấn đề là tôi chạy trên local server không phải máy làm việc nên khi pull về thì muốn nó là utf8 luôn...
+**Kết quả / Quyết định:**
+- Nhận diện vấn đề: File `.env.example` được lưu trên Git đã bị nhiễm ký tự ANSI (mã 0x97) từ trước. Khi người dùng pull về Ubuntu và copy ra `.env`, lỗi này bị mang theo. Server Ubuntu mặc định dùng UTF-8 chuẩn nên bị crash.
+- Giải pháp: Chuyển mã file `.env.example` sang chuẩn UTF-8, thay ký tự gạch ngang bị lỗi thành gạch ngang chuẩn (-).
+- Đã commit và push lên nhánh `main`.
+**Files thay đổi:** .env.example, PROMPT_HISTORY.md
+---
