@@ -281,3 +281,13 @@
 - Đã commit và push lên nhánh `main`.
 **Files thay đổi:** .env.example, PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 19:10] — Quét toàn bộ dự án kiểm tra chuẩn mã hóa UTF-8
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** kiểm tra lại toàn bộ dự án xem đã chạy utf-8 chưa và sửa đi rồi push lên nhánh khác để tôi merge
+**Kết quả / Quyết định:**
+- Chạy script Python để quét toàn bộ `.py`, `.md`, `.yml` trong dự án và thử parse bằng bộ giải mã `utf-8` nghiêm ngặt.
+- Kết quả: Không phát hiện thêm file nào bị lỗi mã hóa (Tất cả đều đã chuẩn UTF-8). Lỗi duy nhất trước đó nằm ở `.env.example` đã được fix triệt để.
+- Tạo nhánh `chore/ensure-utf8` và log lại lịch sử theo quy tắc.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
