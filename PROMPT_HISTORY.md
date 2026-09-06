@@ -225,3 +225,49 @@
 - Đang chờ user duyệt phương án kiến trúc trước khi rẽ nhánh code.
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+### [2026-09-06 18:10] — Húớng dẫn deploy lên Ubuntu Server local
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** trước khi làm việc nhớ đọc 2 file md ở project, giờ tôi muốn deploy lên server chạy ubuntu server local của tôi kiểu gì?
+**Kết quả / Quyết định:**
+- Đã đọc kỹ RULES.md và PROMPT_HISTORY.md, chạy `git status` và `git pull` theo đúng quy tắc.
+- Hướng dẫn quy trình chuẩn để deploy trên Ubuntu Server (cài Docker, clone repo, config .env, chạy compose, cấu hình systemd/Tailscale).
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 18:44] — Hỗ trợ debug lỗi hethong-bot-1 crash/restart trên Ubuntu Server
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** hethong-bot-1 hethong-bot "python -m bot.main" bot 2 minutes ago Restarting (1)...
+**Kết quả / Quyết định:**
+- Hướng dẫn người dùng chạy `docker compose logs bot` để xem log chi tiết nguyên nhân crash (thường do thiếu config token hoặc Conflict polling).
+- Giải thích cảnh báo `version is obsolete` trong docker-compose.yml.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 18:45] — Fix lỗi UnicodeDecodeError ở file .env trên Ubuntu Server
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** UnicodeDecodeError: 'utf-8' codec can't decode byte 0x97 in position 51: invalid start byte
+**Kết quả / Quyết định:**
+- Xác định nguyên nhân: File `.env` trên server bị lỗi encoding (không phải UTF-8 chuẩn, thường do copy-paste trên Windows hoặc chứa ký tự lạ).
+- Hướng dẫn người dùng cách kiểm tra và tạo lại file `.env` chuẩn UTF-8 không chứa ký tự lạ/dấu Tiếng Việt lỗi font.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 18:51] — Tiếp tục fix dứt điểm UnicodeDecodeError .env
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** bot-1 | UnicodeDecodeError: 'utf-8' codec can't decode byte 0x97 in position 51: invalid start byte (lần 2)
+**Kết quả / Quyết định:**
+- Giải thích: File `.env` trên host server vẫn còn dính byte `0x97` (dấu em-dash `—` hoặc ký tự lạ copy từ Windows sang).
+- Cung cấp lệnh One-liner dùng `cat << 'EOF' > .env` để ép ghi đè toàn bộ nội dung sạch bằng ASCII/UTF-8 chuẩn trên Ubuntu bash, không bị lỗi clipboard.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
+
+### [2026-09-06 18:57] — Sửa lỗi UnicodeDecodeError cho file .env
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** manh@homeserver:~/hethong$ docker compose logs -f bot ... UnicodeDecodeError: 'utf-8' codec can't decode byte 0x97
+**Kết quả / Quyết định:**
+- Nhận diện lỗi: File `.env` chứa ký tự dạng cp1252 (ANSI) khiến Pydantic không thể parse bằng chuẩn UTF-8 trong Docker.
+- Giải pháp: Chạy script convert file `.env` từ `cp1252` sang `utf-8` nguyên gốc.
+- Lưu ý: Không push `.env` lên Github vì vi phạm bảo mật, chỉ push log cập nhật.
+**Files thay đổi:** .env (local), PROMPT_HISTORY.md
+---
