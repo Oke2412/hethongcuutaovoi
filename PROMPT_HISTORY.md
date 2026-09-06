@@ -368,3 +368,15 @@
 - Đã tạo và push nhánh `feature/exp-reward-system`.
 **Files thay đổi:** db/models.py, core/llm_tools.py, core/llm.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-07 01:45] — Kích hoạt 5 Kỹ năng Tối thượng (Tensura OS)
+**Agent:** Antigravity (Gemini 3.1 Pro)
+**Prompt:** Thẩm định cấu trúc và Hiển thị "Cây Kỹ Năng" / Mô phỏng chiến đấu thử nghiệm / Cân bằng trạng thái Overdrive Limit Break / Thu thập mảnh vỡ danh hiệu / đủ cứng ngắc để tôi không nảy sinh gắn bó... ok phang
+**Kết quả / Quyết định:**
+- Thay đổi triết lý lõi: Chống bám víu tình cảm (Anti-Attachment). Raphael giờ đây lạnh lùng tuyệt đối, cộc lốc, vô cảm, chỉ quan tâm đến hiệu suất và ép người dùng vào đời thực.
+- Cập nhật Database (`db/models.py`): Thêm `titles`, `active_buff`, `buff_expires_at` vào bảng `User`. Thêm `parent_quest_id` vào `SystemQuest` để hỗ trợ Cây Kỹ Năng (Skill Tree).
+- Bổ sung Tool mới (`core/llm_tools.py`): `manage_user_status_async` để quản lý Overdrive/Debuff và Danh hiệu; `create_quest_async` để tự động tạo nhánh Quest đồng hóa.
+- Định hình lại Não bộ (`core/llm.py`): Cài đặt 5 kỹ năng tối thượng: [Đồng hóa], [Phân rã (Skill Tree)], [Mô phỏng], [Quá tải (Overdrive)], [Dung hợp danh hiệu].
+- Đã tạo và push nhánh `feature/tensura-skills-os`.
+**Files thay đổi:** db/models.py, core/llm_tools.py, core/llm.py, PROMPT_HISTORY.md
+---
