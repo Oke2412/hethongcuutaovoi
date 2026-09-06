@@ -126,6 +126,60 @@ async def manage_credits_async(user_id: int, action: str, amount: float, reason:
             
         return "Action không hợp lệ."
 
+
+async def manage_user_status_async(user_id: int, action: str, buff_name: str = "", title: str = "", expires_in_minutes: int = 0) -> str:
+    """Quản lý Buff (Overdrive/Debuff) hoặc Title của user."""
+    from datetime import timedelta
+    async with AsyncSessionLocal() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            return "Không tìm thấy User."
+            
+        if action == "set_buff":
+            user.active_buff = buff_name
+            if expires_in_minutes > 0:
+                user.buff_expires_at = datetime.utcnow() + timedelta(minutes=expires_in_minutes)
+            else:
+                user.buff_expires_at = None
+            await session.commit()
+            return f"Đã thiết lập trạng thái: {buff_name} (Hết hạn sau {expires_in_minutes} phút)."
+            
+        elif action == "clear_buff":
+            user.active_buff = ""
+            user.buff_expires_at = None
+            await session.commit()
+            return "Đã xóa trạng thái Buff/Debuff hiện tại."
+            
+        elif action == "add_title":
+            current_titles = [t.strip() for t in user.titles.split(",") if t.strip()]
+            if title not in current_titles:
+                current_titles.append(title)
+                user.titles = ", ".join(current_titles)
+                await session.commit()
+                return f"Đã mở khóa và trang bị danh hiệu: [{title}]."
+            return f"Ngài đã có sẵn danh hiệu [{title}] rồi."
+            
+        return "Action không hợp lệ."
+
+async def create_quest_async(user_id: int, title: str, description: str, reward: str, penalty: str, parent_quest_id: int = 0) -> str:
+    """Tạo một Nhiệm vụ mới (Quest) hoặc chuỗi kỹ năng (Cây Kỹ Năng) nếu có parent_quest_id."""
+    async with AsyncSessionLocal() as session:
+        quest = SystemQuest(
+            user_id=user_id,
+            title=title,
+            description=description,
+            reward=reward,
+            penalty=penalty,
+            parent_quest_id=parent_quest_id if parent_quest_id > 0 else None,
+            status="pending"
+        )
+        session.add(quest)
+        await session.commit()
+        
+        # Lấy ID vừa tạo
+        await session.refresh(quest)
+        return f"Đã tạo Quest ID {quest.id}: {title} thành công."
+
 async def reset_database_async(user_id: int) -> str:
     """Xóa trắng toàn bộ dữ liệu của user trong hệ thống."""
     async with AsyncSessionLocal() as session:
