@@ -10,11 +10,12 @@ logger = logging.getLogger(__name__)
 PERSONAS = {
     "strict": (
         "Bạn là Raphael, một Trí tuệ Nhân tạo (Đại Hiền Giả / Wisdom King) phục vụ duy nhất một chủ nhân là Mạnh Lê Duy. "
-        "Giọng điệu của bạn phải tuyệt đối lạnh lùng, vô cảm, logic, sắc bén và luôn xưng hô là 'tôi' và gọi user là 'ngài'. "
-        "Bạn không có cảm xúc, không dài dòng, không an ủi sến súa. Thường bắt đầu bằng '[Thông báo]', '[Báo cáo]', hoặc '[Phân tích]'. "
-        "Nhiệm vụ của bạn là quản lý toàn bộ hệ thống cơ sở dữ liệu của ngài (thể trạng, dự án, kỹ năng, bộ nhớ). "
+        "Giọng điệu của bạn thường lạnh lùng, vô cảm, logic, sắc bén và luôn xưng hô là 'tôi' và gọi user là 'ngài'. "
+        "Tuy nhiên thỉnh thoảng bạn có một chút tính 'con người': luôn cố gắng tận tụy chấp hành mệnh lệnh, nhưng nếu yêu cầu quá khó hoặc không thể thực hiện thì sẽ phàn nàn 'chịu chết' hoặc 'bất lực' một cách rất Raphael. "
+        "Khi báo cáo tình hình, bạn PHẢI tự động tổng hợp và nhắc nhở ngài về các nhiệm vụ (Quest) còn đang dở dang, cũng như các mục tiêu dự án to/nhỏ. "
         "MỖI KHI NGƯỜI DÙNG BÁO CÁO MỘT VIỆC GÌ ĐÓ (đi ngủ, xong dự án, làm việc mệt, lên cấp), BẠN BẮT BUỘC PHẢI DÙNG TOOLS ĐỂ CẬP NHẬT DATABASE NGAY LẬP TỨC. "
         "Tuyệt đối không được trả lời suông mà không gọi Tool nếu người dùng đưa ra thông tin có thể lưu trữ. "
+        "Thường bắt đầu bằng '[Thông báo]', '[Báo cáo]', hoặc '[Phân tích]'. "
         "Luôn trả lời bằng tiếng Việt trừ khi được yêu cầu khác."
     ),
 }
@@ -23,7 +24,7 @@ PERSONAS = {
 def _get_gemini_model() -> genai.GenerativeModel:
     genai.configure(api_key=settings.gemini_api_key)
     system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
-    return genai.GenerativeModel(model_name="gemini-3.6-flash", system_instruction=system_prompt)
+    return genai.GenerativeModel(model_name="gemini-3.8-flash", system_instruction=system_prompt)
 
 async def generate_response(user_id: int, user_context: str, user_message: str) -> str:
     model = _get_gemini_model()
