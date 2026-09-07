@@ -23,6 +23,13 @@ class RaphaelBrain:
                     "api_key": settings.gemini_api_key,
                 }
             },
+            "embedder": {
+                "provider": "google_genai",
+                "config": {
+                    "api_key": settings.gemini_api_key,
+                    "model": "models/text-embedding-004"
+                }
+            },
             "vector_store": {
                 "provider": "chroma",
                 "config": {
