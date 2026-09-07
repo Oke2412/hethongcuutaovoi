@@ -1,4 +1,4 @@
-# RULES.md — Agent Phải Đọc File Này Trước Mỗi Session
+# GEMINI.md — Agent Phải Đọc File Này Trước Mỗi Session
 
 > **BẮT BUỘC**: Đọc file này VÀ `PROMPT_HISTORY.md` trước khi làm bất kỳ việc gì trong project.
 

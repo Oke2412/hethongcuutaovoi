@@ -46,7 +46,6 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return
 
 
->>>>>>> origin/feature/mem0-multimodal-brain
         tg_user = update.effective_user
         async with AsyncSessionLocal() as session:
             user = await get_or_create_user(session, tg_user.id, tg_user.full_name, tg_user.username)
