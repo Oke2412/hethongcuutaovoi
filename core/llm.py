@@ -228,3 +228,43 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
     except Exception as exc:
         logger.error("Gemini API error: %s", exc, exc_info=True)
         return "⚠️ [Báo cáo lỗi] Hệ thống tạm thời không phản hồi. Xin thử lại sau."
+
+
+async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: str) -> str:
+    """
+    Called by backend event hooks (e.g. location changed, mood dropped).
+    Uses Pro model to evaluate if a side quest is needed.
+    Returns the side quest text, or empty string if none needed.
+    """
+    from core.omniscience import get_omniscient_state
+    
+    # We want to use Pro for deep reasoning
+    model = genai.GenerativeModel('gemini-1.5-pro-latest') # Simulating 3.1 Pro
+    
+    omni_state = await get_omniscient_state(user_id)
+    
+    prompt = f"""Bạn là Raphael - Đại Hiền Giả (System OS) của Master.
+Nhiệm vụ của bạn: Giám sát trạng thái Toàn tri của Master và quyết định xem có nên kích hoạt một Side Quest khẩn cấp/bất ngờ không.
+    
+{omni_state}
+
+[SỰ KIỆN KÍCH HOẠT VỪA XẢY RA]
+{event_trigger}
+
+[PHÂN TÍCH VÀ RA QUYẾT ĐỊNH]
+1. Nhìn vào Sự kiện kích hoạt (Ví dụ: Master vừa đến quán cafe, Master vừa than mệt, hoặc Master vừa lướt web vô tri).
+2. Nhìn vào Năng lượng, Tâm trạng, và Dự án đang chạy.
+3. Nếu bạn thấy Master đang ổn và không cần bị làm phiền, CHỈ output ra chữ: "NO".
+4. Nếu bạn thấy thời cơ chín muồi (cần nắn chỉnh hành vi, hoặc cần khai thác đà hưng phấn), hãy TẠO RA 1 SIDE QUEST. Output trực tiếp nội dung tin nhắn sẽ gửi cho Master (Giọng điệu Raphael lạnh lùng, sắc bén, có kèm thưởng/phạt rõ ràng).
+Tuyệt đối không giải thích dài dòng. Chỉ output "NO" hoặc Nội dung Side Quest.
+"""
+    
+    try:
+        response = await asyncio.to_thread(model.generate_content, prompt)
+        text = response.text.strip()
+        if text.upper() == "NO" or "NO" in text.upper()[:10]:
+            return ""
+        return text
+    except Exception as e:
+        logger.error(f"Lỗi khi generate Side Quest: {e}")
+        return ""
