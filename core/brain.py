@@ -15,6 +15,7 @@ class RaphaelBrain:
     def __init__(self):
         # Configure Mem0 to use Gemini and local ChromaDB
         config = {
+            "version": "v1.1",
             "llm": {
                 "provider": "litellm",
                 "config": {
@@ -27,6 +28,14 @@ class RaphaelBrain:
                 "config": {
                     "collection_name": "raphael_memories",
                     "path": "./chroma_db"
+                }
+            },
+            "graph_store": {
+                "provider": "neo4j",
+                "config": {
+                    "url": "neo4j://neo4j:7687",
+                    "username": "neo4j",
+                    "password": "password"
                 }
             }
         }
@@ -52,27 +61,21 @@ class RaphaelBrain:
         # 2. Multimodal pre-processing (Extract text from images/audio if present)
         multimodal_context = ""
         if image_bytes:
-            multimodal_context += "[Người dùng đã gửi một bức ảnh. Hãy xử lý nó.]
-"
+            multimodal_context += "[Người dùng đã gửi một bức ảnh. Hãy xử lý nó.]\n"
         
-        final_text = (text_content or "") + "
-" + multimodal_context
+        final_text = (text_content or "") + "\n" + multimodal_context
         
         # 3. Retrieve Memories using Mem0
         memories = self.memory.search(query=final_text, user_id=user_id, limit=5)
-        memory_context = "--- KÝ ỨC DÀI HẠN TỪ MEM0 (GRAPH) ---
-"
+        memory_context = "--- KÝ ỨC DÀI HẠN TỪ MEM0 (GRAPH) ---\n"
         for mem in memories:
-            memory_context += f"- {mem['text']}
-"
+            memory_context += f"- {mem['text']}\n"
             
         # 4. GET OMNISCIENCE STATE
         omniscience_context = await get_omniscient_state(int(user_id))
         
         # Combine contexts
-        full_context = omniscience_context + "
-
-" + memory_context
+        full_context = omniscience_context + "\n\n" + memory_context
             
         # 5. Call the Core LLM Tool Agent (Raphael) - Default to Flash for chat
         response = await generate_response(
@@ -93,7 +96,7 @@ class RaphaelBrain:
         asyncio.create_task(
             asyncio.to_thread(
                 self.memory.add,
-                final_text,
+                messages=[{"role": "user", "content": final_text}, {"role": "assistant", "content": response}],
                 user_id=user_id,
                 metadata={"timestamp": current_time, "source": "chat"}
             )
