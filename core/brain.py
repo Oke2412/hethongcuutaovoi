@@ -24,7 +24,7 @@ class RaphaelBrain:
                 }
             },
             "embedder": {
-                "provider": "google_genai",
+                "provider": "gemini",
                 "config": {
                     "api_key": settings.gemini_api_key,
                     "model": "models/text-embedding-004"
