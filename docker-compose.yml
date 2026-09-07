@@ -1,4 +1,4 @@
-version: "3.11"
+version: "3.8"
 
 services:
   # -- Telegram Bot (long polling) ------------------------------------------
@@ -11,24 +11,7 @@ services:
       - ./data/chroma:/app/chroma_db  # Persist ChromaDB Vector Storage
     env_file: .env
     restart: unless-stopped
-    
-  # -- Neo4j Graph Database (for GraphRAG) ----------------------------------
-  neo4j:
-    image: neo4j:5.12
-    restart: unless-stopped
-    ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
-    environment:
-      - NEO4J_AUTH=neo4j/password
-      - NEO4J_PLUGINS=["apoc"]
-    volumes:
-      - ./data/neo4j/data:/data
-      - ./data/neo4j/logs:/logs
     networks:
-      - internal
-
-networks:
       - internal
 
   # -- FastAPI (health, future dashboard) -----------------------------------
@@ -42,26 +25,8 @@ networks:
       - ./data:/app/data        # Shared SQLite volume
     env_file: .env
     restart: unless-stopped
-    
-  # -- Neo4j Graph Database (for GraphRAG) ----------------------------------
-  neo4j:
-    image: neo4j:5.12
-    restart: unless-stopped
-    ports:
-      - "7474:7474" # HTTP
-      - "7687:7687" # Bolt
-    environment:
-      - NEO4J_AUTH=neo4j/password
-      - NEO4J_PLUGINS=["apoc"]
-    volumes:
-      - ./data/neo4j/data:/data
-      - ./data/neo4j/logs:/logs
     networks:
       - internal
-
-networks:
-      - internal
-
 
   # -- Neo4j Graph Database (for GraphRAG) ----------------------------------
   neo4j:
