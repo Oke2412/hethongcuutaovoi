@@ -43,33 +43,61 @@ class RaphaelBrain:
         Universal entry point for all frontend adapters.
         """
         from core.llm import generate_response
+        from core.omniscience import get_omniscient_state, log_message
         
-        # 1. Multimodal pre-processing (Extract text from images/audio if present)
+        # 1. Log the user message
+        if text_content:
+            await log_message(int(user_id), "user", text_content)
+        
+        # 2. Multimodal pre-processing (Extract text from images/audio if present)
         multimodal_context = ""
         if image_bytes:
-            # Future: use Gemini to analyze image and return text description
-            multimodal_context += "[Người dùng đã gửi một bức ảnh. Hãy xử lý nó.]\n"
+            multimodal_context += "[Người dùng đã gửi một bức ảnh. Hãy xử lý nó.]
+"
         
-        final_text = (text_content or "") + "\n" + multimodal_context
+        final_text = (text_content or "") + "
+" + multimodal_context
         
-        # 2. Retrieve Memories using Mem0
-        # Mem0 searches the local ChromaDB for relevant past context
+        # 3. Retrieve Memories using Mem0
         memories = self.memory.search(query=final_text, user_id=user_id, limit=5)
-        memory_context = "--- KÝ ỨC DÀI HẠN TỪ MEM0 ---\n"
+        memory_context = "--- KÝ ỨC DÀI HẠN TỪ MEM0 (GRAPH) ---
+"
         for mem in memories:
-            memory_context += f"- {mem['text']}\n"
+            memory_context += f"- {mem['text']}
+"
             
-        # 3. Call the Core LLM Tool Agent (Raphael)
-        # We pass the memory context along with the user's message
+        # 4. GET OMNISCIENCE STATE
+        omniscience_context = await get_omniscient_state(int(user_id))
+        
+        # Combine contexts
+        full_context = omniscience_context + "
+
+" + memory_context
+            
+        # 5. Call the Core LLM Tool Agent (Raphael) - Default to Flash for chat
         response = await generate_response(
             user_id=int(user_id), 
-            user_context=memory_context, 
+            user_context=full_context, 
             user_message=final_text
         )
         
-        # 4. Save the new interaction to Mem0
-        # Mem0 automatically extracts core facts and saves them
-        self.memory.add(messages=[{"role": "user", "content": final_text}, {"role": "assistant", "content": response}], user_id=user_id)
+        # 6. Log the assistant response
+        await log_message(int(user_id), "assistant", response)
+        
+        # 7. Save the new interaction to Mem0
+        from datetime import datetime
+        current_time = datetime.now().isoformat()
+        
+        # We run mem0 add in a separate thread so it doesn't block the async loop
+        import asyncio
+        asyncio.create_task(
+            asyncio.to_thread(
+                self.memory.add,
+                final_text,
+                user_id=user_id,
+                metadata={"timestamp": current_time, "source": "chat"}
+            )
+        )
         
         return response
 
