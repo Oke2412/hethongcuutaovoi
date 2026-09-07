@@ -23,11 +23,11 @@ class RaphaelBrain:
                     "api_key": settings.gemini_api_key,
                 }
             },
-            "embedder": {
-                "provider": "litellm",
+                        "embedder": {
+                "provider": "gemini",
                 "config": {
                     "api_key": settings.gemini_api_key,
-                    "model": "gemini/text-embedding-004"
+                    "model": "models/text-embedding-004"
                 }
             },
             "vector_store": {
