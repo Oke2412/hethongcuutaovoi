@@ -1,7 +1,8 @@
 import json
 import logging
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -46,7 +47,7 @@ async def generate_and_save_quest(user_id: int):
         context = await build_user_context(session, user)
         prompt = PROMPT_QUEST + "\n\n--- CONTEXT ---\n" + context
 
-        genai.configure(api_key=settings.gemini_api_key)
+        client = genai.Client(api_key=settings.gemini_api_key)
         model = genai.GenerativeModel(
             model_name="gemini-3.8-flash",
             generation_config={"response_mime_type": "application/json"}

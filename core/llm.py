@@ -1,7 +1,8 @@
 import logging
 import asyncio
 from functools import lru_cache
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from config import settings
 
@@ -24,13 +25,14 @@ PERSONAS = {
 }
 
 @lru_cache(maxsize=1)
-def _get_gemini_model() -> genai.GenerativeModel:
-    genai.configure(api_key=settings.gemini_api_key)
+def _get_gemini_client() -> genai.Client:
+    
     system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
-    return genai.GenerativeModel(model_name="gemini-3.8-flash", system_instruction=system_prompt)
+    return genai.Client(api_key=settings.gemini_api_key)
 
 async def generate_response(user_id: int, user_context: str, user_message: str) -> str:
-    model = _get_gemini_model()
+    client = _get_gemini_client()
+    system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
     prompt = f"--- CONTEXT ---\n{user_context}\n--- HET CONTEXT ---\n\nTin nhan: {user_message}"
     
     tools = [
@@ -206,7 +208,7 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                         user_id, fc.args.get("action", "add"), float(fc.args.get("amount", 0)), fc.args.get("reason", "")
                     )
                     
-                tool_responses.append(genai.types.Part.from_function_response(name=fc.name, response={"result": tool_result}))
+                tool_responses.append(types.Part.from_function_response(name=fc.name, response={"result": tool_result}))
                 
             response = await asyncio.to_thread(chat.send_message, tool_responses)
             
@@ -225,7 +227,7 @@ async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: st
     from core.omniscience import get_omniscient_state
     
     # We want to use Pro for deep reasoning
-    model = genai.GenerativeModel('gemini-1.5-pro-latest') # Simulating 3.1 Pro
+    client = _get_gemini_client()
     
     omni_state = await get_omniscient_state(user_id)
     
@@ -246,7 +248,7 @@ Tuyệt đối không giải thích dài dòng. Chỉ output "NO" hoặc Nội d
 """
     
     try:
-        response = await asyncio.to_thread(model.generate_content, prompt)
+        response = await asyncio.to_thread(client.models.generate_content, model='gemini-1.5-pro-latest', contents=prompt)
         text = response.text.strip()
         if text.upper() == "NO" or "NO" in text.upper()[:10]:
             return ""
