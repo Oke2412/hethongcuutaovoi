@@ -1,56 +1,70 @@
 """
 migrate_sqlite.py
-Safe migration: adds missing columns to the `user` table without touching existing data.
-Run once: python migrate_sqlite.py
+Safe migration: adds ALL missing columns across all tables without touching existing data.
+Idempotent — safe to run multiple times.
+Run: python migrate_sqlite.py
 """
 import sqlite3
 import pathlib
 import sys
 
 # ── Config ────────────────────────────────────────────────────────────────
-# Adjust path if your SQLite file lives elsewhere
 DB_CANDIDATES = [
     pathlib.Path("data/amazing_nobel.db"),
     pathlib.Path("amazing_nobel.db"),
 ]
 
-REQUIRED_COLUMNS = [
-    # (column_name, sql_type, default_value_sql)
-    ("credits",         "REAL",     "0.0"),
-    ("titles",          "TEXT",     "''"),
-    ("active_buff",     "TEXT",     "''"),
-    ("buff_expires_at", "DATETIME", "NULL"),
-]
-
-MESSAGELOG_COLUMNS = [
-    ("timestamp", "DATETIME", "CURRENT_TIMESTAMP"),
-]
+# Schema: { table_name: [(col_name, sql_type, default_sql)] }
+MIGRATIONS: dict[str, list[tuple[str, str, str]]] = {
+    "user": [
+        ("credits",         "REAL",     "0.0"),
+        ("titles",          "TEXT",     "''"),
+        ("active_buff",     "TEXT",     "''"),
+        ("buff_expires_at", "DATETIME", "NULL"),
+    ],
+    "capabilitylog": [
+        ("exp", "REAL", "0.0"),
+    ],
+    "systemquest": [
+        ("parent_quest_id", "INTEGER", "NULL"),
+    ],
+    "messagelog": [
+        # messagelog may not exist yet — SQLModel will create it on first run
+        ("timestamp", "DATETIME", "CURRENT_TIMESTAMP"),
+    ],
+}
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 def get_existing_columns(cursor: sqlite3.Cursor, table: str) -> set[str]:
     cursor.execute(f"PRAGMA table_info({table})")
     return {row[1] for row in cursor.fetchall()}
 
-def migrate_table(conn: sqlite3.Connection, table: str, required: list) -> None:
+
+def migrate_table(conn: sqlite3.Connection, table: str, columns: list) -> None:
     cursor = conn.cursor()
-    # Check if table exists first
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
+    cursor.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
+    )
     if not cursor.fetchone():
-        print(f"  Table `{table}` does not exist yet — skipping (will be created by SQLModel on first run).")
+        print(f"  [{table}] Table does not exist yet — skipping (SQLModel will create it).")
         return
 
     existing = get_existing_columns(cursor, table)
-    for col_name, col_type, default in required:
+    changed = False
+    for col_name, col_type, default in columns:
         if col_name in existing:
-            print(f"  [{table}] Column `{col_name}` already exists — skipping.")
+            print(f"  [{table}] `{col_name}` already exists — skipping.")
         else:
             sql = f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type} DEFAULT {default}"
             cursor.execute(sql)
-            print(f"  [{table}] Added column `{col_name}` ({col_type} DEFAULT {default}).")
-    conn.commit()
+            print(f"  [{table}] Added `{col_name}` ({col_type} DEFAULT {default}).")
+            changed = True
+    if changed:
+        conn.commit()
+
 
 # ── Main ──────────────────────────────────────────────────────────────────
-def main():
+def main() -> None:
     db_path = None
     for candidate in DB_CANDIDATES:
         if candidate.exists():
@@ -60,20 +74,18 @@ def main():
     if db_path is None:
         print("ERROR: SQLite database file not found.")
         print("Searched:", [str(c) for c in DB_CANDIDATES])
-        print("Hint: run this script from the project root, or adjust DB_CANDIDATES.")
         sys.exit(1)
 
-    print(f"Database found: {db_path.resolve()}")
+    print(f"Database: {db_path.resolve()}\n")
     conn = sqlite3.connect(db_path)
 
-    print("\nMigrating table `user`...")
-    migrate_table(conn, "user", REQUIRED_COLUMNS)
-
-    print("\nMigrating table `messagelog` (if exists)...")
-    migrate_table(conn, "messagelog", MESSAGELOG_COLUMNS)
+    for table, columns in MIGRATIONS.items():
+        print(f"Migrating `{table}`...")
+        migrate_table(conn, table, columns)
 
     conn.close()
-    print("\nMigration complete. Restart the bot container.")
+    print("\nAll migrations complete. Restart the bot: docker compose restart bot")
+
 
 if __name__ == "__main__":
     main()
