@@ -96,7 +96,7 @@ class RaphaelBrain:
         asyncio.create_task(
             asyncio.to_thread(
                 self.memory.add,
-                final_text,
+                messages=[{"role": "user", "content": final_text}, {"role": "assistant", "content": response}],
                 user_id=user_id,
                 metadata={"timestamp": current_time, "source": "chat"}
             )

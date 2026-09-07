@@ -8,12 +8,21 @@ from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, Capabili
 logger = logging.getLogger(__name__)
 
 async def update_memory_async(user_id: int, content: str) -> str:
-    """Updates the user's database with new context or memory."""
-    async with AsyncSessionLocal() as session:
-        mem = Memory(user_id=user_id, content=content, importance=10)
-        session.add(mem)
-        await session.commit()
-    return "Đã cập nhật bộ nhớ thành công."
+    """Updates the user's database with new context or memory into GraphRAG."""
+    from core.brain import brain
+    from datetime import datetime
+    import asyncio
+    
+    current_time = datetime.now().isoformat()
+    # Write to Mem0 (Chroma + Neo4j) instead of old SQLite table
+    await asyncio.to_thread(
+        brain.memory.add,
+        content,
+        user_id=str(user_id),
+        metadata={"timestamp": current_time, "source": "llm_tool_forced"}
+    )
+    return "Đã cập nhật Ký ức (Graph) thành công."
+
 
 async def cancel_quest_async(quest_id: int, reason: str) -> str:
     """Cancels an active System Quest if the user rejects it or has already done it."""
