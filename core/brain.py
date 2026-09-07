@@ -14,7 +14,8 @@ class RaphaelBrain:
     """
     def __init__(self):
         # Configure Mem0 to use Gemini and local ChromaDB
-        config = {
+                config = {
+            "version": "v1.1",
             "llm": {
                 "provider": "litellm",
                 "config": {
@@ -27,6 +28,14 @@ class RaphaelBrain:
                 "config": {
                     "collection_name": "raphael_memories",
                     "path": "./chroma_db"
+                }
+            },
+            "graph_store": {
+                "provider": "neo4j",
+                "config": {
+                    "url": "neo4j://neo4j:7687",
+                    "username": "neo4j",
+                    "password": "password"
                 }
             }
         }
@@ -69,7 +78,14 @@ class RaphaelBrain:
         
         # 4. Save the new interaction to Mem0
         # Mem0 automatically extracts core facts and saves them
-        self.memory.add(messages=[{"role": "user", "content": final_text}, {"role": "assistant", "content": response}], user_id=user_id)
+        from datetime import datetime
+        current_time = datetime.now().isoformat()
+        
+        self.memory.add(
+            messages=[{"role": "user", "content": final_text}, {"role": "assistant", "content": response}], 
+            user_id=user_id,
+            metadata={"timestamp": current_time}
+        )
         
         return response
 
