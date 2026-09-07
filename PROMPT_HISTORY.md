@@ -322,7 +322,6 @@
 **Files thay đổi:** bot/handlers/document.py, PROMPT_HISTORY.md
 ---
 
-<<<<<<< HEAD
 ### [2026-09-06 21:23] — Xóa bỏ hệ thống Onboard thủ công rườm rà
 **Agent:** Antigravity (Gemini 3.1 Pro)
 **Prompt:** khi tôi nhấn onboard và gửi file text, xử lí xong, output status nhưng vẫn bắt tôi phải nhập onboard? với không cho hủy hoặc quay lại thao tác nhập liệu...
@@ -331,7 +330,6 @@
 - Giải pháp: Xóa bỏ hoàn toàn luồng Q&A thủ công trong `onboard.py`. Thay vào đó, lệnh `/onboard` giờ đây chỉ in ra hướng dẫn người dùng sử dụng AI (gửi file text hoặc ra lệnh qua chat). Điều này phù hợp 100% với định hướng thiết kế Voice Assistant (Jarvis) đã thống nhất trước đó.
 - Đã tạo nhánh `feature/remove-rigid-onboard` và push lên để merge.
 **Files thay đổi:** bot/handlers/onboard.py, PROMPT_HISTORY.md
-=======
 ### [2026-09-06 22:45] — Kỷ nguyên Chat 100% (Agentic Mode)
 **Agent:** Antigravity (Gemini 3.1 Pro)
 **Prompt:** bỏ hết tất cả mọi thứ chỉ dùng chat thôi được không? / tự sinh tool / nhắc nhở / lưu offline.
@@ -343,7 +341,6 @@
 - Trả lời user: Database hiện tại ĐÃ LÀ OFFLINE (lưu trực tiếp trong file SQLite ở thư mục docker của Server).
 - Đã tạo nhánh `feature/agentic-chat-mode` và push lên để merge.
 **Files thay đổi:** bot/main.py, bot/handlers/report.py, core/llm_tools.py, core/llm.py, core/scheduler.py, PROMPT_HISTORY.md
->>>>>>> origin/feature/model-update-and-persona
 ---
 
 ### [2026-09-07 00:30] — Kiến trúc Não bộ Độc lập & Tích hợp Mem0
