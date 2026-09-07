@@ -17,9 +17,9 @@ class RaphaelBrain:
         config = {
             "version": "v1.1",
             "llm": {
-                "provider": "litellm",
+                "provider": "gemini",
                 "config": {
-                    "model": "gemini/gemini-3.8-flash",
+                    "model": "gemini-3.8-flash",
                     "api_key": settings.gemini_api_key,
                 }
             },
