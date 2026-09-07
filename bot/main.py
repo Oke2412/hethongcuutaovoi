@@ -12,6 +12,7 @@ from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
 from bot.handlers.location import build_location_handler
 from bot.handlers.quest import build_quest_handler
+from bot.handlers.reset import build_reset_handlers
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,6 +45,9 @@ def main() -> None:
     # Commands
     app.add_handler(CommandHandler("start", start.handle))
     app.add_handler(CommandHandler("status", status.handle))
+    # Reset DB (Dev Phase Only)
+    for handler in build_reset_handlers():
+        app.add_handler(handler)
     app.add_handler(build_quest_handler())
 
     # Conversations (order matters: more specific first)

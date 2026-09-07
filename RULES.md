@@ -43,6 +43,7 @@
 
 ## ❌ Những Gì KHÔNG Làm
 
+- **Reset Database:** Hệ thống có tính năng Hủy diệt Database bằng lệnh `/reset_db`. Yêu cầu nhập mã xác nhận (OTP). CẢNH BÁO: Tính năng này chỉ dùng cho GIAI ĐOẠN PHÁT TRIỂN (Dev Phase) để dọn dẹp dữ liệu rác. Bắt buộc PHẢI XÓA BỎ tính năng này khi dự án release bản Production (Ghi chú này sẽ được theo dõi).
 - **Không dùng ConversationHandler / Bấm nút nhiều bước:** Dùng Chat Agentic 100%. User chat -> LLM phân tích -> Dùng Tool cập nhật DB.
 - **Không có streak/penalty mechanics** — người dùng không muốn gamification kiểu streak.
 - **Không over-engineer** — bắt đầu đơn giản, extend dần.
