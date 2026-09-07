@@ -17,11 +17,12 @@ async def update_memory_async(user_id: int, content: str) -> str:
     # Write to Mem0 (Chroma + Neo4j) instead of old SQLite table
     await asyncio.to_thread(
         brain.memory.add,
-        content,
+        messages=[{"role": "user", "content": "Master requested memory update"}, {"role": "assistant", "content": content}],
         user_id=str(user_id),
         metadata={"timestamp": current_time, "source": "llm_tool_forced"}
     )
     return "Đã cập nhật Ký ức (Graph) thành công."
+
 
 
 async def cancel_quest_async(quest_id: int, reason: str) -> str:
