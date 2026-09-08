@@ -1,9 +1,10 @@
+import asyncio
 import logging
 from datetime import datetime
 from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import AsyncSessionLocal
-from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog, User
+from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog, User, MessageLog
 
 logger = logging.getLogger(__name__)
 
@@ -383,25 +384,71 @@ def calculate_distance_sync(lat1: float, lon1: float, lat2: float, lon2: float) 
     return f"Khoảng cách: {distance:.2f} mét."
 
 async def reset_database_async(user_id: int) -> str:
-    """Xóa trắng toàn bộ dữ liệu của user trong hệ thống (SQLite + Mem0)."""
+    """Xoa trang toan bo du lieu cua user: SQLite + Mem0 (ChromaDB) + Neo4j (GraphRAG)."""
+    results = []
+
+    # 1. Wipe SQLite tables
     async with AsyncSessionLocal() as session:
-        for model in [Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog]:
-            stmt = select(model).where(model.user_id == user_id)
+        for table_model in [Memory, SystemQuest, PhysicalStatus, WorkProject, CapabilityLog, MessageLog]:
+            stmt = select(table_model).where(table_model.user_id == user_id)
             result = await session.execute(stmt)
             for row in result.scalars().all():
                 await session.delete(row)
-                
+
         user = await session.get(User, user_id)
         if user:
             user.credits = 0.0
-            
+            user.titles = ""
+            user.active_buff = ""
+            user.buff_expires_at = None
+
         await session.commit()
-        
+    results.append("SQLite: OK")
+
+    # 2. Wipe Mem0 vector memory (ChromaDB)
     try:
         from core.brain import brain
-        brain.memory.delete_all(user_id=str(user_id))
+        # Mem0 v2: delete_all uses filters={} like search()
+        await asyncio.to_thread(
+            brain.memory.delete_all,
+            filters={"user_id": str(user_id)},
+        )
+        results.append("Mem0/ChromaDB: OK")
+    except TypeError:
+        # Fallback for older Mem0 versions that still accept user_id directly
+        try:
+            from core.brain import brain
+            await asyncio.to_thread(brain.memory.delete_all, user_id=str(user_id))
+            results.append("Mem0/ChromaDB: OK (legacy API)")
+        except Exception as exc:
+            logger.error("Mem0 delete_all failed: %s", exc)
+            results.append(f"Mem0/ChromaDB: FAILED ({exc})")
     except Exception as exc:
-        import logging
-        logging.getLogger(__name__).error("Failed to delete mem0 for user %s: %s", user_id, exc)
+        logger.error("Mem0 delete_all failed: %s", exc)
+        results.append(f"Mem0/ChromaDB: FAILED ({exc})")
 
-    return "✅ Đã xóa trắng (Reset) toàn bộ dữ liệu của ngài (Bao gồm Ký ức ngắn hạn & dài hạn Mem0) thành công."
+    # 3. Wipe Neo4j graph nodes for this user
+    try:
+        from neo4j import AsyncGraphDatabase
+        from config import settings
+        neo4j_uri = getattr(settings, "neo4j_uri", "neo4j://localhost:7687")
+        neo4j_user = getattr(settings, "neo4j_user", "neo4j")
+        neo4j_password = getattr(settings, "neo4j_password", "password")
+
+        async with AsyncGraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password)) as driver:
+            async with driver.session() as neo_session:
+                # Delete all nodes and relationships tagged with this user_id
+                await neo_session.run(
+                    "MATCH (n) WHERE n.user_id = $uid DETACH DELETE n",
+                    uid=str(user_id),
+                )
+        results.append("Neo4j: OK")
+    except ImportError:
+        results.append("Neo4j: SKIPPED (neo4j driver not installed)")
+    except Exception as exc:
+        logger.error("Neo4j reset failed: %s", exc)
+        results.append(f"Neo4j: FAILED ({exc})")
+
+    summary = " | ".join(results)
+    return f"[Reset hoan tat] {summary}"
+
