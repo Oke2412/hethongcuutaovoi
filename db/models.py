@@ -133,3 +133,20 @@ class MessageLog(SQLModel, table=True):
     role: str = Field(description="user or assistant")
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+# ---------------------------------------------------------------------------
+# Spatial Context (Vị trí & Trạng thái di chuyển)
+# ---------------------------------------------------------------------------
+
+class SpatialState(SQLModel, table=True):
+    """Trạng thái Không gian hiện tại của User (Đi xe, Đứng im, Đi bộ)."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True, unique=True) # Mỗi user chỉ có 1 row state hiện tại
+    last_lat: float
+    last_lon: float
+    last_ping_time: datetime
+    current_state: str = Field(default="UNKNOWN")  # STATIONARY, TRANSITING, ROAMING, UNKNOWN
+    state_start_time: datetime = Field(default_factory=datetime.utcnow)
+    current_waypoint: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

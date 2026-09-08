@@ -25,14 +25,26 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             
         location_type = "Live Location" if is_live else "Tọa độ tĩnh"
         
-        prompt = (
-            f"[HỆ THỐNG] Người dùng vừa gửi vị trí GPS ({location_type}): Vĩ độ {lat}, Kinh độ {lon}.\\n"
-            f"Dựa vào các [Điểm neo] trong trí nhớ (Mem0), hãy dùng tool `calculate_distance` để xác định ngài ấy đang ở gần địa điểm quen thuộc nào.\\n"
-            f"Sau đó, kết hợp với trạng thái thể chất/năng lượng (PhysicalStatus) hiện tại, hãy suy luận xem ngài ấy cần Phần thưởng (Reward) hay Nhiệm vụ phụ (Side Quest)."
-        )
+        # 1. Gọi Spatial Engine (Tính toán offline, 0 API cost)
+        from core.spatial import process_location
+        spatial_event = await process_location(user.id, lat, lon)
+
+        if not spatial_event:
+            # Không có Event quan trọng (Đang kẹt xe, Đang đi xe, v.v...)
+            # Không gọi LLM, chỉ Update DB
+            await status_msg.edit_text(f"📍 Đã ghi nhận tọa độ ({lat}, {lon}). Trạng thái di chuyển: Bình thường.")
+            return
+
+        # 2. Nếu có Event -> Gọi LLM (Raphael) để tạo Side Quest
+        from core.llm import evaluate_and_generate_side_quest_async
+        event_trigger = f"User vừa có sự kiện di chuyển: {spatial_event} tại tọa độ ({lat}, {lon}). Hãy kiểm tra xem đây là nơi nào và giao Side Quest."
         
-        response = await brain.process_input(user_id=str(user.id), text_content=prompt)
-        await status_msg.edit_text(response)
+        side_quest_text = await evaluate_and_generate_side_quest_async(user.id, event_trigger)
+        
+        if side_quest_text:
+            await status_msg.edit_text(f"📍 Sự kiện Không gian: {spatial_event}\n\n{side_quest_text}")
+        else:
+            await status_msg.edit_text(f"📍 Đã cập nhật tọa độ: {spatial_event}.")
 
     except Exception as exc:
         logger.error(f"Error handling location: {exc}", exc_info=True)
