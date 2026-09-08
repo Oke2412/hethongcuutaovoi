@@ -226,7 +226,14 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                         fc.args.get("lat2", 0), fc.args.get("lon2", 0)
                     )
 
-                tool_responses.append(types.Part.from_function_response(name=fc.name, response={"result": tool_result}))
+                # Trong SDK google-genai moi, bat buoc phai truyen kem id cua function call de backend map duoc
+                tool_responses.append(types.Part(
+                    function_response=types.FunctionResponse(
+                        name=fc.name,
+                        id=fc.id,
+                        response={"result": tool_result}
+                    )
+                ))
 
             response = await asyncio.to_thread(chat.send_message, tool_responses)
 
