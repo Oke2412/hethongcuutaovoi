@@ -166,6 +166,7 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
                 tools=tools,
+                automatic_function_calling={"disable": True}
             ),
         )
         response = await asyncio.to_thread(chat.send_message, prompt)
