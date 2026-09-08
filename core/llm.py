@@ -262,9 +262,10 @@ async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: st
         + "[SU KIEN KICH HOAT]" + chr(10)
         + event_trigger + chr(10)
         + "[PHAN TICH VA RA QUYET DINH]" + chr(10)
-        + "1. Neu Master dang on va khong can bi lam phien, chi output: NO" + chr(10)
-        + "2. Neu thoi co chin muoi, tao 1 SIDE QUEST. Output noi dung tin nhan (giong Raphael lanh lung, co thuong/phat ro rang)." + chr(10)
-        + "Khong giai thich dai dong. Chi output NO hoac Noi dung Side Quest."
+        + "1. Neu Master dang o NHA (Home), hoac dang the thao/ban ron, chi output: NO" + chr(10)
+        + "2. Neu Master den 1 dia diem HOAN TOAN LA (khong co trong Mem0), hay output: 1 cau hoi hoi Master xem muc dich den day la gi de cap nhat du lieu." + chr(10)
+        + "3. Neu thoi co chin muoi (VD: den quan cafe quen, dang nghi ngoi o cong vien), tao 1 SIDE QUEST. Output noi dung tin nhan (giong Raphael lanh lung, co thuong/phat ro rang)." + chr(10)
+        + "Khong giai thich dai dong. Chi output NO hoac Noi dung tin nhan/Side Quest."
     )
 
     try:
@@ -272,6 +273,9 @@ async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: st
             client.models.generate_content,
             model=MODEL_PRO,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                automatic_function_calling={"disable": True}
+            )
         )
         text = response.text.strip()
         if text.upper() == "NO" or "NO" in text.upper()[:10]:
