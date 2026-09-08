@@ -272,6 +272,9 @@ async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: st
             client.models.generate_content,
             model=MODEL_PRO,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                automatic_function_calling={"disable": True}
+            )
         )
         text = response.text.strip()
         if text.upper() == "NO" or "NO" in text.upper()[:10]:
