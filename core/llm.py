@@ -8,10 +8,10 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-# gemini-3.8-flash: main chat (fast, cheap)
-# gemini-3.1-pro:  heavy tasks (side quest reasoning)
-MODEL_FLASH = "gemini-3.8-flash"
-MODEL_PRO   = "gemini-3.1-pro"
+# Models
+# Đã đổi toàn bộ sang gemini-3.5-flash-lite vì đây là model duy nhất cho phép 500 Requests/Ngày (Free Tier)
+MODEL_FLASH = "gemini-3.5-flash-lite"
+MODEL_PRO   = "gemini-3.5-flash-lite"
 
 PERSONAS = {
     "strict": (
