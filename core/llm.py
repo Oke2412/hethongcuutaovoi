@@ -169,7 +169,13 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 automatic_function_calling={"disable": True}
             ),
         )
-        response = await asyncio.to_thread(chat.send_message, prompt)
+        response = await asyncio.to_thread(
+            chat.send_message, 
+            prompt,
+            config=types.GenerateContentConfig(
+                automatic_function_calling={"disable": True}
+            )
+        )
 
         while response.candidates:
             parts = response.candidates[0].content.parts if response.candidates else []
@@ -236,7 +242,13 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                     )
                 ))
 
-            response = await asyncio.to_thread(chat.send_message, tool_responses)
+            response = await asyncio.to_thread(
+                chat.send_message, 
+                tool_responses,
+                config=types.GenerateContentConfig(
+                    automatic_function_calling={"disable": True}
+                )
+            )
 
         # Extract text from response
         if response.candidates and response.candidates[0].content.parts:
