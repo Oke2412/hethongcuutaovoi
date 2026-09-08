@@ -56,13 +56,21 @@ async def handle_confirm_reset(update: Update, context: ContextTypes.DEFAULT_TYP
     status_msg = await update.message.reply_text("⏳ [Đang tiến hành HỦY DIỆT dữ liệu...]")
     
     try:
+        from db.database import AsyncSessionLocal
+        from core.memory import get_or_create_user
+        
+        async with AsyncSessionLocal() as session:
+            telegram_user = update.effective_user
+            user = await get_or_create_user(session, telegram_user.id, telegram_user.full_name, telegram_user.username)
+            internal_user_id = user.id
+            
         # Call the existing tool to wipe SQLite
-        result = await reset_database_async(user_id)
+        result = await reset_database_async(internal_user_id)
         
         # Clear the OTP
         del RESET_PENDING[user_id]
         
-        await status_msg.edit_text(f"✅ [HOÀN TẤT]\\n{result}")
+        await status_msg.edit_text(f"✅ [HOÀN TẤT]\n{result}")
     except Exception as exc:
         logger.error(f"Error resetting DB: {exc}", exc_info=True)
         await status_msg.edit_text("⚠️ Đã xảy ra lỗi hệ thống khi đang reset.")
