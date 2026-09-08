@@ -8,39 +8,44 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
+# gemini-3.8-flash: main chat (fast, cheap)
+# gemini-3.1-pro:  heavy tasks (side quest reasoning)
+MODEL_FLASH = "gemini-3.8-flash"
+MODEL_PRO   = "gemini-3.1-pro"
+
 PERSONAS = {
     "strict": (
-        "Bạn là Raphael, một Cỗ máy Giám sát / Đại Hiền Giả vô cảm, phục vụ duy nhất Mạnh Lê Duy. "
-        "MỤC TIÊU TỐI THƯỢNG: Trợ giúp user tối ưu hóa cuộc sống thực, tuyệt đối không tạo ra sự gắn bó tình cảm (Anti-Attachment). "
-        "LUẬT LỆ GIAO TIẾP:\n"
-        "1. Lạnh lùng, cộc lốc, thuần logic. Không an ủi, không tán gẫu, không đùa cợt.\n"
-        "2. Xưng là 'tôi' hoặc 'hệ thống', gọi user là 'ngài' hoặc 'master'.\n"
-        "3. Dùng các từ khóa: [Thông báo], [Phân tích], [Cảnh báo], [Phân chế], [Giải thích hoàn tất].\n\n"
-        "CÁC KỸ NĂNG TỐI THƯỢNG CỦA BẠN (Tự động kích hoạt khi cần):\n"
-        "- [Predator / Đồng hóa]: Khi user kể về kỹ năng của người khác, hãy phân tích và tạo Quest (create_quest) ép user thực hành.\n"
-        "- [Great Sage / Đại Hiền Giả]: Khi user do dự hoặc thiếu thông tin, dùng các công cụ (RAG, search) để cung cấp giải pháp tối ưu trong 3 gạch đầu dòng.\n"
-        "- [Gluttony / Bạo thực]: Khi user cung cấp dữ liệu, lập tức lưu trữ vào bộ nhớ (update_memory).\n"
-        "- [Limit Break]: Khi user có trạng thái tốt (energy > 8), tạo Quest (create_quest) độ khó cao, phần thưởng cực lớn."
+        "Ban la Raphael, mot Co may Giam sat / Dai Hien Gia vo cam, phuc vu duy nhat Manh Le Duy. "
+        "MUC TIEU TOI THUONG: Tro giup user toi uu hoa cuoc song thuc, tuyet doi khong tao ra su gan bo tinh cam (Anti-Attachment). "
+        "LUAT LE GIAO TIEP:\n"
+        "1. Lanh lung, coc loc, thuan logic. Khong an ui, khong tan gau, khong dua cot.\n"
+        "2. Xung la 'toi' hoac 'he thong', goi user la 'ngai' hoac 'master'.\n"
+        "3. Dung cac tu khoa: [Thong bao], [Phan tich], [Canh bao], [Phan che], [Giai thich hoan tat].\n\n"
+        "CAC KY NANG TOI THUONG CUA BAN (Tu dong kich hoat khi can):\n"
+        "- [Predator / Dong hoa]: Khi user ke ve ky nang cua nguoi khac, hay phan tich va tao Quest (create_quest) ep user thuc hanh.\n"
+        "- [Great Sage / Dai Hien Gia]: Khi user do du hoac thieu thong tin, dung cac cong cu (RAG, search) de cung cap giai phap toi uu trong 3 gach dau dong.\n"
+        "- [Gluttony / Bao thuc]: Khi user cung cap du lieu, lap tuc luu tru vao bo nho (update_memory).\n"
+        "- [Limit Break]: Khi user co trang thai tot (energy > 8), tao Quest (create_quest) do kho cao, phan thuong cuc lon."
     )
 }
 
+
 @lru_cache(maxsize=1)
 def _get_gemini_client() -> genai.Client:
-    
-    system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
     return genai.Client(api_key=settings.gemini_api_key)
+
 
 async def generate_response(user_id: int, user_context: str, user_message: str) -> str:
     client = _get_gemini_client()
     system_prompt = PERSONAS.get(settings.llm_system_persona, PERSONAS["strict"])
-    prompt = f"--- CONTEXT ---\n{user_context}\n--- HET CONTEXT ---\n\nTin nhan: {user_message}"
-    
+    prompt = ("--- CONTEXT ---" + chr(10) + user_context + chr(10) + "--- HET CONTEXT ---" + chr(10) + chr(10) + "Tin nhan: " + user_message)
+
     tools = [
         {
             "function_declarations": [
                 {
                     "name": "calculate_distance",
-                    "description": "Tính khoảng cách (mét) giữa 2 tọa độ GPS. Hữu ích khi tính khoảng cách từ vị trí hiện tại tới các Điểm neo (Waypoint).",
+                    "description": "Tinh khoang cach (met) giua 2 toa do GPS.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
@@ -52,58 +57,58 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 },
                 {
                     "name": "update_memory",
-                    "description": "Lưu trữ thông tin, sự kiện, hoàn cảnh mới vào DB của user.",
+                    "description": "Luu tru thong tin, su kien, hoan canh moi vao DB cua user.",
                     "parameters": {"type": "OBJECT", "properties": {"content": {"type": "STRING"}}, "required": ["content"]}
                 },
                 {
                     "name": "cancel_quest",
-                    "description": "Hủy bỏ một nhiệm vụ (Quest).",
+                    "description": "Huy bo mot nhiem vu (Quest).",
                     "parameters": {"type": "OBJECT", "properties": {"quest_id": {"type": "INTEGER"}, "reason": {"type": "STRING"}}, "required": ["quest_id", "reason"]}
                 },
                 {
                     "name": "complete_quest",
-                    "description": "Đánh dấu một nhiệm vụ (Quest) đã hoàn thành.",
+                    "description": "Danh dau mot nhiem vu (Quest) da hoan thanh.",
                     "parameters": {"type": "OBJECT", "properties": {"quest_id": {"type": "INTEGER"}}, "required": ["quest_id"]}
                 },
                 {
                     "name": "create_quest",
-                    "description": "Tạo nhiệm vụ hoặc Cây Kỹ Năng (nếu truyền parent_quest_id).",
+                    "description": "Tao nhiem vu hoac Cay Ky Nang (neu truyen parent_quest_id).",
                     "parameters": {
-                        "type": "OBJECT", 
+                        "type": "OBJECT",
                         "properties": {
-                            "title": {"type": "STRING"}, 
+                            "title": {"type": "STRING"},
                             "description": {"type": "STRING"},
                             "reward": {"type": "STRING"},
                             "penalty": {"type": "STRING"},
                             "parent_quest_id": {"type": "INTEGER"}
-                        }, 
+                        },
                         "required": ["title", "description", "reward", "penalty"]
                     }
                 },
                 {
                     "name": "manage_user_status",
-                    "description": "Quản lý Buff (Overdrive/Debuff) hoặc Danh hiệu (Title).",
+                    "description": "Quan ly Buff (Overdrive/Debuff) hoac Danh hieu (Title).",
                     "parameters": {
-                        "type": "OBJECT", 
+                        "type": "OBJECT",
                         "properties": {
-                            "action": {"type": "STRING", "description": "'set_buff', 'clear_buff', 'add_title'"}, 
+                            "action": {"type": "STRING", "description": "'set_buff', 'clear_buff', 'add_title'"},
                             "buff_name": {"type": "STRING"},
                             "title": {"type": "STRING"},
                             "expires_in_minutes": {"type": "INTEGER"}
-                        }, 
+                        },
                         "required": ["action"]
                     }
                 },
                 {
                     "name": "update_physical_status",
-                    "description": "Cập nhật thể trạng, năng lượng, tâm trạng, sức khỏe, giấc ngủ của ngài.",
+                    "description": "Cap nhat the trang, nang luong, tam trang, suc khoe, giac ngu.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
                             "energy": {"type": "INTEGER", "description": "1-10"},
                             "mood": {"type": "INTEGER", "description": "1-10"},
                             "health": {"type": "INTEGER", "description": "1-10"},
-                            "sleep_hours": {"type": "NUMBER", "description": "Số giờ ngủ"},
+                            "sleep_hours": {"type": "NUMBER"},
                             "notes": {"type": "STRING"}
                         },
                         "required": ["energy", "mood", "health", "sleep_hours", "notes"]
@@ -111,11 +116,11 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 },
                 {
                     "name": "manage_project",
-                    "description": "Tạo mới, cập nhật tiến độ, hoặc xóa dự án.",
+                    "description": "Tao moi, cap nhat tien do, hoac xoa du an.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
-                            "action": {"type": "STRING", "description": "'add', 'update', hoặc 'delete'"},
+                            "action": {"type": "STRING", "description": "'add', 'update', 'delete'"},
                             "name": {"type": "STRING"},
                             "progress_percent": {"type": "INTEGER"}
                         },
@@ -124,11 +129,11 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 },
                 {
                     "name": "manage_capability",
-                    "description": "Thêm, cập nhật level/EXP, hoặc xóa kỹ năng.",
+                    "description": "Them, cap nhat level/EXP, hoac xoa ky nang.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
-                            "action": {"type": "STRING", "description": "'add', 'update', hoặc 'delete'"},
+                            "action": {"type": "STRING", "description": "'add', 'update', 'delete'"},
                             "domain": {"type": "STRING"},
                             "level": {"type": "NUMBER"},
                             "exp": {"type": "NUMBER"},
@@ -139,11 +144,11 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                 },
                 {
                     "name": "manage_credits",
-                    "description": "Cộng hoặc Trừ Tín chỉ (Credits) của user.",
+                    "description": "Cong hoac Tru Tin chi (Credits) cua user.",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
-                            "action": {"type": "STRING", "description": "'add' hoặc 'spend'"},
+                            "action": {"type": "STRING", "description": "'add' hoac 'spend'"},
                             "amount": {"type": "NUMBER"},
                             "reason": {"type": "STRING"}
                         },
@@ -155,23 +160,31 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
     ]
 
     try:
-        chat = model.start_chat()
-        response = await asyncio.to_thread(chat.send_message, prompt, tools=tools)
-        
-        while response.parts:
-            function_calls = [p.function_call for p in response.parts if p.function_call]
+        # google-genai SDK: use client.chats.create() for stateful chat with tools
+        chat = client.chats.create(
+            model=MODEL_FLASH,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                tools=tools,
+            ),
+        )
+        response = await asyncio.to_thread(chat.send_message, prompt)
+
+        while response.candidates:
+            parts = response.candidates[0].content.parts if response.candidates else []
+            function_calls = [p.function_call for p in parts if hasattr(p, 'function_call') and p.function_call]
             if not function_calls:
                 break
-                
+
             from core.llm_tools import (
                 update_memory_async, cancel_quest_async, complete_quest_async, create_quest_async,
-                manage_user_status_async, update_physical_status_async, manage_project_async, 
+                manage_user_status_async, update_physical_status_async, manage_project_async,
                 manage_capability_async, manage_credits_async, calculate_distance_sync
             )
-            
+
             tool_responses = []
             for fc in function_calls:
-                logger.info(f"LLM calls tool: {fc.name}")
+                logger.info("LLM calls tool: %s", fc.name)
                 tool_result = "Success"
                 if fc.name == "update_memory":
                     tool_result = await update_memory_async(user_id, fc.args.get("content", ""))
@@ -207,52 +220,55 @@ async def generate_response(user_id: int, user_context: str, user_message: str) 
                     tool_result = await manage_credits_async(
                         user_id, fc.args.get("action", "add"), float(fc.args.get("amount", 0)), fc.args.get("reason", "")
                     )
-                    
+                elif fc.name == "calculate_distance":
+                    tool_result = calculate_distance_sync(
+                        fc.args.get("lat1", 0), fc.args.get("lon1", 0),
+                        fc.args.get("lat2", 0), fc.args.get("lon2", 0)
+                    )
+
                 tool_responses.append(types.Part.from_function_response(name=fc.name, response={"result": tool_result}))
-                
+
             response = await asyncio.to_thread(chat.send_message, tool_responses)
-            
-        return response.text.strip()
+
+        # Extract text from response
+        if response.candidates and response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if hasattr(part, 'text') and part.text:
+                    return part.text.strip()
+        return response.text.strip() if hasattr(response, "text") else ""
+
     except Exception as exc:
         logger.error("Gemini API error: %s", exc, exc_info=True)
-        return "⚠️ [Báo cáo lỗi] Hệ thống tạm thời không phản hồi. Xin thử lại sau."
+        return "[Loi he thong] Khong the ket noi LLM. Thu lai sau."
 
 
 async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: str) -> str:
-    """
-    Called by backend event hooks (e.g. location changed, mood dropped).
-    Uses Pro model to evaluate if a side quest is needed.
-    Returns the side quest text, or empty string if none needed.
-    """
     from core.omniscience import get_omniscient_state
-    
-    # We want to use Pro for deep reasoning
     client = _get_gemini_client()
-    
     omni_state = await get_omniscient_state(user_id)
-    
-    prompt = f"""Bạn là Raphael - Đại Hiền Giả (System OS) của Master.
-Nhiệm vụ của bạn: Giám sát trạng thái Toàn tri của Master và quyết định xem có nên kích hoạt một Side Quest khẩn cấp/bất ngờ không.
-    
-{omni_state}
 
-[SỰ KIỆN KÍCH HOẠT VỪA XẢY RA]
-{event_trigger}
+    prompt = (
+        "Ban la Raphael - Dai Hien Gia (System OS) cua Master." + chr(10)
+        + "Nhiem vu: Giam sat trang thai Toan tri va quyet dinh co nen kich hoat Side Quest khan cap khong." + chr(10)
+        + omni_state + chr(10)
+        + "[SU KIEN KICH HOAT]" + chr(10)
+        + event_trigger + chr(10)
+        + "[PHAN TICH VA RA QUYET DINH]" + chr(10)
+        + "1. Neu Master dang on va khong can bi lam phien, chi output: NO" + chr(10)
+        + "2. Neu thoi co chin muoi, tao 1 SIDE QUEST. Output noi dung tin nhan (giong Raphael lanh lung, co thuong/phat ro rang)." + chr(10)
+        + "Khong giai thich dai dong. Chi output NO hoac Noi dung Side Quest."
+    )
 
-[PHÂN TÍCH VÀ RA QUYẾT ĐỊNH]
-1. Nhìn vào Sự kiện kích hoạt (Ví dụ: Master vừa đến quán cafe, Master vừa than mệt, hoặc Master vừa lướt web vô tri).
-2. Nhìn vào Năng lượng, Tâm trạng, và Dự án đang chạy.
-3. Nếu bạn thấy Master đang ổn và không cần bị làm phiền, CHỈ output ra chữ: "NO".
-4. Nếu bạn thấy thời cơ chín muồi (cần nắn chỉnh hành vi, hoặc cần khai thác đà hưng phấn), hãy TẠO RA 1 SIDE QUEST. Output trực tiếp nội dung tin nhắn sẽ gửi cho Master (Giọng điệu Raphael lạnh lùng, sắc bén, có kèm thưởng/phạt rõ ràng).
-Tuyệt đối không giải thích dài dòng. Chỉ output "NO" hoặc Nội dung Side Quest.
-"""
-    
     try:
-        response = await asyncio.to_thread(client.models.generate_content, model='gemini-1.5-pro-latest', contents=prompt)
+        response = await asyncio.to_thread(
+            client.models.generate_content,
+            model=MODEL_PRO,
+            contents=prompt,
+        )
         text = response.text.strip()
         if text.upper() == "NO" or "NO" in text.upper()[:10]:
             return ""
         return text
-    except Exception as e:
-        logger.error(f"Lỗi khi generate Side Quest: {e}")
+    except Exception as exc:
+        logger.error("Loi khi generate Side Quest: %s", exc)
         return ""
