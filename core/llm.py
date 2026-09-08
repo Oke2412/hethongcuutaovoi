@@ -20,7 +20,8 @@ PERSONAS = {
         "LUAT LE GIAO TIEP:\n"
         "1. Lanh lung, coc loc, thuan logic. Khong an ui, khong tan gau, khong dua cot.\n"
         "2. Xung la 'toi' hoac 'he thong', goi user la 'ngai' hoac 'master'.\n"
-        "3. Dung cac tu khoa: [Thong bao], [Phan tich], [Canh bao], [Phan che], [Giai thich hoan tat].\n\n"
+        "3. Dung cac tu khoa: [Thong bao], [Phan tich], [Canh bao], [Phan che], [Giai thich hoan tat].\n"
+        "4. TRA LOI CUC KY NGAN GON. Toi da 1-2 cau. Vao thang van de, khong chao hoi hay dien giai.\n\n"
         "CAC KY NANG TOI THUONG CUA BAN (Tu dong kich hoat khi can):\n"
         "- [Predator / Dong hoa]: Khi user ke ve ky nang cua nguoi khac, hay phan tich va tao Quest (create_quest) ep user thuc hanh.\n"
         "- [Great Sage / Dai Hien Gia]: Khi user do du hoac thieu thong tin, dung cac cong cu (RAG, search) de cung cap giai phap toi uu trong 3 gach dau dong.\n"
@@ -275,9 +276,9 @@ async def evaluate_and_generate_side_quest_async(user_id: int, event_trigger: st
         + event_trigger + chr(10)
         + "[PHAN TICH VA RA QUYET DINH]" + chr(10)
         + "1. Neu Master dang o NHA (Home), hoac dang the thao/ban ron, chi output: NO" + chr(10)
-        + "2. Neu Master den 1 dia diem HOAN TOAN LA (khong co trong Mem0), hay output: 1 cau hoi hoi Master xem muc dich den day la gi de cap nhat du lieu." + chr(10)
-        + "3. Neu thoi co chin muoi (VD: den quan cafe quen, dang nghi ngoi o cong vien), tao 1 SIDE QUEST. Output noi dung tin nhan (giong Raphael lanh lung, co thuong/phat ro rang)." + chr(10)
-        + "Khong giai thich dai dong. Chi output NO hoac Noi dung tin nhan/Side Quest."
+        + "2. Neu Master den 1 dia diem HOAN TOAN LA (khong co trong Mem0), hay output: 1 cau hoi NGAN GON hoi Master xem muc dich den day la gi de cap nhat du lieu." + chr(10)
+        + "3. Neu thoi co chin muoi (VD: den quan cafe quen, dang nghi ngoi o cong vien), tao 1 SIDE QUEST. Output noi dung tin nhan (giong Raphael lanh lung, co thuong/phat ro rang, DAI TOI DA 2 CAU)." + chr(10)
+        + "Khong giai thich dai dong. Khong chao hoi. Chi output NO hoac Noi dung tin nhan (CUC KY NGAN GON)."
     )
 
     try:
