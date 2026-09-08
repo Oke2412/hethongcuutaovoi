@@ -55,14 +55,19 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         projects = res.scalars().all()
 
-    sep = '\u2550' * 22
+    from datetime import timezone, timedelta
+    tz = timezone(timedelta(hours=7))
+    current_time_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M")
+    
+    # 2. Xây dựng tin nhắn hiển thị
+    sep = '\u2550' * 18
     lines = [
-        '\u256c' + sep + '\u256c',
-        '\u2551' + '  \U0001f4ca  SYSTEM STATUS   ' + '\u2551',
+        '\u2554' + sep + '\u2557',
+        '\u2551 \U0001f4ca SYSTEM STATUS \u2551',
         '\u255a' + sep + '\u255d',
         '',
         f'\U0001f464 *{user.name}*',
-        f'\U0001f550 {datetime.now().strftime("%Y-%m-%d %H:%M")}',
+        f'\U0001f550 {current_time_str}',
         '',
         '\u26a1 *Th\u1ec3 tr\u1ea1ng*',
     ]

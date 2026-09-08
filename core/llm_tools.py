@@ -401,6 +401,7 @@ async def reset_database_async(user_id: int) -> str:
         from core.brain import brain
         brain.memory.delete_all(user_id=str(user_id))
     except Exception as exc:
-        pass # If mem0 delete fails or method is not exact, just ignore
+        import logging
+        logging.getLogger(__name__).error("Failed to delete mem0 for user %s: %s", user_id, exc)
 
     return "✅ Đã xóa trắng (Reset) toàn bộ dữ liệu của ngài (Bao gồm Ký ức ngắn hạn & dài hạn Mem0) thành công."

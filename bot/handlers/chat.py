@@ -24,8 +24,10 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         from db.models import SpatialState, PhysicalStatus
         from datetime import datetime
         
-        # Time
-        current_time = datetime.now().strftime("%H:%M, Ngày %d/%m/%Y")
+        # Lấy giờ thực
+        from datetime import timezone, timedelta
+        tz = timezone(timedelta(hours=7))
+        current_time = datetime.now(tz).strftime("%H:%M, Ngày %d/%m/%Y")
         
         # Location
         stmt_spatial = select(SpatialState).where(SpatialState.user_id == user.id)
