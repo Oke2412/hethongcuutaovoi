@@ -38,7 +38,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 loc_str += f" - Dừng lại từ lúc {spatial.state_updated_at.strftime('%H:%M')}"
                 
         # Status
-        stmt_phys = select(PhysicalStatus).where(PhysicalStatus.user_id == user.id).order_by(PhysicalStatus.timestamp.desc())
+        stmt_phys = select(PhysicalStatus).where(PhysicalStatus.user_id == user.id).order_by(PhysicalStatus.recorded_at.desc())
         res_phys = await session.execute(stmt_phys)
         phys = res_phys.scalars().first()
         phys_str = "Chưa báo cáo"
