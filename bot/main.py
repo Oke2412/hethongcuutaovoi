@@ -11,7 +11,7 @@ from bot.handlers import start, status, chat
 from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
 from bot.handlers.location import handle_location
-from bot.handlers.quest import build_quest_handler
+from bot.handlers.quest import build_quest_handlers
 from bot.handlers.reset import build_reset_handlers
 
 logging.basicConfig(
@@ -43,7 +43,9 @@ def main() -> None:
     app.add_handler(CommandHandler("status", status.handle))
     for handler in build_reset_handlers():
         app.add_handler(handler)
-    app.add_handler(build_quest_handler())
+    from bot.handlers.quest import build_quest_handlers
+    for handler in build_quest_handlers():
+        app.add_handler(handler)
 
     app.add_handler(build_onboard_handler())
 
