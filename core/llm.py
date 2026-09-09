@@ -372,14 +372,17 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
         
     try:
         async with driver.session() as session:
-            # Simplified causal graph query based on the plan
+            # Correct causal graph query matching the structure from _persist_to_graph
             if not entities:
                 return ""
             query = """
-            MATCH (n)-[r]-(m) WHERE n.user_id=$uid AND n.name IN $entities
-            RETURN n, r, m LIMIT 5
+            MATCH (u:User {id: $uid})-[:EXPERIENCED]->(e:LifeEvent)-[:RELATED_TO]->(ent:Entity)
+            WHERE ent.name IN $entities
+            RETURN e.description AS event, e.timestamp AS time, ent.name AS entity
+            ORDER BY e.timestamp DESC
+            LIMIT 5
             """
-            result = await session.run(query, uid=str(user_id), entities=entities)
+            result = await session.run(query, uid=int(user_id), entities=entities)
             data = await result.data()
             return str(data)
     except Exception as exc:
