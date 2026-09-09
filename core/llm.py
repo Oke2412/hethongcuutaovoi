@@ -218,7 +218,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_EXTRACTOR,
                         tools=TOOLS_DEF,
-                        automatic_function_calling={"disable": True},
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                         thinking_config=types.ThinkingConfig(include_thoughts=True),
                         tool_config=types.ToolConfig(
                             function_calling_config=types.FunctionCallingConfig(
@@ -231,7 +231,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                     chat.send_message, 
                     prompt,
                     config=types.GenerateContentConfig(
-                        automatic_function_calling={"disable": True}
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
                     )
                 )
                 break  # If successful, break the loop
@@ -244,7 +244,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                         config=types.GenerateContentConfig(
                             system_instruction=SYSTEM_EXTRACTOR,
                             tools=TOOLS_DEF,
-                            automatic_function_calling={"disable": True},
+                            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                             tool_config=types.ToolConfig(
                                 function_calling_config=types.FunctionCallingConfig(
                                     mode="ANY"
@@ -256,7 +256,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                         chat.send_message, 
                         prompt,
                         config=types.GenerateContentConfig(
-                            automatic_function_calling={"disable": True}
+                            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
                         )
                     )
                     break
