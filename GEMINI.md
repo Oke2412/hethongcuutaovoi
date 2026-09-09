@@ -5,93 +5,46 @@
 ---
 
 ## 🎯 Về Dự Án
-
 **Tên project:** Amazing Nobel
-**Mục tiêu:** Hệ thống AI hỗ trợ cá nhân kiểu "system" trong phim chuyển sinh — theo dõi thể trạng, tiến độ công việc, năng lực hiện tại, lịch sinh hoạt, và nhắc nhở thông minh.
-**Kiến trúc:** Agentic Chat 100% (Không dùng luồng Menu/Q&A cứng). Hệ thống sở hữu "Trí nhớ vô hạn" nhờ RAG + Liên kết ngữ cảnh.
-**Interface chính:** Telegram Bot (người dùng dùng iPhone). Tương lai: Kính AR / Neural Chip.
-**Backend:** FastAPI + Docker Compose.
+**Mục tiêu:** Hệ thống AI cá nhân kiểu "system" (Raphael Vua Trí Tuệ) — theo dõi thể trạng, tiến độ, năng lực, và nhắc nhở thông qua phân tích Tâm lý học & Nhân học (Insight given is insight rejected).
+**Kiến trúc:** Agentic Chat 100%. Trí nhớ RAG + GraphRAG (Neo4j). Backend FastAPI + Docker Compose.
 
 ---
 
-## 🏗️ Kiến Trúc Hệ Thống Hiện Tại (Agentic Mode)
+## ✅ Quy Tắc Làm Việc Cốt Lõi (BẮT BUỘC)
+
+1. **QUẢN LÝ BRANCH (TỐI QUAN TRỌNG):**
+   - **MỖI KHI** làm một tính năng, chức năng, hoặc sửa đổi logic mới, **LUÔN LUÔN tạo một nhánh mới** (`git checkout -b feature/...`).
+   - CODE XONG mới đẩy (push) nhánh đó lên. **KHÔNG BAO GIỜ code tính năng mới trực tiếp trên nhánh `main`.**
+
+2. **GIAO TIẾP VÀ ĐỒNG BỘ:**
+   - Luôn chạy `git status` và `git pull origin main` đầu mỗi session.
+   - Luôn giải thích logic định làm trước khi code.
+   - Ghi log đầy đủ vào `PROMPT_HISTORY.md` sau khi hoàn thành.
+
+3. **CẤU TRÚC VÀ MÃ NGUỒN:**
+   - Dùng `async/await` xuyên suốt. Type hints bắt buộc.
+   - **Xử lý Unicode:** KHÔNG dùng PowerShell `Set-Content` hay here-string để ghi file có tiếng Việt/Emoji. Dùng `replace_file_content` hoặc Python `codecs.open` để tránh vỡ font.
+   - KHÔNG dùng ConversationHandler, không làm menu cứng. Mọi thứ xử lý qua NLP.
+
+4. **TÂM LÝ HỌC & NHÂN QUẢ (RAPHAEL DEEP):**
+   - Raphael phân tích Tâm lý học (Core Value, Shadow, CBT) và Đồ thị Nhân quả kết hợp, đây là các **trọng số** để đưa ra quyết định, chứ không chỉ là "gợi ý tâm lý suông".
+   - **Nguyên lý "Insight given is insight rejected":** Mọi phân tích tâm lý sâu sắc phải được giấu kín trong thẻ `<thinking>`. Output gửi cho người dùng chỉ là một hệ quả lạnh lùng hoặc Side Quest kỳ lạ để kích hoạt tự nhận thức (Self-realization).
+
+---
+
+## 🏗️ Kiến Trúc Hệ Thống (Agentic Mode)
 
 ```
 [User / iPhone / AR Glasses]
      ↓
-     ↑
-[Frontend Adapter (Telegram / Audio / Vision)]  <—— Hứng dữ liệu đầu vào
+[Telegram Adapter]
      ↓
-     ↑
-[Core Brain - RaphaelBrain] (core/brain.py)  <—— Xử lý toàn bộ logic, gọi Tools, lấy ký ức
-     ├── [Mem0 / RAG Memory Layer]           <—— Bới móc ký ức, lưu trữ Vector
-     ├── [LLM API - Gemini 3.8 Flash]        <—— Não chính phân tích ý định
-     ├── [SQLite DB]                         <—— Dữ liệu cứng (Quest, Project, Thể trạng)
-     └── [APScheduler]                       <—— Nhắc nhở, check-in cuối ngày
+[Core Brain - RaphaelBrain]
+     ├── [Mem0 / Vector Memory]
+     ├── [LLM API - Multi-Model Fallback Cascade]
+     ├── [Neo4j Graph - Causal & Psychology]
+     └── [SQLite DB]
 ```
-
-### Stack chính
-| Layer | Công nghệ |
-|---|---|
-| Interface | python-telegram-bot 22.8 (tạm thời) |
-| Backend | FastAPI + uvicorn |
-| Memory Layer | `mem0ai` + `chromadb` (hoặc local vector db) |
-| Database | SQLite + SQLModel (ORM) |
-| LLM | Google Gemini 3.8 Flash (VLM + Text) |
-
----
-
-## ❌ Những Gì KHÔNG Làm
-
-- **Reset Database:** Hệ thống có tính năng Hủy diệt Database bằng lệnh `/reset_db`. Yêu cầu nhập mã xác nhận (OTP). CẢNH BÁO: Tính năng này chỉ dùng cho GIAI ĐOẠN PHÁT TRIỂN (Dev Phase) để dọn dẹp dữ liệu rác. Bắt buộc PHẢI XÓA BỎ tính năng này khi dự án release bản Production (Ghi chú này sẽ được theo dõi).
-- **Không dùng ConversationHandler / Bấm nút nhiều bước:** Dùng Chat Agentic 100%. User chat -> LLM phân tích -> Dùng Tool cập nhật DB.
-- **Không có streak/penalty mechanics** — người dùng không muốn gamification kiểu streak.
-- **Không over-engineer** — bắt đầu đơn giản, extend dần.
-
----
-
-## ✅ Quy tắc làm việc của Agent (BẮT BUỘC)
-
-- **Kiểm tra và Đồng bộ Code:** Luôn luôn chạy `git status` và `git pull origin main` trước khi bắt đầu mỗi session để đảm bảo đang làm việc trên đúng nhánh và có code mới nhất.
-- **Giải thích trước khi hành động:** Trong mỗi session, trước khi tiến hành viết code hay chạy lệnh, Agent PHẢI giải thích rõ kế hoạch/logic định làm cho người dùng hiểu.
-- **Quản lý Branch:** Bất cứ khi nào làm một TÍNH NĂNG MỚI, LUÔN LUÔN tạo một nhánh mới (`git checkout -b feature/...`), code xong mới push. KHÔNG code tính năng mới trực tiếp trên nhánh `main`.
-- **Ghi log đầy đủ:** Ghi vào `PROMPT_HISTORY.md` sau khi hoàn thành tính năng để theo dõi tiến độ.
-
----
-
-## 💻 Coding Conventions
-
-- Language: **Python 3.11+**
-- Async: dùng `async/await` xuyên suốt
-- Type hints: bắt buộc trên tất cả function signatures
-- Config: dùng `.env` + `pydantic-settings`
-- Error handling: không để exception uncaught ở handler level
-
-### ⚠️ Quy tắc ghi file có Unicode (BẮT BUỘC)
-
-**KHÔNG** dùng PowerShell `Set-Content` hay `@'...'@` here-string để ghi file chứa:
-- Tiếng Việt (dấu thanh, đặc biệt như â, ê, ơ, ư, ...)
-- Emoji (🎯, ⚠️, ✅, ...)
-
-**CÁCH ĐÚNG:** Viết nội dung file bằng Python script `codecs.open(..., 'w', 'utf-8')` rồi gọi chạy script đó, HOẶC dùng tool `replace_file_content` cẩn thận. Python xử lý Unicode đúng — PowerShell thì không.
-
----
-
-## 📂 Cấu Trúc Thư Mục
-
-```
-amazing-nobel/
-├── RULES.md                  <- File này — agent đọc mỗi session
-├── PROMPT_HISTORY.md         <- Lịch sử prompt — agent đọc mỗi session
-├── docker-compose.yml
-├── .env.example
-├── bot/                      <- Telegram bot handlers (Chỉ đóng vai trò Adapter)
-├── api/                      <- FastAPI routes
-├── core/                     <- Business logic (brain, memory, scheduler, llm_tools)
-├── db/                       <- SQLite models
-└── tests/
-```
-
----
 
 *File này được duy trì bởi coding agent. Cập nhật khi có quyết định kiến trúc mới.*
