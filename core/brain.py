@@ -93,8 +93,8 @@ class RaphaelBrain:
                         param_key = f"ent_{i}"
                         params[param_key] = entity
                         query += f"""
-                        MERGE (ent:Entity {{name: ${param_key}}})
-                        CREATE (e)-[:RELATED_TO]->(ent)
+                        MERGE (ent_{i}:Entity {{name: ${param_key}}})
+                        CREATE (e)-[:RELATED_TO]->(ent_{i})
                         """
                         
                 async with driver.session() as session:
