@@ -263,10 +263,14 @@ async def reset_database_async(user_id: int) -> str:
 
         async with AsyncGraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password)) as driver:
             async with driver.session() as neo_session:
-                # Delete all nodes and relationships tagged with this user_id
+                # Delete the user node and all their LifeEvents
                 await neo_session.run(
-                    "MATCH (n) WHERE n.user_id = $uid DETACH DELETE n",
-                    uid=str(user_id),
+                    """
+                    MATCH (u:User {id: $uid})
+                    OPTIONAL MATCH (u)-[:EXPERIENCED]->(e:LifeEvent)
+                    DETACH DELETE u, e
+                    """,
+                    uid=user_id,
                 )
         results.append("Neo4j: OK")
     except ImportError:

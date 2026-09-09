@@ -37,5 +37,40 @@ async def handle_quests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         
         await update.message.reply_text(text, parse_mode="Markdown")
 
-def build_quest_handler() -> CommandHandler:
-    return CommandHandler("quests", handle_quests)
+from telegram.ext import CallbackQueryHandler
+from core.llm_tools import complete_quest_async, cancel_quest_async
+
+async def handle_quest_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    
+    user_id = update.effective_user.id
+    
+    async with AsyncSessionLocal() as session:
+        user = await get_or_create_user(session, user_id, update.effective_user.full_name, update.effective_user.username)
+        internal_id = user.id
+    
+    data = query.data
+    if data.startswith("complete_"):
+        q_id = int(data.split("_")[1])
+        res = await complete_quest_async(internal_id, q_id)
+        # Edit HUD message to remove buttons
+        try:
+            await query.edit_message_reply_markup(reply_markup=None)
+        except:
+            pass
+        await query.message.reply_text(res)
+    elif data.startswith("cancel_"):
+        q_id = int(data.split("_")[1])
+        res = await cancel_quest_async(internal_id, q_id)
+        try:
+            await query.edit_message_reply_markup(reply_markup=None)
+        except:
+            pass
+        await query.message.reply_text(res)
+
+def build_quest_handlers() -> list:
+    return [
+        CommandHandler("quests", handle_quests),
+        CallbackQueryHandler(handle_quest_callback, pattern="^(complete_|cancel_)")
+    ]

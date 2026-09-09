@@ -43,12 +43,10 @@ class RaphaelBrain:
             await log_message(int(user_id), "user", text_content)
 
         mini_ctx = await get_mini_context(int(user_id))
-        msg_class = classify_message(text_content or "")
         
-        if msg_class == "chat" and len((text_content or "").split()) > 20:
-            from core.router import semantic_classify
-            from core.llm import _get_gemini_client
-            msg_class = await semantic_classify(text_content or "", _get_gemini_client())
+        from core.router import semantic_classify
+        from core.llm import _get_gemini_client
+        msg_class = await semantic_classify(text_content or "", _get_gemini_client())
 
         
         tool_results, impact_flag, causal_ctx = [], False, ""

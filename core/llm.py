@@ -9,22 +9,16 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
+    "gemini-3.6-flash"
 ]
 FALLBACK_MODELS_CHAT = [
-    "gemini-3.5-flash",
-    "gemini-3-flash",
-    "gemini-2.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3-flash",
-    "gemini-2.5-flash"
+    "gemini-3.6-flash"
 ]
 MODEL_EMBED = "gemini-embedding-2-preview"
 
@@ -257,10 +251,10 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 tasks.append(update_memory_async(user_id, fc.args.get("content", "")))
                 tool_results.append({"tool": fc.name, "entity": fc.args.get("content", "")[:30]})
             elif fc.name == "cancel_quest":
-                tasks.append(cancel_quest_async(int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
+                tasks.append(cancel_quest_async(user_id, int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
                 tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "complete_quest":
-                tasks.append(complete_quest_async(int(fc.args.get("quest_id", 0))))
+                tasks.append(complete_quest_async(user_id, int(fc.args.get("quest_id", 0))))
                 tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "create_quest":
                 tasks.append(create_quest_async(
