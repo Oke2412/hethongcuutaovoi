@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from datetime import datetime
 from google import genai
 from google.genai import types
@@ -37,7 +38,6 @@ async def generate_and_save_quest(user_id: int):
         if not user:
             return None
             
-        # Cancel all old pending quests to refresh
         old_quests = await session.execute(
             select(SystemQuest).where(SystemQuest.user_id == user.id, SystemQuest.status == "pending")
         )
@@ -48,13 +48,17 @@ async def generate_and_save_quest(user_id: int):
         prompt = PROMPT_QUEST + "\n\n--- CONTEXT ---\n" + context
 
         client = genai.Client(api_key=settings.gemini_api_key)
-        model = genai.GenerativeModel(
-            model_name="gemini-3.8-flash",
-            generation_config={"response_mime_type": "application/json"}
-        )
         
         try:
-            response = model.generate_content(prompt)
+            response = await asyncio.to_thread(
+                client.models.generate_content,
+                model="gemini-3.8-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    system_instruction="Output ONLY valid JSON array. No markdown.",
+                ),
+            )
             quests_data = json.loads(response.text.strip())
             
             for qdata in quests_data:

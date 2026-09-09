@@ -30,30 +30,28 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         tg_file = await context.bot.get_file(doc.file_id)
         byte_array = await tg_file.download_as_bytearray()
         
-        try:
-            content = byte_array.decode('utf-8')
-        except UnicodeDecodeError:
-            try:
-                content = byte_array.decode('utf-16')
-            except UnicodeDecodeError:
-                try:
-                    content = byte_array.decode('cp1258')
-                except UnicodeDecodeError:
-                    content = byte_array.decode('cp1252', errors='replace')
+        content = byte_array.decode('utf-8', errors='replace')
         
         if len(content.strip()) == 0:
             await status_msg.edit_text("⚠️ File trống.")
             return
 
-
         tg_user = update.effective_user
         async with AsyncSessionLocal() as session:
             user = await get_or_create_user(session, tg_user.id, tg_user.full_name, tg_user.username)
             
-        prompt = f"[Tài liệu đính kèm: {doc.file_name}]\n{content}\n\nHãy phân tích tài liệu này và tự động lưu các thông tin quan trọng (dự án, năng lực, lịch trình) vào hệ thống bằng Tools."
-        
-        response = await brain.process_input(user_id=str(user.id), text_content=prompt)
-        await status_msg.edit_text(response)
+        filename_safe = doc.file_name or "file"
+        prompt = (
+            "[TAI LIEU DINH KEM: " + filename_safe + "]\n"
+            + content
+        )
+
+        response, keyboard = await brain.process_input(user_id=str(user.id), text_content=prompt)
+
+        if keyboard:
+            await status_msg.edit_text(response, reply_markup=keyboard)
+        else:
+            await status_msg.edit_text(response)
 
     except Exception as exc:
         logger.error(f"Error handling document: {exc}", exc_info=True)

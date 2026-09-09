@@ -13,6 +13,7 @@ structlog==24.4.0
 mem0ai
 chromadb
 
-
 sentence-transformers
 google-genai
+h3==4.1.*
+neo4j==5.*

@@ -10,7 +10,7 @@ from core.scheduler import setup_scheduler
 from bot.handlers import start, status, chat
 from bot.handlers.onboard import build_onboard_handler
 from bot.handlers.document import build_document_handler
-from bot.handlers.location import build_location_handler
+from bot.handlers.location import handle_location
 from bot.handlers.quest import build_quest_handler
 from bot.handlers.reset import build_reset_handlers
 
@@ -21,9 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 async def post_init(application: Application) -> None:
-    """Called after the bot is initialised but before polling starts."""
     logger.info("Initialising database...")
     await init_db()
 
@@ -33,7 +31,6 @@ async def post_init(application: Application) -> None:
 
     logger.info("Bot ready. Long polling started.")
 
-
 def main() -> None:
     app = (
         Application.builder()
@@ -42,21 +39,21 @@ def main() -> None:
         .build()
     )
 
-    # Commands
     app.add_handler(CommandHandler("start", start.handle))
     app.add_handler(CommandHandler("status", status.handle))
-    # Reset DB (Dev Phase Only)
     for handler in build_reset_handlers():
         app.add_handler(handler)
     app.add_handler(build_quest_handler())
 
-    # Conversations (order matters: more specific first)
-    app.add_handler(build_onboard_handler())   # /onboard
+    app.add_handler(build_onboard_handler())
 
-    # Document upload
     app.add_handler(build_document_handler())
 
-    # Free-text -> LLM (must be last)
+    # Location updates
+    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+    app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE & filters.LOCATION, handle_location))
+
+    # Text messages
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat.handle))
 
     logger.info("Starting bot with long polling...")
@@ -64,7 +61,6 @@ def main() -> None:
         allowed_updates=Update.ALL_TYPES,
         drop_pending_updates=True,
     )
-
 
 if __name__ == "__main__":
     main()
