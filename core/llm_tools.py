@@ -26,27 +26,37 @@ async def update_memory_async(user_id: int, content: str) -> str:
 
 
 
-async def cancel_quest_async(quest_id: int, reason: str) -> str:
+async def cancel_quest_async(user_id: int, quest_id: int, reason: str = "Hủy bởi User") -> str:
     """Cancels an active System Quest if the user rejects it or has already done it."""
     async with AsyncSessionLocal() as session:
         quest = await session.get(SystemQuest, quest_id)
-        if not quest:
-            return "Nhiệm vụ không tồn tại."
+        if not quest or quest.user_id != user_id:
+            return "Nhiệm vụ không tồn tại hoặc không thuộc về bạn."
         quest.status = "cancelled"
         quest.description += f"\n[Cancelled Reason: {reason}]"
         await session.commit()
     return "Đã hủy nhiệm vụ thành công."
 
-async def complete_quest_async(quest_id: int) -> str:
-    """Marks an active System Quest as completed."""
+async def complete_quest_async(user_id: int, quest_id: int) -> str:
+    """Marks an active System Quest as completed and grants the reward."""
     async with AsyncSessionLocal() as session:
         quest = await session.get(SystemQuest, quest_id)
-        if not quest:
-            return "Nhiệm vụ không tồn tại."
+        if not quest or quest.user_id != user_id:
+            return "Nhiệm vụ không tồn tại hoặc không thuộc về bạn."
+        
+        if quest.status == "completed":
+            return "Nhiệm vụ này đã được hoàn thành trước đó."
+            
         quest.status = "completed"
         quest.completed_at = datetime.utcnow()
+        
+        # Grant reward
+        user = await session.get(User, user_id)
+        if user:
+            user.credits += quest.reward
+            
         await session.commit()
-    return "Đã hoàn thành nhiệm vụ thành công."
+    return f"Đã hoàn thành nhiệm vụ! Bạn nhận được {quest.reward} Credits."
 
 async def update_physical_status_async(user_id: int, energy: int, mood: int, health: int, sleep_hours: float, notes: str) -> str:
     """Cập nhật trạng thái thể chất của user (PhysicalStatus) vào cuối ngày hoặc khi user than phiền."""
