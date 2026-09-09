@@ -9,22 +9,21 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash-lite"
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_CHAT = [
-    "gemma-4-26b-it",
-    "gemma-4-31b-it"
+    "gemini-3.5-flash",
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
     "gemini-3.7-flash",
     "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3-flash",
-    "gemini-2.5-flash"
+    "gemini-3.1-pro-preview"
 ]
-MODEL_EMBED = "gemini-embedding-2"
+MODEL_EMBED = "gemini-embedding-2-preview"
 
 SYSTEM_EXTRACTOR = """You are a data extraction agent for a life-gamification OS.
 ONLY task: read the user message, extract entities, call ALL applicable tools.
@@ -209,6 +208,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
     try:
         last_exc = None
         for model_ext in FALLBACK_MODELS_EXTRACTOR:
+            # First try WITH thinking_config
             try:
                 chat = client.chats.create(
                     model=model_ext,
@@ -216,7 +216,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                         system_instruction=SYSTEM_EXTRACTOR,
                         tools=TOOLS_DEF,
                         automatic_function_calling={"disable": True},
-                        thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
+                        thinking_config=types.ThinkingConfig(include_thoughts=True),
                         tool_config=types.ToolConfig(
                             function_calling_config=types.FunctionCallingConfig(
                                 mode="ANY"
@@ -233,8 +233,33 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 )
                 break  # If successful, break the loop
             except Exception as exc:
-                logger.warning("Extractor Model %s failed. Falling back... Error: %s", model_ext, exc)
-                last_exc = exc
+                logger.warning("Extractor Model %s failed with thinking. Retrying without thinking... Error: %s", model_ext, exc)
+                # Fallback WITHOUT thinking_config
+                try:
+                    chat = client.chats.create(
+                        model=model_ext,
+                        config=types.GenerateContentConfig(
+                            system_instruction=SYSTEM_EXTRACTOR,
+                            tools=TOOLS_DEF,
+                            automatic_function_calling={"disable": True},
+                            tool_config=types.ToolConfig(
+                                function_calling_config=types.FunctionCallingConfig(
+                                    mode="ANY"
+                                )
+                            )
+                        ),
+                    )
+                    response = await asyncio.to_thread(
+                        chat.send_message, 
+                        prompt,
+                        config=types.GenerateContentConfig(
+                            automatic_function_calling={"disable": True}
+                        )
+                    )
+                    break
+                except Exception as exc2:
+                    logger.warning("Extractor Model %s failed without thinking too. Error: %s", model_ext, exc2)
+                    last_exc = exc2
         else:
             raise last_exc  # Raise the last exception if all models fail
             
