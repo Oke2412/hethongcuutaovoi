@@ -6,11 +6,10 @@ def _normalize(text: str) -> str:
     """Strip diacritics for Vietnamese matching."""
     return unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode()
 
-# Data patterns (có cả có dấu lẫn không dấu)
+# Data patterns (cả có dấu lẫn không dấu)
 DATA_KEYWORDS = [
-    r"\b(can|kg|kilo|chieu cao|cm|bmi|ngu|giac ngu|nang luong|energy|suc khoe|dau|om|tam trang|mood)\b",
-    r"\b(gay|chan thuong|benh|sot|doi|khat|met|giam|tang|thuong|huyet ap|nhip tim|dot quy|cap cuu)\b",
-    r"\b(hoc|tap|luyen|code|viet|doc|skill|level|exp|du an|project|tien do|xong|done|hoan thanh|hoan tat)\b",
+    r"\b(can|kg|kilo|chieu cao|cm|bmi|ngu|giac ngu|nang luong|energy|suc khoe|dau|om|tam trang|mood|gay|thuong|benh|huyet ap|nhip tim|met|yeu|soc|chan|tay|dau|lung)\b",
+    r"\b(hoc|tap|luyen|code|viet|doc|skill|level|exp|du an|project|tien do|xong|done|hoàn thành|hoàn tất)\b",
     r"\b(quest|nhiem vu|task|huy|cancel|reward|credits|tin chi)\b",
     r"\b\d+\s*(kg|cm|h|gio|phut|%|diem|exp)\b",
 ]
