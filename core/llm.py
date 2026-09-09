@@ -8,16 +8,17 @@ from config import settings
 logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
-    "gemini-3.5-flash-lite",
-    "gemini-3.6-flash"
+    "gemini-3.5-flash-lite"
 ]
 FALLBACK_MODELS_CHAT = [
-    "gemini-3.8-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash-lite"
+    "gemma-4-31b-it",
+    "gemini-3.5-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
+    "gemini-3.7-flash",
     "gemini-3.6-flash"
 ]
 MODEL_EMBED = "gemini-embedding-2-preview"
