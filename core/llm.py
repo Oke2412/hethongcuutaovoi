@@ -7,10 +7,24 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-MODEL_EXTRACTOR = "gemini-3.5-flash-lite"
-MODEL_CHAT      = "gemma-4-26b-it"
-MODEL_DEEP      = "gemini-3.8-flash"
-MODEL_EMBED     = "gemini-embedding-2"
+FALLBACK_MODELS_EXTRACTOR = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite"
+]
+FALLBACK_MODELS_CHAT = [
+    "gemma-4-26b-it",
+    "gemma-4-31b-it"
+]
+FALLBACK_MODELS_DEEP = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3-flash",
+    "gemini-2.5-flash"
+]
+MODEL_EMBED = "gemini-embedding-2"
 
 SYSTEM_EXTRACTOR = """You are a data extraction agent for a life-gamification OS.
 ONLY task: read the user message, extract entities, call ALL applicable tools.
@@ -190,28 +204,37 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
     prompt = f"[CONTEXT]\n{mini_context}\n[MESSAGE]\n{message}"
     
     try:
-        chat = client.chats.create(
-            model=MODEL_EXTRACTOR,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_EXTRACTOR,
-                tools=TOOLS_DEF,
-                automatic_function_calling={"disable": True},
-                thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
-                tool_config=types.ToolConfig(
-                    function_calling_config=types.FunctionCallingConfig(
-                        mode="ANY"
+        last_exc = None
+        for model_ext in FALLBACK_MODELS_EXTRACTOR:
+            try:
+                chat = client.chats.create(
+                    model=model_ext,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_EXTRACTOR,
+                        tools=TOOLS_DEF,
+                        automatic_function_calling={"disable": True},
+                        thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
+                        tool_config=types.ToolConfig(
+                            function_calling_config=types.FunctionCallingConfig(
+                                mode="ANY"
+                            )
+                        )
+                    ),
+                )
+                response = await asyncio.to_thread(
+                    chat.send_message, 
+                    prompt,
+                    config=types.GenerateContentConfig(
+                        automatic_function_calling={"disable": True}
                     )
                 )
-            ),
-        )
-        response = await asyncio.to_thread(
-            chat.send_message, 
-            prompt,
-            config=types.GenerateContentConfig(
-                automatic_function_calling={"disable": True}
-            )
-        )
-        
+                break  # If successful, break the loop
+            except Exception as exc:
+                logger.warning("Extractor Model %s failed. Falling back... Error: %s", model_ext, exc)
+                last_exc = exc
+        else:
+            raise last_exc  # Raise the last exception if all models fail
+            
         tool_results = []
         impact_flag = False
         
@@ -281,13 +304,6 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
         logger.error("Flash Lite extraction error: %s", exc)
         return [], False
 
-FALLBACK_MODELS_DEEP = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-]
-
 async def _generate_with_fallback(client, models_list, contents, config=None):
     last_exc = None
     for m in models_list:
@@ -318,7 +334,7 @@ async def run_response_step(
         system = SYSTEM_RAPHAEL_CHAT
         tool_res_str = ", ".join([r.get("tool", "") for r in tool_results])
         prompt = f"[CONTEXT]\n{mini_context}\n[TOOLS USED]\n{tool_res_str}\n[MESSAGE]\n{message}"
-        models_to_try = [MODEL_CHAT]
+        models_to_try = FALLBACK_MODELS_CHAT
         
     try:
         response = await _generate_with_fallback(
