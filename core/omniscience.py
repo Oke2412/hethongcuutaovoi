@@ -98,8 +98,9 @@ async def get_mini_context(user_id: int) -> str:
     cap_str = ",".join([f"{c.domain} Lv{c.current_level}" for c in caps])
     proj_str = ",".join([f"{p.name}({p.progress_percent}%)" for p in projs])
     
-    from datetime import datetime
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    from datetime import datetime, timezone, timedelta
+    vn_tz = timezone(timedelta(hours=7))
+    now_str = datetime.now(vn_tz).strftime("%Y-%m-%d %H:%M:%S")
     
     try:
         from bot.handlers.location import _location_state
