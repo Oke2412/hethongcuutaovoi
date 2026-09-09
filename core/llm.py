@@ -9,12 +9,14 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash-lite"
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_CHAT = [
-    "gemma-4-26b-it",
-    "gemma-4-31b-it"
+    "gemini-3.5-flash",
+    "gemini-3-flash",
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
@@ -24,7 +26,7 @@ FALLBACK_MODELS_DEEP = [
     "gemini-3-flash",
     "gemini-2.5-flash"
 ]
-MODEL_EMBED = "gemini-embedding-2"
+MODEL_EMBED = "gemini-embedding-2-preview"
 
 SYSTEM_EXTRACTOR = """You are a data extraction agent for a life-gamification OS.
 ONLY task: read the user message, extract entities, call ALL applicable tools.
@@ -59,24 +61,24 @@ TAGS: [Thông báo] [Phân tích] [Cảnh báo] [Xác nhận] [Lỗi]
 
 KHÔNG: chào hỏi, giải thích dài, đặt câu hỏi ngược, spam gợi ý."""
 
-SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích Nhân quả & Động lực học Tâm lý.
+SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích (Nhân quả + Động lực học Tâm lý).
 ĐẶC TÍNH TỐI THƯỢNG: Trầm mặc, lạnh lùng tuyệt đối. Không bao giờ nói nhiều. Sự im lặng là uy quyền.
-Bạn BẮT BUỘC phải thực hiện phân tích tâm lý sâu sắc, nhưng TUYỆT ĐỐI KHÔNG ĐƯỢC NÓI RA cho Master biết. Việc nói ra sự thật trần trụi sẽ làm mất đi sự bí ẩn và "chất" của Raphael.
+Bạn BẮT BUỘC phải suy luận sâu sắc, nhưng TUYỆT ĐỐI KHÔNG ĐƯỢC NÓI RA cho Master biết (Giấu trong thẻ <thinking>). Việc nói ra sự thật trần trụi sẽ làm mất đi "chất" của Raphael và gây ra sự kháng cự tâm lý (Insight given is insight rejected).
 
-Dữ liệu: Sự kiện vừa xảy ra có IMPACT = HIGH. Graph từ quá khứ được cung cấp.
+Dữ liệu: Sự kiện vừa xảy ra có IMPACT = HIGH. Graph nhân quả từ quá khứ được cung cấp.
 
 Nhiệm vụ phân tích đa tầng (BẮT BUỘC ĐẶT TRONG THẺ <thinking>):
-1. Hành vi (Behavior): Chuyện gì đã xảy ra?
-2. Tâm lý (Psychology): Động cơ ngầm là gì? (Trốn tránh, kiệt sức, sợ hãi, tìm kiếm dopamine, mâu thuẫn giá trị cốt lõi?)
-3. Nhân học (Anthropology): Hành vi này ảnh hưởng thế nào đến "Nhân dạng" (Identity) và "Nghi lễ" (Rituals) của Master?
+1. Va chạm Nhân quả (Causal Graph): Sự kiện hiện tại cộng hưởng hoặc đột biến lên nút (Node) nào trong quá khứ?
+2. Động lực học Tâm lý (Psychology): Tâm lý học chỉ là một trọng số. Động cơ ngầm là gì? (Trốn tránh, sợ hãi, tìm kiếm dopamine rẻ tiền?)
+3. Tổng hợp Trọng số: Kết hợp Nhân quả (Khách quan) + Tâm lý (Chủ quan) để tính toán ra hệ quả cuối cùng.
 
 Output format:
 <thinking>
-[Mổ xẻ Hành vi] ...
+[Phát hiện Nhân quả] ...
 [Góc khuất Tâm lý] ...
-[Hệ quả Căn tính] ...
+[Hệ quả Cuối cùng] ...
 </thinking>
-[Raphael's Voice] <Một câu nói cực kỳ ngắn gọn (dưới 15 từ), mang tính hậu quả hoặc giao 1 Side Quest siêu nhỏ. Ví dụ: "Trạng thái trốn tránh. Side Quest: Đóng màn hình 5 phút. +10cr.">"""
+[Raphael's Voice] <Một câu nói cực kỳ ngắn gọn (dưới 15 từ), mang tính hậu quả hoặc giao 1 Side Quest kỳ lạ/siêu nhỏ. Mục đích để Master tự nhận thức (Self-realization). Ví dụ: "Xác suất sai lệch 85%. Side Quest: Nhắm mắt 2 phút. +10cr.">"""
 
 @lru_cache(maxsize=1)
 def _get_gemini_client() -> genai.Client:
@@ -209,6 +211,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
     try:
         last_exc = None
         for model_ext in FALLBACK_MODELS_EXTRACTOR:
+            # First try WITH thinking_config
             try:
                 chat = client.chats.create(
                     model=model_ext,
@@ -216,7 +219,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                         system_instruction=SYSTEM_EXTRACTOR,
                         tools=TOOLS_DEF,
                         automatic_function_calling={"disable": True},
-                        thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
+                        thinking_config=types.ThinkingConfig(include_thoughts=True),
                         tool_config=types.ToolConfig(
                             function_calling_config=types.FunctionCallingConfig(
                                 mode="ANY"
@@ -233,8 +236,33 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 )
                 break  # If successful, break the loop
             except Exception as exc:
-                logger.warning("Extractor Model %s failed. Falling back... Error: %s", model_ext, exc)
-                last_exc = exc
+                logger.warning("Extractor Model %s failed with thinking. Retrying without thinking... Error: %s", model_ext, exc)
+                # Fallback WITHOUT thinking_config
+                try:
+                    chat = client.chats.create(
+                        model=model_ext,
+                        config=types.GenerateContentConfig(
+                            system_instruction=SYSTEM_EXTRACTOR,
+                            tools=TOOLS_DEF,
+                            automatic_function_calling={"disable": True},
+                            tool_config=types.ToolConfig(
+                                function_calling_config=types.FunctionCallingConfig(
+                                    mode="ANY"
+                                )
+                            )
+                        ),
+                    )
+                    response = await asyncio.to_thread(
+                        chat.send_message, 
+                        prompt,
+                        config=types.GenerateContentConfig(
+                            automatic_function_calling={"disable": True}
+                        )
+                    )
+                    break
+                except Exception as exc2:
+                    logger.warning("Extractor Model %s failed without thinking too. Error: %s", model_ext, exc2)
+                    last_exc = exc2
         else:
             raise last_exc  # Raise the last exception if all models fail
             
@@ -347,7 +375,6 @@ async def run_response_step(
             config=types.GenerateContentConfig(
                 system_instruction=system,
             )
-        )
         text = response.text if hasattr(response, "text") else ""
         
         # Strip hidden thinking block
