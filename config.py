@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     daily_checkin_hour: int = Field(default=21, alias="DAILY_CHECKIN_HOUR")
     daily_checkin_minute: int = Field(default=0, alias="DAILY_CHECKIN_MINUTE")
 
+    # Neo4j and H3
+    neo4j_uri: str = Field(default="neo4j://neo4j:7687", alias="NEO4J_URI")
+    neo4j_user: str = Field(default="neo4j", alias="NEO4J_USER")
+    neo4j_password: str = Field(default="password", alias="NEO4J_PASSWORD")
+    h3_resolution: int = Field(default=9, alias="H3_RESOLUTION")
+
     # LLM behavior
     llm_system_persona: str = Field(default="strict", alias="LLM_SYSTEM_PERSONA")
 

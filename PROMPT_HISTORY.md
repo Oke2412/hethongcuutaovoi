@@ -399,3 +399,21 @@
 - Đã push nhánh `feature/waypoint-location`.
 **Files thay đổi:** core/llm_tools.py, core/llm.py, bot/handlers/location.py, bot/main.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-09 21:54] — Cập nhật cấu trúc pipeline, H3 location và Neo4j
+**Agent:** DeepCoder
+**Prompt:** **Task**: Đọc docs/PLAN_pipeline.md và docs/PLAN_location_h3.md trước khi code, không dùng microsoft graphrag nhé
+c:\Users\Asus\.gemini\antigravity\brain\1b5470e7-0a3c-4632-a673-d1b94ac19521\prompt_draft.md? /boost
+
+**Additional Context**:
+You have implemented the structural changes successfully, including `core/llm_tools.py`, `core/brain.py`, `core/router.py`, `bot/handlers/location.py`, `core/hud.py`, and fixing the h3 and neo4j dependencies. However, you completely missed the final Acceptance Criterion:
+
+- [ ] PROMPT_HISTORY.md updated with new entry including `**Agent:**` field
+
+Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your work in this session. Follow the existing format exactly (include the `**Agent:** DeepCoder` field, `**Prompt:**` field with the original task text, `**Kết quả / Quyết định:**`, and `**Files thay đổi:**`). After you update it, finish your turn.
+**Kết quả / Quyết định:**
+- Triển khai thay đổi cấu trúc hệ thống (core/llm_tools.py, core/brain.py, core/router.py, bot/handlers/location.py, core/hud.py).
+- Khắc phục các dependencies liên quan đến `h3` và `neo4j`.
+- Tuân thủ yêu cầu không sử dụng `microsoft graphrag`.
+**Files thay đổi:** core/llm_tools.py, core/brain.py, core/router.py, bot/handlers/location.py, core/hud.py, PROMPT_HISTORY.md
+---

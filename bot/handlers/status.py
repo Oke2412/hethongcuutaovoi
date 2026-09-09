@@ -82,7 +82,8 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if status.notes:
             lines.append(f'  \U0001f4dd {status.notes}')
     else:
-        lines.append('  _(ch\u01b0a c\u00f4 d\u1eef li\u1ec7\u2014 d\u00fang /report)_')
+        lines.append('  _(chua co du lieu \u2014 hay chat de cap nhat)_')
+
 
     lines += ['', '\U0001f9e0 *N\u0103ng l\u1eef1c*']
     if caps:

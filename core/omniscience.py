@@ -75,3 +75,28 @@ async def log_message(user_id: int, role: str, content: str):
         msg = MessageLog(user_id=user_id, role=role, content=content)
         session.add(msg)
         await session.commit()
+
+async def get_mini_context(user_id: int) -> str:
+    """~60 tokens. For LLM context injection."""
+    async with AsyncSessionLocal() as session:
+        user = await session.get(User, user_id)
+        
+        stmt_phys = select(PhysicalStatus).where(PhysicalStatus.user_id == user_id).order_by(PhysicalStatus.id.desc()).limit(1)
+        phys = (await session.execute(stmt_phys)).scalars().first()
+        
+        stmt_cap = select(CapabilityLog).where(CapabilityLog.user_id == user_id)
+        caps = (await session.execute(stmt_cap)).scalars().all()
+        
+        stmt_proj = select(WorkProject).where(WorkProject.user_id == user_id, WorkProject.progress_percent < 100)
+        projs = (await session.execute(stmt_proj)).scalars().all()
+        
+    e = phys.energy if phys else "?"
+    m = phys.mood if phys else "?"
+    h = phys.health if phys else "?"
+    c = user.credits if user else 0
+    
+    cap_str = ",".join([f"{c.domain} Lv{c.current_level}" for c in caps])
+    proj_str = ",".join([f"{p.name}({p.progress_percent}%)" for p in projs])
+    
+    return f"E:{e} M:{m} H:{h} | Credits:{c} | Skills:{cap_str} | Projects:{proj_str}"
+
