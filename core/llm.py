@@ -375,7 +375,9 @@ async def run_response_step(
             config=types.GenerateContentConfig(
                 system_instruction=system,
             )
+        )
         text = response.text if hasattr(response, "text") else ""
+
         
         # Strip hidden thinking block
         import re
