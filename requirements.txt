@@ -12,6 +12,7 @@ python-dotenv==1.0.1
 structlog==24.4.0
 mem0ai
 chromadb
+neo4j
 
 sentence-transformers
 google-genai
