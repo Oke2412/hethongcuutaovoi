@@ -7,6 +7,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# Prevent background tasks from being garbage collected mid-execution
+background_tasks = set()
+
 class RaphaelBrain:
     def __init__(self) -> None:
         config = {
@@ -103,9 +106,14 @@ class RaphaelBrain:
             tool_results, impact_flag = await run_extraction_step(
                 int(user_id), text_content or "", mini_ctx
             )
-            # Background tasks
-            asyncio.create_task(_persist_to_graph(tool_results, int(user_id)))
-            asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
+            # Background tasks with strong references
+            t1 = asyncio.create_task(_persist_to_graph(tool_results, int(user_id)))
+            background_tasks.add(t1)
+            t1.add_done_callback(background_tasks.discard)
+            
+            t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
+            background_tasks.add(t2)
+            t2.add_done_callback(background_tasks.discard)
 
             if impact_flag:
                 entities = [r.get("entity", "") for r in tool_results]
