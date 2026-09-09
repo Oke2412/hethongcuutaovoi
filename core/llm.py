@@ -196,6 +196,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 system_instruction=SYSTEM_EXTRACTOR,
                 tools=TOOLS_DEF,
                 automatic_function_calling={"disable": True},
+                thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
                 tool_config=types.ToolConfig(
                     function_calling_config=types.FunctionCallingConfig(
                         mode="ANY"
