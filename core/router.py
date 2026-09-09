@@ -45,9 +45,6 @@ def _cosine_sim(v1: list[float], v2: list[float]) -> float:
 
 async def semantic_classify(text: str, client: genai.Client) -> str:
     try:
-        if len(text.split()) <= 20:
-            return classify_message(text)
-
         # Generate embeddings in one batch
         contents = [
             text,
