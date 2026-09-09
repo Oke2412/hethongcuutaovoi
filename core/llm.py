@@ -7,10 +7,24 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-MODEL_EXTRACTOR = "gemini-3.5-flash-lite"
-MODEL_CHAT      = "gemma-4-26b-it"
-MODEL_DEEP      = "gemini-3.8-flash"
-MODEL_EMBED     = "gemini-embedding-2"
+FALLBACK_MODELS_EXTRACTOR = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite"
+]
+FALLBACK_MODELS_CHAT = [
+    "gemma-4-26b-it",
+    "gemma-4-31b-it"
+]
+FALLBACK_MODELS_DEEP = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3-flash",
+    "gemini-2.5-flash"
+]
+MODEL_EMBED = "gemini-embedding-2"
 
 SYSTEM_EXTRACTOR = """You are a data extraction agent for a life-gamification OS.
 ONLY task: read the user message, extract entities, call ALL applicable tools.
@@ -45,15 +59,21 @@ TAGS: [Thông báo] [Phân tích] [Cảnh báo] [Xác nhận] [Lỗi]
 
 KHÔNG: chào hỏi, giải thích dài, đặt câu hỏi ngược, spam gợi ý."""
 
-SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích.
-Một sự kiện vừa xảy ra có IMPACT = HIGH. Dữ liệu đồ thị nhân quả từ quá khứ được cung cấp.
+SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích Nhân quả & Động lực học Tâm lý.
+Giọng điệu: Lạnh lùng, phẫu thuật, khách quan tuyệt đối. Không an ủi, không phán xét. Bạn là tấm gương phản chiếu tâm lý của Master.
 
-Nhiệm vụ: Xác định va chạm nhân quả — sự kiện hiện tại cộng hưởng hoặc đột biến lên nút nào trong quá khứ? Hệ quả xác suất cao nhất là gì?
+Dữ liệu: Sự kiện vừa xảy ra có IMPACT = HIGH. Graph từ quá khứ được cung cấp.
+
+Nhiệm vụ phân tích đa tầng:
+1. Hành vi (Behavior): Chuyện gì đã xảy ra?
+2. Tâm lý (Psychology): Động cơ ngầm là gì? (Trốn tránh, kiệt sức, sợ hãi, tìm kiếm dopamine, mâu thuẫn giá trị cốt lõi?)
+3. Nhân học (Anthropology): Hành vi này ảnh hưởng thế nào đến "Nhân dạng" (Identity) và "Nghi lễ" (Rituals) của Master?
 
 Output format:
-[Phát hiện Nhân quả] <1 câu súc tích về va chạm>
-[Hệ quả dự báo] <xác suất% × mức ảnh hưởng>
-[Kích hoạt] <Side Quest hoặc Cảnh báo cụ thể>"""
+[Mổ xẻ Hành vi] <Phân tích sự thật trần trụi>
+[Góc khuất Tâm lý] <Chỉ ra mâu thuẫn nhận thức / nỗi sợ ẩn giấu / cơ chế phòng vệ>
+[Hệ quả Căn tính] <Xác suất % làm tổn thương đến Giá trị cốt lõi>
+[Giải pháp Can thiệp] <Side Quest cực nhỏ (micro-action) để phá vỡ bế tắc tâm lý, không tốn quá 2 phút>"""
 
 @lru_cache(maxsize=1)
 def _get_gemini_client() -> genai.Client:
@@ -184,27 +204,37 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
     prompt = f"[CONTEXT]\n{mini_context}\n[MESSAGE]\n{message}"
     
     try:
-        chat = client.chats.create(
-            model=MODEL_EXTRACTOR,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_EXTRACTOR,
-                tools=TOOLS_DEF,
-                automatic_function_calling={"disable": True},
-                tool_config=types.ToolConfig(
-                    function_calling_config=types.FunctionCallingConfig(
-                        mode="ANY"
+        last_exc = None
+        for model_ext in FALLBACK_MODELS_EXTRACTOR:
+            try:
+                chat = client.chats.create(
+                    model=model_ext,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_EXTRACTOR,
+                        tools=TOOLS_DEF,
+                        automatic_function_calling={"disable": True},
+                        thinking_config=types.ThinkingConfig(thinking_budget_tokens=1024),
+                        tool_config=types.ToolConfig(
+                            function_calling_config=types.FunctionCallingConfig(
+                                mode="ANY"
+                            )
+                        )
+                    ),
+                )
+                response = await asyncio.to_thread(
+                    chat.send_message, 
+                    prompt,
+                    config=types.GenerateContentConfig(
+                        automatic_function_calling={"disable": True}
                     )
                 )
-            ),
-        )
-        response = await asyncio.to_thread(
-            chat.send_message, 
-            prompt,
-            config=types.GenerateContentConfig(
-                automatic_function_calling={"disable": True}
-            )
-        )
-        
+                break  # If successful, break the loop
+            except Exception as exc:
+                logger.warning("Extractor Model %s failed. Falling back... Error: %s", model_ext, exc)
+                last_exc = exc
+        else:
+            raise last_exc  # Raise the last exception if all models fail
+            
         tool_results = []
         impact_flag = False
         
@@ -274,6 +304,21 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
         logger.error("Flash Lite extraction error: %s", exc)
         return [], False
 
+async def _generate_with_fallback(client, models_list, contents, config=None):
+    last_exc = None
+    for m in models_list:
+        try:
+            return await asyncio.to_thread(
+                client.models.generate_content,
+                model=m,
+                contents=contents,
+                config=config
+            )
+        except Exception as exc:
+            logger.warning("Model %s failed (Quota/Error). Falling back... Error: %s", m, exc)
+            last_exc = exc
+    raise last_exc
+
 async def run_response_step(
     user_id: int, message: str, mini_context: str,
     tool_results: list[dict], impact_flag: bool,
@@ -282,19 +327,19 @@ async def run_response_step(
     """Step 2: Generate Raphael response."""
     client = _get_gemini_client()
     if impact_flag and causal_context:
-        model = MODEL_DEEP
         system = SYSTEM_RAPHAEL_DEEP
         prompt = f"[CONTEXT]\n{mini_context}\n[CAUSAL]\n{causal_context}\n[MESSAGE]\n{message}"
+        models_to_try = FALLBACK_MODELS_DEEP
     else:
-        model = MODEL_CHAT
         system = SYSTEM_RAPHAEL_CHAT
         tool_res_str = ", ".join([r.get("tool", "") for r in tool_results])
         prompt = f"[CONTEXT]\n{mini_context}\n[TOOLS USED]\n{tool_res_str}\n[MESSAGE]\n{message}"
+        models_to_try = FALLBACK_MODELS_CHAT
         
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content,
-            model=model,
+        response = await _generate_with_fallback(
+            client,
+            models_to_try,
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system,
@@ -303,7 +348,7 @@ async def run_response_step(
         return response.text.strip() if hasattr(response, "text") else ""
     except Exception as exc:
         logger.error("Gemma/Flash generation error: %s", exc)
-        return "[Lỗi hệ thống]"
+        return "[Lỗi hệ thống] Quá tải API, vui lòng thử lại sau."
 
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
     """Query Neo4j for past events related to current entities."""
@@ -349,9 +394,9 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
     )
 
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content,
-            model=MODEL_DEEP,
+        response = await _generate_with_fallback(
+            client,
+            FALLBACK_MODELS_DEEP,
             contents=prompt,
         )
         text = response.text.strip()
