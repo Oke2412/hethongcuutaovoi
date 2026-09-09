@@ -98,5 +98,15 @@ async def get_mini_context(user_id: int) -> str:
     cap_str = ",".join([f"{c.domain} Lv{c.current_level}" for c in caps])
     proj_str = ",".join([f"{p.name}({p.progress_percent}%)" for p in projs])
     
-    return f"E:{e} M:{m} H:{h} | Credits:{c} | Skills:{cap_str} | Projects:{proj_str}"
+    from datetime import datetime
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    try:
+        from bot.handlers.location import _location_state
+        loc_data = _location_state.get(user_id)
+        hex_id = loc_data["hex"] if loc_data else "Unknown"
+    except ImportError:
+        hex_id = "Unknown"
+    
+    return f"[Time: {now_str}] [Location H3: {hex_id}] | E:{e} M:{m} H:{h} | Credits:{c} | Skills:{cap_str} | Projects:{proj_str}"
 
