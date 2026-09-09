@@ -58,7 +58,7 @@ async def semantic_classify(text: str, client: genai.Client) -> str:
         
         response = await asyncio.to_thread(
             client.models.embed_content,
-            model="gemini-embedding-2",
+            model="gemini-embedding-2-preview",
             contents=contents,
         )
         

@@ -15,7 +15,7 @@ class RaphaelBrain:
             "embedder": {
                 "provider": "gemini",
                 "config": {
-                    "model": "gemini-embedding-2",
+                    "model": "gemini-embedding-2-preview",
                     "api_key": settings.gemini_api_key,
                 },
             },
