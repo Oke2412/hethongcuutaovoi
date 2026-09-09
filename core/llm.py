@@ -258,26 +258,32 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 tool_results.append({"tool": fc.name, "entity": fc.args.get("content", "")[:30]})
             elif fc.name == "cancel_quest":
                 tasks.append(cancel_quest_async(int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
+                tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "complete_quest":
                 tasks.append(complete_quest_async(int(fc.args.get("quest_id", 0))))
+                tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "create_quest":
                 tasks.append(create_quest_async(
                     user_id, fc.args.get("title", ""), fc.args.get("description", ""),
                     fc.args.get("reward", ""), fc.args.get("penalty", ""), int(fc.args.get("parent_quest_id", 0))
                 ))
+                tool_results.append({"tool": fc.name, "entity": fc.args.get("title", "")[:30]})
             elif fc.name == "manage_user_status":
                 tasks.append(manage_user_status_async(
                     user_id, fc.args.get("action", ""), fc.args.get("buff_name", ""),
                     fc.args.get("title", ""), int(fc.args.get("expires_in_minutes", 0))
                 ))
+                tool_results.append({"tool": fc.name, "entity": fc.args.get("buff_name", "")})
             elif fc.name == "update_physical_status":
                 tasks.append(update_physical_status_async(
                     user_id, int(fc.args.get("energy", 5)), int(fc.args.get("mood", 5)),
                     int(fc.args.get("health", 5)), float(fc.args.get("sleep_hours", 0)), fc.args.get("notes", "")
                 ))
+                tool_results.append({"tool": fc.name, "entity": fc.args.get("notes", "")[:30]})
             elif fc.name == "manage_project":
                 tasks.append(manage_project_async(
-                    user_id, fc.args.get("action", "update"), fc.args.get("name", ""), int(fc.args.get("progress_percent", 0))
+                    user_id, fc.args.get("action", "update"), fc.args.get("name", ""), 
+int(fc.args.get("progress_percent", 0))
                 ))
                 tool_results.append({"tool": fc.name, "entity": fc.args.get("name", "")})
             elif fc.name == "manage_capability":
@@ -290,6 +296,7 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 tasks.append(manage_credits_async(
                     user_id, fc.args.get("action", "add"), float(fc.args.get("amount", 0)), fc.args.get("reason", "")
                 ))
+                tool_results.append({"tool": fc.name, "entity": f"Credits {fc.args.get('amount', 0)}"})
         
         # Fire-and-forget logic requires us to await tool results or schedule them. 
         # Actually in plan: we can await them or run them concurrently.
