@@ -251,10 +251,10 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
                 tasks.append(update_memory_async(user_id, fc.args.get("content", "")))
                 tool_results.append({"tool": fc.name, "entity": fc.args.get("content", "")[:30]})
             elif fc.name == "cancel_quest":
-                tasks.append(cancel_quest_async(int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
+                tasks.append(cancel_quest_async(user_id, int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
                 tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "complete_quest":
-                tasks.append(complete_quest_async(int(fc.args.get("quest_id", 0))))
+                tasks.append(complete_quest_async(user_id, int(fc.args.get("quest_id", 0))))
                 tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
             elif fc.name == "create_quest":
                 tasks.append(create_quest_async(
