@@ -64,8 +64,40 @@ class RaphaelBrain:
                 logger.warning("Mem0 add failed: %s", exc)
 
         async def _persist_to_graph(tools, uid):
-            # TBD: Actually map tools to neo4j entities
-            pass
+            if not tools:
+                return
+            from core.neo4j_client import get_neo4j_driver
+            driver = get_neo4j_driver()
+            if not driver:
+                return
+            try:
+                # Merge into a single LifeEvent
+                event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
+                
+                query = """
+                MERGE (u:User {id: $uid})
+                CREATE (e:LifeEvent {
+                    description: $desc,
+                    timestamp: datetime()
+                })
+                CREATE (u)-[:EXPERIENCED]->(e)
+                """
+                params = {"uid": uid, "desc": event_desc}
+                
+                for i, t in enumerate(tools):
+                    entity = str(t.get("entity", "")).strip()
+                    if entity:
+                        param_key = f"ent_{i}"
+                        params[param_key] = entity
+                        query += f"""
+                        MERGE (ent:Entity {{name: ${param_key}}})
+                        CREATE (e)-[:RELATED_TO]->(ent)
+                        """
+                        
+                async with driver.session() as session:
+                    await session.run(query, **params)
+            except Exception as e:
+                logger.error("Neo4j _persist_to_graph error: %s", e)
 
         if msg_class in ("data", "deep"):
             tool_results, impact_flag = await run_extraction_step(
