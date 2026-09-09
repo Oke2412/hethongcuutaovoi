@@ -204,67 +204,34 @@ TOOLS_DEF = [
 ]
 
 async def run_extraction_step(user_id: int, message: str, mini_context: str) -> tuple[list[dict], bool]:
-    """Step 1: Extract data via Flash Lite. Returns (tool_results, impact_flag)."""
+    """Step 1: Extract data via generate_content (no AFC). Returns (tool_results, impact_flag)."""
     client = _get_gemini_client()
     prompt = f"[CONTEXT]\n{mini_context}\n[MESSAGE]\n{message}"
-    
+
     try:
+        response = None
         last_exc = None
         for model_ext in FALLBACK_MODELS_EXTRACTOR:
-            # First try WITH thinking_config
             try:
-                chat = client.chats.create(
+                # Use generate_content (not chats) — AFC does not apply here
+                response = await asyncio.to_thread(
+                    client.models.generate_content,
                     model=model_ext,
+                    contents=prompt,
                     config=types.GenerateContentConfig(
                         system_instruction=SYSTEM_EXTRACTOR,
                         tools=TOOLS_DEF,
-                        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-                        thinking_config=types.ThinkingConfig(include_thoughts=True),
                         tool_config=types.ToolConfig(
-                            function_calling_config=types.FunctionCallingConfig(
-                                mode="ANY"
-                            )
-                        )
+                            function_calling_config=types.FunctionCallingConfig(mode="ANY")
+                        ),
                     ),
                 )
-                response = await asyncio.to_thread(
-                    chat.send_message, 
-                    prompt,
-                    config=types.GenerateContentConfig(
-                        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-                    )
-                )
-                break  # If successful, break the loop
+                break
             except Exception as exc:
-                logger.warning("Extractor Model %s failed with thinking. Retrying without thinking... Error: %s", model_ext, exc)
-                # Fallback WITHOUT thinking_config
-                try:
-                    chat = client.chats.create(
-                        model=model_ext,
-                        config=types.GenerateContentConfig(
-                            system_instruction=SYSTEM_EXTRACTOR,
-                            tools=TOOLS_DEF,
-                            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-                            tool_config=types.ToolConfig(
-                                function_calling_config=types.FunctionCallingConfig(
-                                    mode="ANY"
-                                )
-                            )
-                        ),
-                    )
-                    response = await asyncio.to_thread(
-                        chat.send_message, 
-                        prompt,
-                        config=types.GenerateContentConfig(
-                            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-                        )
-                    )
-                    break
-                except Exception as exc2:
-                    logger.warning("Extractor Model %s failed without thinking too. Error: %s", model_ext, exc2)
-                    last_exc = exc2
-        else:
-            raise last_exc  # Raise the last exception if all models fail
+                logger.warning("Extractor %s failed: %s", model_ext, exc)
+                last_exc = exc
+        if response is None:
+            raise last_exc
             
         tool_results = []
         impact_flag = False
