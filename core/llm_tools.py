@@ -53,7 +53,10 @@ async def complete_quest_async(user_id: int, quest_id: int) -> str:
         # Grant reward
         user = await session.get(User, user_id)
         if user:
-            user.credits += quest.reward
+            import re
+            match = re.search(r'[-+]?\d*\.\d+|\d+', quest.reward)
+            if match:
+                user.credits += float(match.group(0))
             
         await session.commit()
     return f"Đã hoàn thành nhiệm vụ! Bạn nhận được {quest.reward} Credits."
