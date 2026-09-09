@@ -281,6 +281,28 @@ async def run_extraction_step(user_id: int, message: str, mini_context: str) -> 
         logger.error("Flash Lite extraction error: %s", exc)
         return [], False
 
+FALLBACK_MODELS_DEEP = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+]
+
+async def _generate_with_fallback(client, models_list, contents, config=None):
+    last_exc = None
+    for m in models_list:
+        try:
+            return await asyncio.to_thread(
+                client.models.generate_content,
+                model=m,
+                contents=contents,
+                config=config
+            )
+        except Exception as exc:
+            logger.warning("Model %s failed (Quota/Error). Falling back... Error: %s", m, exc)
+            last_exc = exc
+    raise last_exc
+
 async def run_response_step(
     user_id: int, message: str, mini_context: str,
     tool_results: list[dict], impact_flag: bool,
@@ -289,19 +311,19 @@ async def run_response_step(
     """Step 2: Generate Raphael response."""
     client = _get_gemini_client()
     if impact_flag and causal_context:
-        model = MODEL_DEEP
         system = SYSTEM_RAPHAEL_DEEP
         prompt = f"[CONTEXT]\n{mini_context}\n[CAUSAL]\n{causal_context}\n[MESSAGE]\n{message}"
+        models_to_try = FALLBACK_MODELS_DEEP
     else:
-        model = MODEL_CHAT
         system = SYSTEM_RAPHAEL_CHAT
         tool_res_str = ", ".join([r.get("tool", "") for r in tool_results])
         prompt = f"[CONTEXT]\n{mini_context}\n[TOOLS USED]\n{tool_res_str}\n[MESSAGE]\n{message}"
+        models_to_try = [MODEL_CHAT]
         
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content,
-            model=model,
+        response = await _generate_with_fallback(
+            client,
+            models_to_try,
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system,
@@ -310,7 +332,7 @@ async def run_response_step(
         return response.text.strip() if hasattr(response, "text") else ""
     except Exception as exc:
         logger.error("Gemma/Flash generation error: %s", exc)
-        return "[Lỗi hệ thống]"
+        return "[Lỗi hệ thống] Quá tải API, vui lòng thử lại sau."
 
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
     """Query Neo4j for past events related to current entities."""
@@ -356,9 +378,9 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
     )
 
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content,
-            model=MODEL_DEEP,
+        response = await _generate_with_fallback(
+            client,
+            FALLBACK_MODELS_DEEP,
             contents=prompt,
         )
         text = response.text.strip()
