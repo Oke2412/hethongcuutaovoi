@@ -126,20 +126,20 @@ CREATE (e)-[:HAPPENED_AT]->(l)"
             
             # 2.2 Dense Search (Mem0)
             if text_content:
-                mem_results = await asyncio.to_thread(self.memory.search, query=text_content, user_id=user_id, limit=3)
+                mem_results = await asyncio.to_thread(self.memory.search, query=text_content, user_id=user_id, limit=15)
                 if mem_results:
                     for m in mem_results:
                         chunks_tho.append(f"[VECTOR MEMORY]: {m.get('memory', '')}")
             
             # 2.3 Sparse Search (SQLite BM25)
             if keywords:
-                sparse_res = await sparse_search(keywords, limit=3)
+                sparse_res = await sparse_search(keywords, limit=15)
                 for s in sparse_res:
                     chunks_tho.append(f"[KEYWORD CHAT LOG]: {s}")
             
             # Step 3: Reranking
             if chunks_tho:
-                reranked_chunks = await rerank_chunks(text_content or "", chunks_tho, top_k=3)
+                reranked_chunks = await rerank_chunks(text_content or "", chunks_tho, top_k=15)
                 causal_ctx = "
 ".join(reranked_chunks)
 
