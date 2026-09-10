@@ -7,7 +7,10 @@ class Settings(BaseSettings):
     telegram_bot_token: str = Field(..., alias="TELEGRAM_BOT_TOKEN")
 
     # LLM
-    gemini_api_key: str = Field(..., alias="GEMINI_API_KEY")
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
+    qwen_api_key: str = Field(default="", alias="QWEN_API_KEY")
+    reranker_api_url: str = Field(default="https://openrouter.ai/api/v1/rerank", alias="RERANKER_API_URL")
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
 
     # Database

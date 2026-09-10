@@ -17,8 +17,9 @@
    - **MỖI KHI** làm một tính năng, chức năng, hoặc sửa đổi logic mới, **LUÔN LUÔN tạo một nhánh mới** (`git checkout -b feature/...`).
    - CODE XONG mới đẩy (push) nhánh đó lên. **KHÔNG BAO GIỜ code tính năng mới trực tiếp trên nhánh `main`.**
 
-2. **GIAO TIẾP VÀ ĐỒNG BỘ:**
+2. **GIAO TIẾP, ĐỒNG BỘ & TỰ CẬP NHẬT:**
    - Luôn chạy `git status` và `git pull origin main` đầu mỗi session.
+   - **TỰ CẬP NHẬT KIẾN THỨC (CRITICAL):** Trước mỗi session, Agent phải dành thời gian `<thinking>` và BẮT BUỘC dùng Tool `search_web` để tra cứu tài liệu mới nhất về các công nghệ đang dùng (DeepSeek, Qwen3, OpenRouter, Mem0) để tránh viết code theo syntax cũ.
    - Luôn giải thích logic định làm trước khi code.
    - Ghi log đầy đủ vào `PROMPT_HISTORY.md` sau khi hoàn thành.
 
@@ -41,8 +42,8 @@
 [Telegram Adapter]
      ↓
 [Core Brain - RaphaelBrain]
-     ├── [Mem0 / Vector Memory]
-     ├── [LLM API - Multi-Model Fallback Cascade]
+     ├── [Mem0 / Vector Memory - Qwen3 8B]
+     ├── [LLM API - DeepSeek V4.1 Flash via OpenRouter]
      ├── [Neo4j Graph - Causal & Psychology]
      └── [SQLite DB]
 ```

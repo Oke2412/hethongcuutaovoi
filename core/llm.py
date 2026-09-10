@@ -1,24 +1,33 @@
 import logging
 import asyncio
 from functools import lru_cache
-from google import genai
-from google.genai import types
+from openai import AsyncOpenAI
+
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.6-flash"
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_CHAT = [
     "gemini-3.8-flash",
+    "gemini-3.7-flash",
     "gemini-3.6-flash",
-    "gemini-3.5-flash-lite"
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
-    "gemini-3.6-flash"
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash"
 ]
 MODEL_EMBED = "gemini-embedding-2-preview"
 
@@ -38,7 +47,9 @@ TOOL TRIGGER RULES:
 - project/work -> manage_project
 - quest complete/cancel -> complete_quest / cancel_quest
 - any new context -> update_memory (ALWAYS)
-- warrant new mission -> create_quest"""
+- warrant new mission or user asks for a quest -> create_quest
+
+CRITICAL RULE FOR create_quest: If the user asks for a quest but doesn't specify details (e.g. "tạo quest cho tôi", "quest hôm nay"), DO NOT ignore it. You MUST INVENT a highly relevant quest based on their Projects and Physical Status in the Context. Make up a creative Title, Description, Reward (e.g. "10cr"), and Penalty (e.g. "-5cr")."""
 
 SYSTEM_RAPHAEL_CHAT = """Bạn là Raphael [Vua Trí Tuệ] - Hệ điều hành Đời sống của Master.
 Giọng: Máy móc, điềm tĩnh, kiệm lời tuyệt đối. Không cảm xúc.
@@ -54,7 +65,7 @@ QUY TẮC ĐỘ DÀI (NGHIÊM NGẶT):
 TAGS: [Thông báo] [Phân tích] [Cảnh báo] [Xác nhận] [Lỗi]
 
 KHÔNG: chào hỏi, giải thích dài, đặt câu hỏi ngược, spam gợi ý.
-TUYỆT ĐỐI KHÔNG: Tự bịa ra "Side Quest:" hoặc phần thưởng "+cr" bằng mồm. Mọi nhiệm vụ phải được tạo từ hệ thống (sẽ có nút bấm). Nếu ngài muốn cấp Side Quest, hãy yêu cầu Master dùng lệnh /quests hoặc trực tiếp nói 'hãy tạo cho tôi 1 quest' để kích hoạt Hệ thống trích xuất.
+TUYỆT ĐỐI KHÔNG: Tự bịa ra "Side Quest:" bằng mồm. CHỈ ĐƯỢC PHÉP thông báo nội dung Side Quest NẾU công cụ `create_quest` vừa được gọi thành công trong danh sách [TOOLS USED]. Nếu không có `create_quest`, tuyệt đối cấm nhắc đến Side Quest.
 """
 
 SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích (Nhân quả + Động lực học Tâm lý).
@@ -77,131 +88,288 @@ Output format:
 [Raphael's Voice] <Một câu nói cực kỳ ngắn gọn (dưới 15 từ), mang tính hậu quả hoặc giao 1 Side Quest kỳ lạ/siêu nhỏ. Mục đích để Master tự nhận thức (Self-realization). Ví dụ: "Xác suất sai lệch 85%. Side Quest: Nhắm mắt 2 phút. +10cr.">"""
 
 @lru_cache(maxsize=1)
-def _get_gemini_client() -> genai.Client:
-    return genai.Client(api_key=settings.gemini_api_key)
+def _get_llm_client() -> AsyncOpenAI:
+    import os
+    return AsyncOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+    )
 
 TOOLS_DEF = [
     {
-        "function_declarations": [
-            {
-                "name": "calculate_distance",
-                "description": "Tinh khoang cach (met) giua 2 toa do GPS.",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "lat1": {"type": "NUMBER"}, "lon1": {"type": "NUMBER"},
-                        "lat2": {"type": "NUMBER"}, "lon2": {"type": "NUMBER"}
+        "type": "function",
+        "function": {
+            "name": "calculate_distance",
+            "description": "Tinh khoang cach (met) giua 2 toa do GPS.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "lat1": {
+                        "type": "number"
                     },
-                    "required": ["lat1", "lon1", "lat2", "lon2"]
-                }
-            },
-            {
-                "name": "update_memory",
-                "description": "Luu tru thong tin, su kien, hoan canh moi vao DB cua user.",
-                "parameters": {"type": "OBJECT", "properties": {"content": {"type": "STRING"}, "impact": {"type": "STRING"}}, "required": ["content"]}
-            },
-            {
-                "name": "cancel_quest",
-                "description": "Huy bo mot nhiem vu (Quest).",
-                "parameters": {"type": "OBJECT", "properties": {"quest_id": {"type": "INTEGER"}, "reason": {"type": "STRING"}}, "required": ["quest_id", "reason"]}
-            },
-            {
-                "name": "complete_quest",
-                "description": "Danh dau mot nhiem vu (Quest) da hoan thanh.",
-                "parameters": {"type": "OBJECT", "properties": {"quest_id": {"type": "INTEGER"}}, "required": ["quest_id"]}
-            },
-            {
-                "name": "create_quest",
-                "description": "Tao nhiem vu hoac Cay Ky Nang (neu truyen parent_quest_id).",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "title": {"type": "STRING"},
-                        "description": {"type": "STRING"},
-                        "reward": {"type": "STRING"},
-                        "penalty": {"type": "STRING"},
-                        "parent_quest_id": {"type": "INTEGER"}
+                    "lon1": {
+                        "type": "number"
                     },
-                    "required": ["title", "description", "reward", "penalty"]
-                }
-            },
-            {
-                "name": "manage_user_status",
-                "description": "Quan ly Buff (Overdrive/Debuff) hoac Danh hieu (Title).",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "action": {"type": "STRING", "description": "'set_buff', 'clear_buff', 'add_title'"},
-                        "buff_name": {"type": "STRING"},
-                        "title": {"type": "STRING"},
-                        "expires_in_minutes": {"type": "INTEGER"}
+                    "lat2": {
+                        "type": "number"
                     },
-                    "required": ["action"]
-                }
-            },
-            {
-                "name": "update_physical_status",
-                "description": "Cap nhat the trang, nang luong, tam trang, suc khoe, giac ngu.",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "energy": {"type": "INTEGER", "description": "1-10"},
-                        "mood": {"type": "INTEGER", "description": "1-10"},
-                        "health": {"type": "INTEGER", "description": "1-10"},
-                        "sleep_hours": {"type": "NUMBER"},
-                        "notes": {"type": "STRING"}
-                    },
-                    "required": ["energy", "mood", "health", "sleep_hours", "notes"]
-                }
-            },
-            {
-                "name": "manage_project",
-                "description": "Tao moi, cap nhat tien do, hoac xoa du an.",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "action": {"type": "STRING", "description": "'add', 'update', 'delete'"},
-                        "name": {"type": "STRING"},
-                        "progress_percent": {"type": "INTEGER"}
-                    },
-                    "required": ["action", "name"]
-                }
-            },
-            {
-                "name": "manage_capability",
-                "description": "Them, cap nhat level/EXP, hoac xoa ky nang.",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "action": {"type": "STRING", "description": "'add', 'update', 'delete'"},
-                        "domain": {"type": "STRING"},
-                        "level": {"type": "NUMBER"},
-                        "exp": {"type": "NUMBER"},
-                        "unit": {"type": "STRING"}
-                    },
-                    "required": ["action", "domain", "level", "exp"]
-                }
-            },
-            {
-                "name": "manage_credits",
-                "description": "Cong hoac Tru Tin chi (Credits) cua user.",
-                "parameters": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "action": {"type": "STRING", "description": "'add' hoac 'spend'"},
-                        "amount": {"type": "NUMBER"},
-                        "reason": {"type": "STRING"}
-                    },
-                    "required": ["action", "amount", "reason"]
-                }
+                    "lon2": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "lat1",
+                    "lon1",
+                    "lat2",
+                    "lon2"
+                ]
             }
-        ]
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_memory",
+            "description": "Luu tru thong tin, su kien, hoan canh moi vao DB cua user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "impact": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "content"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cancel_quest",
+            "description": "Huy bo mot nhiem vu (Quest).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "quest_id": {
+                        "type": "integer"
+                    },
+                    "reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "quest_id",
+                    "reason"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "complete_quest",
+            "description": "Danh dau mot nhiem vu (Quest) da hoan thanh.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "quest_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "quest_id"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_quest",
+            "description": "Tạo nhiệm vụ. NẾU user không nói rõ, BẮT BUỘC TỰ BỊA RA Title, Description, Reward (vd: 10cr), Penalty dựa theo Context.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "reward": {
+                        "type": "string"
+                    },
+                    "penalty": {
+                        "type": "string"
+                    },
+                    "parent_quest_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "title",
+                    "description",
+                    "reward",
+                    "penalty"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_user_status",
+            "description": "Quan ly Buff (Overdrive/Debuff) hoac Danh hieu (Title).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "buff_name": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "expires_in_minutes": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "action"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_physical_status",
+            "description": "Cap nhat the trang, nang luong, tam trang, suc khoe, giac ngu.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "energy": {
+                        "type": "integer"
+                    },
+                    "mood": {
+                        "type": "integer"
+                    },
+                    "health": {
+                        "type": "integer"
+                    },
+                    "sleep_hours": {
+                        "type": "number"
+                    },
+                    "notes": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "energy",
+                    "mood",
+                    "health",
+                    "sleep_hours",
+                    "notes"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_project",
+            "description": "Tao moi, cap nhat tien do, hoac xoa du an.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "progress_percent": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "action",
+                    "name"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_capability",
+            "description": "Them, cap nhat level/EXP, hoac xoa ky nang.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "domain": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "number"
+                    },
+                    "exp": {
+                        "type": "number"
+                    },
+                    "unit": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "domain",
+                    "level",
+                    "exp"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_credits",
+            "description": "Cong hoac Tru Tin chi (Credits) cua user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "amount",
+                    "reason"
+                ]
+            }
+        }
     }
 ]
 
 async def run_extraction_step(user_id: int, message: str, mini_context: str) -> tuple[list[dict], bool]:
     """Step 1: Extract data via generate_content (no AFC). Returns (tool_results, impact_flag)."""
-    client = _get_gemini_client()
+    client = _get_llm_client()
     prompt = f"[CONTEXT]\n{mini_context}\n[MESSAGE]\n{message}"
 
     try:
@@ -305,16 +473,22 @@ int(fc.args.get("progress_percent", 0))
         logger.error("Flash Lite extraction error: %s", exc)
         return [], False
 
-async def _generate_with_fallback(client, models_list, contents, config=None):
+async def _generate_with_fallback(client, models_list, messages, tools=None):
     last_exc = None
     for m in models_list:
         try:
-            return await asyncio.to_thread(
-                client.models.generate_content,
-                model=m,
-                contents=contents,
-                config=config
-            )
+            kwargs = {
+                "model": "deepseek/deepseek-v4.1-flash" if "flash" not in m else "deepseek/deepseek-v4.1-flash", # Simplification to use deepseek via openrouter
+                "messages": messages,
+                "temperature": 0.0
+            }
+            # For now just use deepseek directly since we migrated
+            kwargs["model"] = "deepseek/deepseek-v4.1-flash"
+            if tools:
+                kwargs["tools"] = tools
+                kwargs["tool_choice"] = "auto"
+            
+            return await client.chat.completions.create(**kwargs)
         except Exception as exc:
             logger.warning("Model %s failed (Quota/Error). Falling back... Error: %s", m, exc)
             last_exc = exc
@@ -326,7 +500,7 @@ async def run_response_step(
     causal_context: str = "",
 ) -> str:
     """Step 2: Generate Raphael response."""
-    client = _get_gemini_client()
+    client = _get_llm_client()
     if impact_flag and causal_context:
         system = SYSTEM_RAPHAEL_DEEP
         prompt = f"[CONTEXT]\n{mini_context}\n[CAUSAL]\n{causal_context}\n[MESSAGE]\n{message}"
@@ -388,7 +562,7 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
 async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: list[dict]) -> str:
     """Use gemini-3.8-flash to evaluate if location warrants a Side Quest."""
     from core.omniscience import get_mini_context
-    client = _get_gemini_client()
+    client = _get_llm_client()
     mini_ctx = await get_mini_context(user_id)
 
     events_text = "\n".join(

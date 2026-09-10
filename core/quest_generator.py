@@ -2,8 +2,8 @@ import json
 import logging
 import asyncio
 from datetime import datetime
-from google import genai
-from google.genai import types
+
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -47,7 +47,8 @@ async def generate_and_save_quest(user_id: int):
         context = await build_user_context(session, user)
         prompt = PROMPT_QUEST + "\n\n--- CONTEXT ---\n" + context
 
-        client = genai.Client(api_key=settings.gemini_api_key)
+        from core.llm import _get_llm_client
+        client = _get_llm_client()
         
         try:
             response = await asyncio.to_thread(

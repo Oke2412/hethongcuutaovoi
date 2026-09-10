@@ -417,3 +417,14 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Tuân thủ yêu cầu không sử dụng `microsoft graphrag`.
 **Files thay đổi:** core/llm_tools.py, core/brain.py, core/router.py, bot/handlers/location.py, core/hud.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-10 22:07] — Tổng hợp toàn bộ kiến trúc và định hướng Pipeline mới cho Agent khác
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** ok vậy tổng hợp lại những gì bạn vừa biết cho agent khác hiểu
+**Kết quả / Quyết định:**
+- Đã tiến hành /grill-me với Master, làm rõ và thống nhất toàn bộ 4 bước của Pipeline Hybrid GraphRAG mới kết hợp triết lý linh hồn Raphael đã có sẵn trong codebase.
+- Tổng hợp toàn bộ context dự án vào PROMPT_HISTORY.md và xuất tài liệu chi tiết để bất kỳ Agent nào tiếp quản cũng nắm rõ:
+  1. Linh hồn Raphael: "Insight given is insight rejected", suy luận trong <thinking>, cộc lốc, vì lợi ích Master, có chế độ giải thích khi được yêu cầu.
+  2. Bộ máy 4 bước: Query Expansion (DeepSeek) -> Hybrid Retrieval (Dense Vector + Neo4j Subgraph Hybrid Cypher + BM25) -> Reranking Vòng 2 (Qwen3-Reranker-8B API từ xa lấy Top 3 Graph + Top 3 Text) -> Generation (DeepSeek Max Reasoning).
+**Files thay đổi:** PROMPT_HISTORY.md
+---

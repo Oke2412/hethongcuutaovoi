@@ -4,11 +4,10 @@
 Raphael: Reflexive Causal Intelligence OS. Silent by default, activates deep analysis only when Δ = P(consequence) × impact > threshold.
 
 ## Architecture
-- Step 1: gemini-3.5-flash-lite → tool extraction (tools=REQUIRED, parallel)
-- Step 2a: gemma-4-26b-it → normal response (< 15 words)
-- Step 2b: gemini-3.8-flash → deep causal reasoning (impact_flag=HIGH only)
-- Router: regex → gemini-embedding-2 cosine (fallback regex if quota hit)
-- Memory: MessageLog (5-msg window) → Omniscience State → ChromaDB → Neo4j
+- Logic/Extractor: DeepSeek-V4.1-Flash (via OpenRouter) → tool extraction (tools=REQUIRED, parallel)
+- Responder: DeepSeek-V4.1-Flash → causal reasoning & psychological analysis
+- Router: DeepSeek-V4.1-Flash (Zero-shot classification: deep, data, chat)
+- Memory: MessageLog (5-msg window) → Omniscience State → ChromaDB (Qwen3 Embeddings) → Neo4j
 
 ## Response Rules
 - Chat/vent: ≤ 15 words. Format: "[Tag] [State delta]. [Optimal action]."

@@ -30,104 +30,126 @@ class RaphaelBrain:
     async def process_input(
         self,
         user_id: str,
-        text_content: Optional[str] = None,
-        image_bytes: Optional[bytes] = None,
-        audio_bytes: Optional[bytes] = None,
+        text_content: str = None,
+        image_bytes: bytes = None,
+        audio_bytes: bytes = None,
     ) -> tuple[str, Any]:
-        from core.router import classify_message
+        from core.router import semantic_classify
         from core.omniscience import get_mini_context, log_message
-        from core.llm import run_extraction_step, run_response_step, query_causal_graph
+        from core.llm import run_extraction_step, run_response_step, query_causal_graph, _get_llm_client
         from core.hud import build_hud
+        from core.search import expand_query, sparse_search, rerank_chunks
+        import asyncio
+        from datetime import datetime
 
         if text_content:
             await log_message(int(user_id), "user", text_content)
 
         mini_ctx = await get_mini_context(int(user_id))
+        client = _get_llm_client()
         
-        from core.router import semantic_classify
-        from core.llm import _get_gemini_client
-        msg_class = await semantic_classify(text_content or "", _get_gemini_client())
+        msg_class = await semantic_classify(text_content or "", client)
 
-        
         tool_results, impact_flag, causal_ctx = [], False, ""
         
+        try:
+            from bot.handlers.location import _location_state
+            loc_data = _location_state.get(int(user_id))
+            h3_index = loc_data["hex"] if loc_data else None
+        except ImportError:
+            h3_index = None
+
         async def _add_to_mem0(mem, uid, text):
             try:
                 await asyncio.to_thread(
                     mem.add,
-                    messages=[
-                        {"role": "user", "content": text},
-                    ],
+                    messages=[{"role": "user", "content": text}],
                     user_id=uid,
                     metadata={"timestamp": datetime.now().isoformat(), "source": "chat"},
                 )
             except Exception as exc:
                 logger.warning("Mem0 add failed: %s", exc)
 
-        async def _persist_to_graph(tools, uid):
-            if not tools:
-                return
+        async def _persist_to_graph(tools, uid, h3_idx, chat_text):
             from core.neo4j_client import get_neo4j_driver
             driver = get_neo4j_driver()
             if not driver:
                 return
             try:
-                # Merge into a single LifeEvent
-                event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
-                
+                if tools:
+                    event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
+                elif chat_text:
+                    event_desc = chat_text[:50]
+                else:
+                    return
                 query = """
                 MERGE (u:User {id: $uid})
-                CREATE (e:LifeEvent {
-                    description: $desc,
-                    timestamp: datetime()
-                })
+                CREATE (e:LifeEvent {timestamp: datetime(), description: $desc})
                 CREATE (u)-[:EXPERIENCED]->(e)
                 """
                 params = {"uid": uid, "desc": event_desc}
-                
-                for i, t in enumerate(tools):
-                    entity = str(t.get("entity", "")).strip()
-                    if entity:
-                        param_key = f"ent_{i}"
-                        params[param_key] = entity
-                        query += f"""
-                        MERGE (ent_{i}:Entity {{name: ${param_key}}})
-                        CREATE (e)-[:RELATED_TO]->(ent_{i})
-                        """
-                        
-                async with driver.session() as session:
-                    await session.run(query, **params)
+                if h3_idx:
+                    query += "
+MERGE (l:Location {h3_index: $h3})
+CREATE (e)-[:HAPPENED_AT]->(l)"
+                    params["h3"] = h3_idx
+                await asyncio.to_thread(driver.execute_query, query, params)
             except Exception as e:
-                logger.error("Neo4j _persist_to_graph error: %s", e)
+                logger.warning("Neo4j log error: %s", e)
 
-        if msg_class in ("data", "deep"):
-            tool_results, impact_flag = await run_extraction_step(
-                int(user_id), text_content or "", mini_ctx
-            )
-            # Background tasks with strong references
-            t1 = asyncio.create_task(_persist_to_graph(tool_results, int(user_id)))
-            background_tasks.add(t1)
-            t1.add_done_callback(background_tasks.discard)
+        # 4-STEP RAG PIPELINE
+        
+        # Step 1: Query Expansion & Extraction
+        keywords = []
+        if text_content:
+            keywords = await expand_query(client, text_content)
+        
+        if msg_class == "data":
+            tool_results, impact_flag = await run_extraction_step(int(user_id), text_content or "", mini_ctx)
+        
+        chunks_tho = []
+        
+        # Step 2: Hybrid Retrieval
+        if impact_flag or msg_class == "deep":
+            # 2.1 Graph Search
+            graph_results = await query_causal_graph(int(user_id), text_content or "")
+            if graph_results:
+                chunks_tho.append(f"[GRAPH PATHS]: {graph_results}")
             
-            t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
-            background_tasks.add(t2)
-            t2.add_done_callback(background_tasks.discard)
+            # 2.2 Dense Search (Mem0)
+            if text_content:
+                mem_results = await asyncio.to_thread(self.memory.search, query=text_content, user_id=user_id, limit=3)
+                if mem_results:
+                    for m in mem_results:
+                        chunks_tho.append(f"[VECTOR MEMORY]: {m.get('memory', '')}")
+            
+            # 2.3 Sparse Search (SQLite BM25)
+            if keywords:
+                sparse_res = await sparse_search(keywords, limit=3)
+                for s in sparse_res:
+                    chunks_tho.append(f"[KEYWORD CHAT LOG]: {s}")
+            
+            # Step 3: Reranking
+            if chunks_tho:
+                reranked_chunks = await rerank_chunks(text_content or "", chunks_tho, top_k=3)
+                causal_ctx = "
+".join(reranked_chunks)
 
-            if impact_flag:
-                entities = [r.get("entity", "") for r in tool_results]
-                causal_ctx = await query_causal_graph(int(user_id), entities)
+        t1 = asyncio.create_task(_persist_to_graph(tool_results, str(user_id), h3_index, text_content))
+        background_tasks.add(t1)
+        t1.add_done_callback(background_tasks.discard)
+        
+        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
+        background_tasks.add(t2)
+        t2.add_done_callback(background_tasks.discard)
 
+        # Step 4: Generation
         response = await run_response_step(
             int(user_id), text_content or "", mini_ctx,
             tool_results, impact_flag, causal_ctx
         )
 
-        # Append HUD
         hud_line, keyboard = await build_hud(int(user_id))
-        full_response = response + "\n" + hud_line
+        return f"{response}
 
-        await log_message(int(user_id), "assistant", response)
-        
-        return full_response, keyboard  # We return tuple as requested
-
-brain = RaphaelBrain()
+{hud_line}", keyboard
