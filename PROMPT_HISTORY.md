@@ -428,3 +428,13 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   2. Bộ máy 4 bước: Query Expansion (DeepSeek) -> Hybrid Retrieval (Dense Vector + Neo4j Subgraph Hybrid Cypher + BM25) -> Reranking Vòng 2 (Qwen3-Reranker-8B API từ xa lấy Top 3 Graph + Top 3 Text) -> Generation (DeepSeek Max Reasoning).
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+## [Session 2026-09-10 23:46]
+- **Agent**: Raphael Architect (DeepSeek V4.1)
+- **Goal**: Triển khai kiến trúc Hybrid GraphRAG 4-bước với DeepSeek-V4.1-Flash và Qwen3-Reranker.
+- **Action**:
+  - Gỡ bỏ hoàn toàn `google.genai`, thay thế bằng OpenAI SDK gọi qua OpenRouter.
+  - Viết lại lõi `core/brain.py` thành chuẩn 4 bước: Query Expansion -> Hybrid Retrieval (Mem0 + SQLite FTS5 + Neo4j) -> Reranker (OpenRouter API) -> Causal Generation.
+  - Kích hoạt FTS5 Virtual Table trong SQLite.
+  - Rẽ nhánh mới `feature/deepseek-hybrid-rag` và đẩy code lên origin.
+- **Result**: Đã push code lên nhánh thành công.
