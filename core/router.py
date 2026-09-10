@@ -17,7 +17,8 @@ async def semantic_classify(text: str, client: AsyncOpenAI) -> str:
                 {"role": "system", "content": SYSTEM_ROUTER},
                 {"role": "user", "content": text}
             ],
-            temperature=0.0
+            temperature=0.0,
+            max_tokens=2048
         )
         result = response.choices[0].message.content.strip().lower()
         

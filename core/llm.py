@@ -89,10 +89,10 @@ Output format:
 
 @lru_cache(maxsize=1)
 def _get_llm_client() -> AsyncOpenAI:
-    import os
+    from config import settings
     return AsyncOpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key=os.getenv("OPENROUTER_API_KEY"),
+        api_key=settings.openrouter_api_key,
     )
 
 TOOLS_DEF = [
