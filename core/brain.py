@@ -87,7 +87,7 @@ class RaphaelBrain:
                 if tools:
                     event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
                 elif chat_text:
-                    event_desc = chat_text[:50]
+                    event_desc = f"Chat: {chat_text}"
                 else:
                     return
                 query = """
@@ -97,10 +97,23 @@ class RaphaelBrain:
                 """
                 params = {"uid": uid, "desc": event_desc}
                 if h3_idx:
-                    query += "
-MERGE (l:Location {h3_index: $h3})
-CREATE (e)-[:HAPPENED_AT]->(l)"
+                    query += """
+                    MERGE (loc:Location {h3: $h3})
+                    CREATE (e)-[:HAPPENED_AT]->(loc)
+                    """
                     params["h3"] = h3_idx
+
+                if tools:
+                    for i, t in enumerate(tools):
+                        entity = str(t.get("entity", "")).strip()
+                        if entity:
+                            param_key = f"ent_{i}"
+                            params[param_key] = entity
+                            query += f"""
+                            MERGE (ent_{i}:Entity {{name: ${param_key}}})
+                            CREATE (e)-[:RELATED_TO]->(ent_{i})
+                            """
+                
                 await asyncio.to_thread(driver.execute_query, query, params)
             except Exception as e:
                 logger.warning("Neo4j log error: %s", e)
@@ -143,7 +156,7 @@ CREATE (e)-[:HAPPENED_AT]->(l)"
                 causal_ctx = "
 ".join(reranked_chunks)
 
-        t1 = asyncio.create_task(_persist_to_graph(tool_results, str(user_id), h3_index, text_content))
+        t1 = asyncio.create_task(_persist_to_graph(tool_results, int(user_id), h3_index, text_content or ""))
         background_tasks.add(t1)
         t1.add_done_callback(background_tasks.discard)
         
