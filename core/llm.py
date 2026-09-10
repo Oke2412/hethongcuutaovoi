@@ -583,9 +583,9 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
         response = await _generate_with_fallback(
             client,
             FALLBACK_MODELS_DEEP,
-            contents=prompt,
+            messages=[{"role": "system", "content": SYSTEM_RAPHAEL_DEEP}, {"role": "user", "content": prompt}],
         )
-        text = response.text.strip()
+        text = response.choices[0].message.content.strip()
         return "" if text.upper().startswith("NO") else text
     except Exception as exc:
         logger.warning("Location side quest generation failed: %s", exc)

@@ -51,16 +51,18 @@ async def generate_and_save_quest(user_id: int):
         client = _get_llm_client()
         
         try:
-            response = await asyncio.to_thread(
-                client.models.generate_content,
-                model="gemini-3.8-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    system_instruction="Output ONLY valid JSON array. No markdown.",
-                ),
+            response = await client.chat.completions.create(
+                model="deepseek/deepseek-v4.1-flash",
+                messages=[
+                    {"role": "system", "content": "Output ONLY a valid JSON array. No markdown."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.0
             )
-            quests_data = json.loads(response.text.strip())
+            text_resp = response.choices[0].message.content.strip()
+            if text_resp.startswith("```json"):
+                text_resp = text_resp.replace("```json", "").replace("```", "").strip()
+            quests_data = json.loads(text_resp)
             
             for qdata in quests_data:
                 q = SystemQuest(
