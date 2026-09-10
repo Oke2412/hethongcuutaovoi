@@ -34,6 +34,7 @@ class CapabilityLog(SQLModel, table=True):
     max_ever: float      # personal record for this domain
     unit: str = ""       # e.g. "push-ups", "pages/day", "hours of focus"
     notes: str = ""
+    h3_index: Optional[str] = None
     recorded_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -50,6 +51,7 @@ class PhysicalStatus(SQLModel, table=True):
     health: int          # 1-10  (physical)
     sleep_hours: float = 0.0
     notes: str = ""
+    h3_index: Optional[str] = None
     recorded_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -76,6 +78,7 @@ class WorkLog(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     progress_delta: int = 0     # how many % added this session
     notes: str = ""
+    h3_index: Optional[str] = None
     logged_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -90,6 +93,7 @@ class Memory(SQLModel, table=True):
     content: str
     tags: str = ""   # comma-separated tags
     importance: int = 5    # 1-10, higher = more likely to include in context
+    h3_index: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -123,6 +127,7 @@ class SystemQuest(SQLModel, table=True):
     reward: str = ""
     penalty: str = ""
     status: str = "pending"  # pending, completed, failed, cancelled, locked
+    h3_index: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
@@ -132,6 +137,7 @@ class MessageLog(SQLModel, table=True):
     user_id: int = Field(index=True)
     role: str = Field(description="user or assistant")
     content: str
+    h3_index: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 # ---------------------------------------------------------------------------
@@ -148,5 +154,6 @@ class SpatialState(SQLModel, table=True):
     current_state: str = Field(default="UNKNOWN")  # STATIONARY, TRANSITING, ROAMING, UNKNOWN
     state_start_time: datetime = Field(default_factory=datetime.utcnow)
     current_waypoint: Optional[str] = None
+    current_h3: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
