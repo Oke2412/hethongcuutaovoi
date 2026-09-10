@@ -26,7 +26,7 @@ class RaphaelBrain:
             "embedder": {
                 "provider": "openai",
                 "config": {
-                    "model": "openai/text-embedding-3-small", 
+                    "model": "qwen/qwen3-embedding-8b", 
                     "api_key": settings.openrouter_api_key,
                     "openai_base_url": "https://openrouter.ai/api/v1"
                 },
