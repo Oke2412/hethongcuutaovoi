@@ -48,9 +48,9 @@ async def semantic_classify(text: str, client: genai.Client) -> str:
         # Generate embeddings in one batch
         contents = [
             text,
-            "cân nặng 70kg, ngủ 6 tiếng, học Python 2 giờ",
-            "hôm nay mệt quá, không muốn làm gì",
-            "phân tích tại sao tôi hay bị trễ deadline"
+            "can nang 70kg, ngu 6 tieng, hoc Python 2 gio, tao quest, nhiem vu, tien do du an, ky nang",
+            "hom nay met qua, khong muon lam gi, buon vui, tam su",
+            "phan tich tai sao toi hay bi tre deadline, ly do, chien luoc"
         ]
         
         response = await asyncio.to_thread(

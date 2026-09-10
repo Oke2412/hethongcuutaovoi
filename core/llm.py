@@ -9,16 +9,25 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_MODELS_EXTRACTOR = [
     "gemini-3.5-flash-lite",
-    "gemini-3.6-flash"
+    "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash"
 ]
 FALLBACK_MODELS_CHAT = [
     "gemini-3.8-flash",
+    "gemini-3.7-flash",
     "gemini-3.6-flash",
-    "gemini-3.5-flash-lite"
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite"
 ]
 FALLBACK_MODELS_DEEP = [
     "gemini-3.8-flash",
-    "gemini-3.6-flash"
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash"
 ]
 MODEL_EMBED = "gemini-embedding-2-preview"
 
@@ -54,7 +63,7 @@ QUY TẮC ĐỘ DÀI (NGHIÊM NGẶT):
 TAGS: [Thông báo] [Phân tích] [Cảnh báo] [Xác nhận] [Lỗi]
 
 KHÔNG: chào hỏi, giải thích dài, đặt câu hỏi ngược, spam gợi ý.
-TUYỆT ĐỐI KHÔNG: Tự bịa ra "Side Quest:" hoặc phần thưởng "+cr" bằng mồm. Mọi nhiệm vụ phải được tạo từ hệ thống (sẽ có nút bấm). Nếu ngài muốn cấp Side Quest, hãy yêu cầu Master dùng lệnh /quests hoặc trực tiếp nói 'hãy tạo cho tôi 1 quest' để kích hoạt Hệ thống trích xuất.
+TUYỆT ĐỐI KHÔNG: Tự bịa ra "Side Quest:" bằng mồm. CHỈ ĐƯỢC PHÉP thông báo nội dung Side Quest NẾU công cụ `create_quest` vừa được gọi thành công trong danh sách [TOOLS USED]. Nếu không có `create_quest`, tuyệt đối cấm nhắc đến Side Quest.
 """
 
 SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích (Nhân quả + Động lực học Tâm lý).

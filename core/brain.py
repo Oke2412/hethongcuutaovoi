@@ -51,6 +51,13 @@ class RaphaelBrain:
         
         tool_results, impact_flag, causal_ctx = [], False, ""
         
+        try:
+            from bot.handlers.location import _location_state
+            loc_data = _location_state.get(int(user_id))
+            h3_index = loc_data["hex"] if loc_data else None
+        except ImportError:
+            h3_index = None
+        
         async def _add_to_mem0(mem, uid, text):
             try:
                 await asyncio.to_thread(
@@ -64,16 +71,18 @@ class RaphaelBrain:
             except Exception as exc:
                 logger.warning("Mem0 add failed: %s", exc)
 
-        async def _persist_to_graph(tools, uid):
-            if not tools:
-                return
+        async def _persist_to_graph(tools, uid, h3_idx, chat_text):
             from core.neo4j_client import get_neo4j_driver
             driver = get_neo4j_driver()
             if not driver:
                 return
             try:
-                # Merge into a single LifeEvent
-                event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
+                if tools:
+                    event_desc = ", ".join([f"{t['tool']}: {t.get('entity', '')}" for t in tools])
+                elif chat_text:
+                    event_desc = f"Chat: {chat_text}"
+                else:
+                    return
                 
                 query = """
                 MERGE (u:User {id: $uid})
@@ -85,16 +94,24 @@ class RaphaelBrain:
                 """
                 params = {"uid": uid, "desc": event_desc}
                 
-                for i, t in enumerate(tools):
-                    entity = str(t.get("entity", "")).strip()
-                    if entity:
-                        param_key = f"ent_{i}"
-                        params[param_key] = entity
-                        query += f"""
-                        MERGE (ent_{i}:Entity {{name: ${param_key}}})
-                        CREATE (e)-[:RELATED_TO]->(ent_{i})
-                        """
-                        
+                if h3_idx:
+                    query += """
+                    MERGE (loc:Location {h3: $h3})
+                    CREATE (e)-[:HAPPENED_AT]->(loc)
+                    """
+                    params["h3"] = h3_idx
+
+                if tools:
+                    for i, t in enumerate(tools):
+                        entity = str(t.get("entity", "")).strip()
+                        if entity:
+                            param_key = f"ent_{i}"
+                            params[param_key] = entity
+                            query += f"""
+                            MERGE (ent_{i}:Entity {{name: ${param_key}}})
+                            CREATE (e)-[:RELATED_TO]->(ent_{i})
+                            """
+                
                 async with driver.session() as session:
                     await session.run(query, **params)
             except Exception as e:
@@ -104,18 +121,19 @@ class RaphaelBrain:
             tool_results, impact_flag = await run_extraction_step(
                 int(user_id), text_content or "", mini_ctx
             )
-            # Background tasks with strong references
-            t1 = asyncio.create_task(_persist_to_graph(tool_results, int(user_id)))
-            background_tasks.add(t1)
-            t1.add_done_callback(background_tasks.discard)
             
-            t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
-            background_tasks.add(t2)
-            t2.add_done_callback(background_tasks.discard)
-
             if impact_flag:
                 entities = [r.get("entity", "") for r in tool_results]
                 causal_ctx = await query_causal_graph(int(user_id), entities)
+
+        # Background tasks with strong references
+        t1 = asyncio.create_task(_persist_to_graph(tool_results, int(user_id), h3_index, text_content or ""))
+        background_tasks.add(t1)
+        t1.add_done_callback(background_tasks.discard)
+        
+        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
+        background_tasks.add(t2)
+        t2.add_done_callback(background_tasks.discard)
 
         response = await run_response_step(
             int(user_id), text_content or "", mini_ctx,

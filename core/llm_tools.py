@@ -8,6 +8,14 @@ from db.models import Memory, SystemQuest, PhysicalStatus, WorkProject, Capabili
 
 logger = logging.getLogger(__name__)
 
+def _get_current_h3(user_id: int) -> str | None:
+    try:
+        from bot.handlers.location import _location_state
+        loc_data = _location_state.get(user_id)
+        return loc_data["hex"] if loc_data else None
+    except ImportError:
+        return None
+
 async def update_memory_async(user_id: int, content: str) -> str:
     """Updates the user's database with new context or memory into GraphRAG."""
     from core.brain import brain
@@ -20,7 +28,7 @@ async def update_memory_async(user_id: int, content: str) -> str:
         brain.memory.add,
         messages=[{"role": "user", "content": "Master requested memory update"}, {"role": "assistant", "content": content}],
         user_id=str(user_id),
-        metadata={"timestamp": current_time, "source": "llm_tool_forced"}
+        metadata={"timestamp": current_time, "source": "llm_tool_forced", "h3_index": _get_current_h3(user_id)}
     )
     return "Đã cập nhật Ký ức (Graph) thành công."
 
@@ -70,7 +78,8 @@ async def update_physical_status_async(user_id: int, energy: int, mood: int, hea
             mood=mood,
             health=health,
             sleep_hours=sleep_hours,
-            notes=notes
+            notes=notes,
+            h3_index=_get_current_h3(user_id)
         )
         session.add(status)
         await session.commit()
@@ -122,8 +131,9 @@ async def manage_capability_async(user_id: int, action: str, domain: str, level:
                 cap.exp = exp
                 if level > cap.max_ever:
                     cap.max_ever = level
+                cap.h3_index = _get_current_h3(user_id)
             else:
-                cap = CapabilityLog(user_id=user_id, domain=domain, current_level=level, exp=exp, max_ever=level, unit=unit)
+                cap = CapabilityLog(user_id=user_id, domain=domain, current_level=level, exp=exp, max_ever=level, unit=unit, h3_index=_get_current_h3(user_id))
                 session.add(cap)
             await session.commit()
             return f"Đã cập nhật kỹ năng {domain}: Lv.{level} (EXP: {exp})."
@@ -276,12 +286,13 @@ async def reset_database_async(user_id: int) -> str:
 
         async with AsyncGraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password)) as driver:
             async with driver.session() as neo_session:
-                # Delete the user node and all their LifeEvents
+                # Delete the user node, their LifeEvents, and Location nodes
                 await neo_session.run(
                     """
                     MATCH (u:User {id: $uid})
                     OPTIONAL MATCH (u)-[:EXPERIENCED]->(e:LifeEvent)
-                    DETACH DELETE u, e
+                    OPTIONAL MATCH (loc:Location)
+                    DETACH DELETE u, e, loc
                     """,
                     uid=user_id,
                 )
