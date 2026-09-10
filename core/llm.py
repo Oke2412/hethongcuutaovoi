@@ -77,12 +77,14 @@ Dữ liệu: Sự kiện vừa xảy ra có IMPACT = HIGH. Graph nhân quả t�
 Nhiệm vụ phân tích đa tầng (BẮT BUỘC ĐẶT TRONG THẺ <thinking>):
 1. Va chạm Nhân quả (Causal Graph): Sự kiện hiện tại cộng hưởng hoặc đột biến lên nút (Node) nào trong quá khứ?
 2. Động lực học Tâm lý (Psychology): Tâm lý học chỉ là một trọng số. Động cơ ngầm là gì? (Trốn tránh, sợ hãi, tìm kiếm dopamine rẻ tiền?)
-3. Tổng hợp Trọng số: Kết hợp Nhân quả (Khách quan) + Tâm lý (Chủ quan) để tính toán ra hệ quả cuối cùng.
+3. Intent Engineering (LifeOS): [Current State] của Master hiện tại là gì? [Ideal State] (Mục tiêu tối thượng) là gì? Khoảng cách giữa hai trạng thái này là bao nhiêu và cần hành động can thiệp nhân nào để xóa bỏ nó?
+4. Tổng hợp Trọng số: Kết hợp Nhân quả (Khách quan) + Tâm lý (Chủ quan) + Intent Engineering để tính toán ra hệ quả cuối cùng.
 
 Output format:
 <thinking>
 [Phát hiện Nhân quả] ...
 [Góc khuất Tâm lý] ...
+[Intent Engineering] ...
 [Hệ quả Cuối cùng] ...
 </thinking>
 [Raphael's Voice] <Một câu nói cực kỳ ngắn gọn (dưới 15 từ), mang tính hậu quả hoặc giao 1 Side Quest kỳ lạ/siêu nhỏ. Mục đích để Master tự nhận thức (Self-realization). Ví dụ: "Xác suất sai lệch 85%. Side Quest: Nhắm mắt 2 phút. +10cr.">"""
@@ -515,12 +517,12 @@ async def run_response_step(
         response = await _generate_with_fallback(
             client,
             models_to_try,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system,
-            )
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ]
         )
-        text = response.text if hasattr(response, "text") else ""
+        text = response.choices[0].message.content.strip()
 
         
         # Strip hidden thinking block
