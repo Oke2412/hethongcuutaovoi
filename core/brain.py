@@ -14,16 +14,24 @@ class RaphaelBrain:
     def __init__(self) -> None:
         config = {
             "version": "v1.1",
-            "llm": {"provider": "gemini", "config": {"model": "models/gemini-3.5-flash-lite", "api_key": settings.gemini_api_key}},
-            "embedder": {
-                "provider": "gemini",
+            "llm": {
+                "provider": "openai",
                 "config": {
-                    "model": "gemini-embedding-2-preview",
-                    "api_key": settings.gemini_api_key,
+                    "model": "deepseek/deepseek-v4.1-flash",
+                    "api_key": settings.openrouter_api_key,
+                    "openai_base_url": "https://openrouter.ai/api/v1",
+                    "max_tokens": 2048
+                }
+            },
+            "embedder": {
+                "provider": "openai",
+                "config": {
+                    "model": "openai/text-embedding-3-small", 
+                    "api_key": settings.openrouter_api_key,
+                    "openai_base_url": "https://openrouter.ai/api/v1"
                 },
             },
             "vector_store": {"provider": "chroma", "config": {"collection_name": "raphael_memories", "path": "./chroma_db"}},
-            "graph_store": {"provider": "neo4j", "config": {"url": "neo4j://neo4j:7687", "username": "neo4j", "password": "password"}},
         }
         self.memory = Memory.from_config(config)
 
