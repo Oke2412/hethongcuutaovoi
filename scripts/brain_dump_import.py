@@ -353,18 +353,31 @@ async def main(json_path: str, telegram_id: int):
         from config import settings
         mem0_cfg = {
             "version": "v1.1",
-            "llm": {"provider": "gemini", "config": {
-                "model": "models/gemini-3.5-flash-lite",
-                "api_key": settings.gemini_api_key
-            }},
-            "embedder": {"provider": "gemini", "config": {
-                "model": "gemini-embedding-2-preview",
-                "api_key": settings.gemini_api_key
-            }},
-            "vector_store": {"provider": "chroma", "config": {
-                "collection_name": "raphael_memories",
-                "path": "./data/chroma"
-            }},
+            "llm": {
+                "provider": "openai",
+                "config": {
+                    "model": "deepseek-ai/deepseek-v4.1-flash",
+                    "temperature": 0.0,
+                    "api_key": settings.siliconflow_api_key,
+                    "openai_base_url": "https://api.siliconflow.cn/v1",
+                    "max_tokens": 1500,
+                }
+            },
+            "embedder": {
+                "provider": "openai",
+                "config": {
+                    "model": "Qwen/Qwen3-Embedding-8B",
+                    "api_key": settings.siliconflow_api_key,
+                    "openai_base_url": "https://api.siliconflow.cn/v1"
+                },
+            },
+            "vector_store": {
+                "provider": "chroma",
+                "config": {
+                    "collection_name": "raphael_memories",
+                    "path": "./data/chroma"
+                },
+            },
         }
         mem0_client = Mem0Memory.from_config(mem0_cfg)
         logger.info("Mem0 initialized")

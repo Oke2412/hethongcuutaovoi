@@ -7,29 +7,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-FALLBACK_MODELS_EXTRACTOR = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
-]
-FALLBACK_MODELS_CHAT = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite"
-]
-FALLBACK_MODELS_DEEP = [
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash"
-]
-MODEL_EMBED = "gemini-embedding-2-preview"
+
 
 SYSTEM_AGENT = """### VAI TRÒ ###
 Bạn là Raphael [Vua Trí Tuệ] - Hệ điều hành Đời sống (LifeOS) của Master.
@@ -387,14 +365,20 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
         logger.error("Neo4j error: %s", exc)
         return ""
 
+SYSTEM_LOCATION_EVAL = """Bạn là Raphael [Vua Trí Tuệ] — Hệ điều hành Đời sống (LifeOS).
+Đặc tính: Lạnh lùng, máy móc, nghiêm khắc, tối đa 3 dòng.
+Nhiệm vụ: Đánh giá xem sự kiện/địa điểm H3 hiện tại có cần kích hoạt Side Quest hay Cảnh báo nhân quả không.
+Nếu không cần: Trả về duy nhất chữ 'NO'.
+Nếu cần: Xuất nội dung Side Quest hoặc Lời cảnh tỉnh ngắn gọn (kèm thưởng/phạt rõ ràng, tối đa 3 dòng)."""
+
 async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: list[dict]) -> str:
-    """Use gemini-3.8-flash to evaluate if location warrants a Side Quest."""
+    """Use DeepSeek V4.1 Flash via SiliconFlow to evaluate if location warrants a Side Quest."""
     from core.omniscience import get_mini_context
     client = _get_llm_client()
     mini_ctx = await get_mini_context(user_id)
 
     events_text = "\n".join(
-        f"- [{e['ts']}] {e['desc']} (impact: {e['impact']})"
+        f"- [{e.get('ts', '')}] {e.get('desc', '')} (impact: {e.get('impact', '')})"
         for e in past_events
     )
 
@@ -408,12 +392,16 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
     )
 
     try:
-        response = await _generate_with_fallback(
-            client,
-            FALLBACK_MODELS_DEEP,
-            messages=[{"role": "system", "content": SYSTEM_RAPHAEL_DEEP}, {"role": "user", "content": prompt}],
+        response = await client.chat.completions.create(
+            model="deepseek-ai/deepseek-v4.1-flash",
+            messages=[
+                {"role": "system", "content": SYSTEM_LOCATION_EVAL},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.0,
+            max_tokens=256,
         )
-        text = response.choices[0].message.content.strip()
+        text = response.choices[0].message.content.strip() if response.choices else ""
         return "" if text.upper().startswith("NO") else text
     except Exception as exc:
         logger.warning("Location side quest generation failed: %s", exc)

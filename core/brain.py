@@ -12,6 +12,15 @@ background_tasks = set()
 
 class RaphaelBrain:
     def __init__(self) -> None:
+        self.memory: Optional[Memory] = None
+        self._init_memory()
+
+    def _init_memory(self) -> None:
+        api_key = settings.siliconflow_api_key
+        if not api_key:
+            logger.warning("SILICONFLOW_API_KEY is not set. Mem0 initialization deferred.")
+            return
+
         config = {
             "version": "v1.1",
             "llm": {
@@ -19,7 +28,7 @@ class RaphaelBrain:
                 "config": {
                     "model": "deepseek-ai/deepseek-v4.1-flash",
                     "temperature": 0.0,
-                    "api_key": settings.siliconflow_api_key,
+                    "api_key": api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1",
                     "max_tokens": 1500,
                 }
@@ -28,13 +37,17 @@ class RaphaelBrain:
                 "provider": "openai",
                 "config": {
                     "model": "Qwen/Qwen3-Embedding-8B", 
-                    "api_key": settings.siliconflow_api_key,
+                    "api_key": api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1"
                 },
             },
             "vector_store": {"provider": "chroma", "config": {"collection_name": "raphael_memories", "path": "./chroma_db"}},
         }
-        self.memory = Memory.from_config(config)
+        try:
+            self.memory = Memory.from_config(config)
+        except Exception as exc:
+            logger.warning("Mem0 initialization failed: %s", exc)
+            self.memory = None
 
     async def process_input(
         self,
@@ -58,6 +71,9 @@ class RaphaelBrain:
         if text_content:
             await log_message(int(user_id), "user", text_content)
 
+        if self.memory is None and settings.siliconflow_api_key:
+            self._init_memory()
+
         mini_ctx = await get_mini_context(int(user_id))
         client = _get_llm_client()
 
@@ -69,6 +85,8 @@ class RaphaelBrain:
             h3_index = None
 
         async def _add_to_mem0(mem, uid, text):
+            if not mem:
+                return
             try:
                 await asyncio.to_thread(
                     mem.add,
@@ -173,9 +191,13 @@ class RaphaelBrain:
                     
                     # 2. Vector
                     if q:
-                        mem_res = await asyncio.to_thread(self.memory.search, query=q, user_id=user_id, limit=5)
-                        if mem_res:
-                            for m in mem_res: chunks.append(f"[VECTOR]: {m.get('memory', '')}")
+                        if self.memory:
+                            try:
+                                mem_res = await asyncio.to_thread(self.memory.search, query=q, user_id=user_id, limit=5)
+                                if mem_res:
+                                    for m in mem_res: chunks.append(f"[VECTOR]: {m.get('memory', '')}")
+                            except Exception as exc:
+                                logger.warning("Mem0 search error: %s", exc)
                         
                         # 3. Sparse
                         sparse_res = await sparse_search([q], limit=5)
@@ -240,3 +262,7 @@ class RaphaelBrain:
 
         hud_line, keyboard = await build_hud(int(user_id))
         return f"{final_text}\n\n{hud_line}", keyboard
+
+
+brain = RaphaelBrain()
+

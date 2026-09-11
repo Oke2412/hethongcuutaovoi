@@ -60,7 +60,7 @@ async def sparse_search(keywords: List[str], limit: int = 5) -> List[str]:
 
 
 async def rerank_chunks(query: str, chunks: List[str], top_k: int = 3) -> List[str]:
-    """Khâu 3: Reranking Vòng 2 via OpenRouter API."""
+    """Khâu 3: Reranking Vòng 2 via SiliconFlow API."""
     if not chunks:
         return []
     if len(chunks) <= top_k:
@@ -78,54 +78,27 @@ async def rerank_chunks(query: str, chunks: List[str], top_k: int = 3) -> List[s
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "model": "Qwen/Qwen3-Reranker-8B",
-        "query": query,
-        "documents": chunks,
-        "top_n": top_k
-    }
-    
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
-            data = response.json()
+    # Try Qwen/Qwen3-Reranker-8B first, fallback to BAAI/bge-reranker-v2-m3
+    for model_name in ["Qwen/Qwen3-Reranker-8B", "BAAI/bge-reranker-v2-m3"]:
+        payload = {
+            "model": model_name,
+            "query": query,
+            "documents": chunks,
+            "top_n": top_k
+        }
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(url, json=payload, headers=headers)
+                response.raise_for_status()
+                data = response.json()
+                
+                results = data.get("results", [])
+                results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+                reranked_chunks = [chunks[r["index"]] for r in results[:top_k]]
+                return reranked_chunks
+        except Exception as e:
+            logger.warning(f"Reranking with {model_name} failed: {e}")
+            continue
             
-            # OpenRouter typically returns {"results": [{"index": 0, "relevance_score": 0.9}, ...]}
-            results = data.get("results", [])
-            results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
-            
-            reranked_chunks = [chunks[r["index"]] for r in results[:top_k]]
-            return reranked_chunks
-    except Exception as e:
-        logger.warning(f"Reranking API failed: {e}")
-        return chunks[:top_k]
-        
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "model": "BAAI/bge-reranker-v2-m3", # Standard fallback reranker on SiliconFlow. Adjust to Qwen if SiliconFlow changes endpoint names.
-        "query": query,
-        "texts": chunks,
-        "top_n": top_k
-    }
-    
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
-            data = response.json()
-            
-            # SiliconFlow/DashScope typically returns {"results": [{"index": 0, "relevance_score": 0.9}, ...]}
-            results = data.get("results", [])
-            # Sort just in case, though API usually sorts it
-            results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
-            
-            reranked_chunks = [chunks[r["index"]] for r in results[:top_k]]
-            return reranked_chunks
-    except Exception as e:
-        logger.warning(f"Reranking API failed: {e}")
-        return chunks[:top_k]
+    logger.warning("All reranker models failed, returning original chunks.")
+    return chunks[:top_k]
