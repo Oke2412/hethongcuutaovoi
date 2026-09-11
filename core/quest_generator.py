@@ -52,7 +52,7 @@ async def generate_and_save_quest(user_id: int):
         
         try:
             response = await client.chat.completions.create(
-                model="deepseek-flash",
+                model="deepseek-ai/deepseek-v4.1-flash",
                 messages=[
                     {"role": "system", "content": "Output ONLY a valid JSON array. No markdown."},
                     {"role": "user", "content": prompt}

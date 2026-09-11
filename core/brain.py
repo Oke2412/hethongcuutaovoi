@@ -17,7 +17,7 @@ class RaphaelBrain:
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "deepseek-flash",
+                    "model": "deepseek-ai/deepseek-v4.1-flash",
                     "temperature": 0.0,
                     "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1",
@@ -124,7 +124,7 @@ class RaphaelBrain:
             loop_count += 1
             try:
                 response = await client.chat.completions.create(
-                    model="deepseek-flash",
+                    model="deepseek-ai/deepseek-v4.1-flash",
                     messages=messages,
                     tools=TOOLS_DEF,
                     temperature=0.0
