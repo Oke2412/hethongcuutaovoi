@@ -8,6 +8,36 @@ from sqlalchemy import text
 
 logger = logging.getLogger(__name__)
 
+async def expand_query(client, message: str) -> List[str]:
+    """Khâu 1: Query Expansion. Bóc tách câu ngắn thành keywords."""
+    system_prompt = """You are an AI specialized in query expansion for search engines.
+Given a short user input, expand it into a JSON array of 3-5 specific, relevant search keywords or phrases in Vietnamese.
+Include synonyms, related concepts, or potential entities.
+Output ONLY the JSON array of strings, nothing else. Example: ["từ khóa 1", "từ khóa 2"]"""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="deepseek-ai/DeepSeek-V3",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.0
+        )
+        text_resp = response.choices[0].message.content.strip()
+        # Clean up markdown if any
+        if text_resp.startswith("```json"):
+            text_resp = text_resp.replace("```json", "").replace("```", "").strip()
+        
+        keywords = json.loads(text_resp)
+        if isinstance(keywords, list):
+            return keywords
+        return [message]
+    except Exception as e:
+        logger.warning(f"Query expansion failed: {e}")
+        return [message]
+
+
 async def sparse_search(keywords: List[str], limit: int = 5) -> List[str]:
     """Khâu 2: Sparse Search (BM25) via SQLite FTS5."""
     query_str = " OR ".join([f'"{k}"' for k in keywords]) # Simple OR matching
