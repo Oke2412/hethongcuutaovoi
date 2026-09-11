@@ -57,7 +57,7 @@ class RaphaelBrain:
         audio_bytes: bytes = None,
     ) -> tuple[str, Any]:
         from core.omniscience import get_mini_context, log_message
-        from core.llm import _get_llm_client, TOOLS_DEF, SYSTEM_AGENT, query_causal_graph
+        from core.llm import _get_llm_client, TOOLS_DEF, SYSTEM_ORCHESTRATOR, SYSTEM_RAPHAEL, query_causal_graph
         from core.llm_tools import (
             update_memory_async, cancel_quest_async, complete_quest_async, create_quest_async,
             manage_user_status_async, update_physical_status_async, manage_project_async,
@@ -129,7 +129,7 @@ class RaphaelBrain:
         # AGENTIC LOOP
         prompt = f"[CONTEXT]\n{mini_ctx}\n[MESSAGE]\n{text_content or ''}"
         messages = [
-            {"role": "system", "content": SYSTEM_AGENT},
+            {"role": "system", "content": SYSTEM_ORCHESTRATOR},
             {"role": "user", "content": prompt}
         ]
 
@@ -163,9 +163,7 @@ class RaphaelBrain:
             
             messages.append(msg_dict)
 
-            if not msg.tool_calls:
-                # Agent finished reasoning
-                final_text = msg.content or ""
+            if not msg.tool_calls or msg.content == "TERMINATE_LOOP":
                 break
 
             # Execute Tools
@@ -246,6 +244,31 @@ class RaphaelBrain:
                     "name": func_name,
                     "content": tool_result_str
                 })
+
+        # Gather Context
+        tool_context = []
+        for m in messages:
+            if m["role"] == "tool":
+                tool_context.append(f"[{m.get('name', 'tool')}]: {m.get('content', '')}")
+        context_str = "\n".join(tool_context) if tool_context else "Không có thêm dữ kiện từ hệ thống."
+        
+        raphael_prompt = f"[NGỮ CẢNH RAG/DB]\n{context_str}\n\n[TIN NHẮN MASTER]\n{text_content or ''}"
+        
+        # Second Pass: Persona Synthesis
+        try:
+            response2 = await client.chat.completions.create(
+                model="deepseek-ai/deepseek-v4.1-flash",
+                messages=[
+                    {"role": "system", "content": SYSTEM_RAPHAEL},
+                    {"role": "user", "content": raphael_prompt}
+                ],
+                max_tokens=8000,
+                temperature=0.0
+            )
+            final_text = response2.choices[0].message.content or ""
+        except Exception as e:
+            logger.error(f"Persona LLM Error: {e}")
+            final_text = "[Lỗi hệ thống] API DeepSeek gặp sự cố khi tổng hợp."
 
         # Strip hidden thinking block from final text before returning to user
         final_text = re.sub(r'<thinking>.*?</thinking>', '', final_text, flags=re.DOTALL).strip()
