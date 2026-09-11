@@ -59,7 +59,7 @@ class RaphaelBrain:
         from core.omniscience import get_mini_context, log_message
         from core.llm import _get_llm_client, TOOLS_DEF, SYSTEM_ORCHESTRATOR, SYSTEM_RAPHAEL, query_causal_graph
         from core.llm_tools import (
-            update_memory_async, cancel_quest_async, complete_quest_async, create_quest_async,
+            cancel_quest_async, complete_quest_async, create_quest_async,
             manage_user_status_async, update_physical_status_async, manage_project_async,
             manage_capability_async, manage_credits_async, calculate_distance_sync
         )
@@ -99,6 +99,11 @@ class RaphaelBrain:
 
         async def _persist_to_graph(tools_used, uid, h3_idx, chat_text):
             from core.neo4j_client import get_neo4j_driver
+            from core.llm import get_ai_response
+            from core.llm_tools import create_quest_async
+            import json
+            import re
+            
             driver = get_neo4j_driver()
             if not driver:
                 return
@@ -109,28 +114,72 @@ class RaphaelBrain:
                     event_desc = f"Chat: {chat_text}"
                 else:
                     return
-                query = """
-                MERGE (u:User {id: $uid})
-                CREATE (e:LifeEvent {timestamp: datetime(), description: $desc})
-                CREATE (u)-[:EXPERIENCED]->(e)
-                """
-                params = {"uid": uid, "desc": event_desc}
-                if h3_idx:
-                    query += """
-                    MERGE (loc:Location {h3: $h3})
-                    CREATE (e)-[:HAPPENED_AT]->(loc)
-                    """
-                    params["h3"] = h3_idx
+                    
+                from core.ontology_prompt import ONTOLOGY_PROMPT_TEMPLATE
+                extraction_prompt = f"""{ONTOLOGY_PROMPT_TEMPLATE}
+[NỘI DUNG CẦN BÓC TÁCH]
+{event_desc}"""
+                response = await get_ai_response(extraction_prompt, model="deepseek-ai/deepseek-v4.1-flash", temperature=0.0)
                 
-                await asyncio.to_thread(driver.execute_query, query, params)
+                json_match = re.search(r'\{.*\}', response.replace('\n', ''), re.DOTALL)
+                if json_match:
+                    data = json.loads(json_match.group(0))
+                else:
+                    data = json.loads(response)
+                
+                # 1. Bóc tách SQLite Quests
+                quests = data.get("sqlite_quests", [])
+                for q in quests:
+                    try:
+                        await create_quest_async(
+                            user_id=uid,
+                            title=q.get("title", "Nhiệm vụ Ẩn"),
+                            description=q.get("description", ""),
+                            reward=q.get("reward", "10 XP"),
+                            penalty=q.get("penalty", "-10 HP")
+                        )
+                    except Exception as q_err:
+                        pass
+                        
+                # 2. Bóc tách Neo4j Graph
+                neo4j_data = data.get("neo4j", data) # Fallback to old format if 'neo4j' key missing
+                async with driver.session() as session:
+                    await session.run("MERGE (u:User {telegram_id: $uid, id: $uid})", uid=uid)
+                    
+                    for node in neo4j_data.get("nodes", []):
+                        label, name = node.get("label"), node.get("name")
+                        if label and name:
+                            await session.run(f"MERGE (n:{label} {{name: $name}})", name=name)
+                            await session.run(f"MATCH (u:User {{id: $uid}}), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", uid=uid, name=name)
+                            
+                    for edge in neo4j_data.get("edges", []):
+                        src_id, tgt_id, rel = edge.get("source"), edge.get("target"), edge.get("type")
+                        src_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == src_id), None)
+                        tgt_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == tgt_id), None)
+                        if src_node and tgt_node:
+                            query = f"MATCH (a:{src_node['label']} {{name: $src_name}}), (b:{tgt_node['label']} {{name: $tgt_name}}) MERGE (a)-[:{rel}]->(b)"
+                            await session.run(query, src_name=src_node['name'], tgt_name=tgt_node['name'])
             except Exception as e:
-                logger.warning("Neo4j log error: %s", e)
+                logger.warning("Graph/Quest extraction error: %s", e)
 
         # AGENTIC LOOP
-        prompt = f"[CONTEXT]\n{mini_ctx}\n[MESSAGE]\n{text_content or ''}"
+        base_prompt_text = f"""[CONTEXT]
+{mini_ctx}
+[MESSAGE]
+{text_content or ''}"""
+        
+        user_content = [{"type": "text", "text": base_prompt_text}]
+        if image_bytes:
+            import base64
+            img_b64 = base64.b64encode(image_bytes).decode("utf-8")
+            user_content.append({
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}
+            })
+
         messages = [
             {"role": "system", "content": SYSTEM_ORCHESTRATOR},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": user_content}
         ]
 
         max_loops = 3
@@ -208,9 +257,7 @@ class RaphaelBrain:
                         tool_result_str = "No specific memories found."
                 
                 # Other Database Tools
-                elif func_name == "update_memory":
-                    await update_memory_async(int(user_id), args.get("content", ""))
-                    tool_result_str = "Memory updated."
+                
                 elif func_name == "cancel_quest":
                     await cancel_quest_async(int(user_id), int(args.get("quest_id", 0)), args.get("reason", ""))
                     tool_result_str = "Quest cancelled."
@@ -289,7 +336,28 @@ class RaphaelBrain:
         t0.add_done_callback(background_tasks.discard)
         final_text = final_text.replace("[Raphael's Voice]", "").strip()
 
+
+        # Cắt cảnh báo Quest ma
+        quest_match = re.search(r'\[QUEST\](.*?)\|\s*Reward:(.*?)\|\s*Penalty:(.*?)\|\s*Expire:(.*?)\|\s*Proof:(.*)', final_text)
+        if quest_match:
+            q_title = quest_match.group(1).strip()
+            q_reward = quest_match.group(2).strip()
+            q_penalty = quest_match.group(3).strip()
+            q_expire_str = quest_match.group(4).strip()
+            q_proof = quest_match.group(5).strip()
+            
+            exp_mins = 60
+            m = re.search(r'\d+', q_expire_str)
+            if m:
+                exp_mins = int(m.group())
+            
+            t_q = asyncio.create_task(create_quest_async(int(user_id), q_title, "Auto-generated by Raphael", q_reward, q_penalty, expires_in_minutes=exp_mins, proof_required=q_proof))
+            background_tasks.add(t_q)
+            t_q.add_done_callback(background_tasks.discard)
+            final_text = re.sub(r'\[QUEST\].*', f'🔥 **NHIỆM VỤ MỚI:** {q_title} (Thưởng: {q_reward} | Phạt: {q_penalty})\n_Đã đồng bộ vào /quests_', final_text)
+
         # Background tasks - Injects both User's input and AI's metacognitive thought process into the 3-DB ecosystem
+
         combined_memory_string = f"User Input: {text_content or ''}\nAI Thought Process: {unstripped_text}"
         
         t1 = asyncio.create_task(_persist_to_graph(tools_invoked, int(user_id), h3_index, combined_memory_string))

@@ -38,7 +38,14 @@
 
 ---
 
-## 🏗️ KIẾN TRÚC HỆ THỐNG (AGENT-DRIVEN RAG LOOP)
+
+### 🗂️ QUY TẮC JSON 3 TẦNG BẮT BUỘC (NEO4J SCHEMA)
+Bất cứ khi nào cập nhật Neo4j, hệ thống (hoặc script Ingestion) bắt buộc phải trích xuất qua LLM thành JSON nghiêm ngặt:
+- **Tầng Vật lý (Physical Layer):** Person, Location, Object, LifeEvent.
+- **Tầng Nhận thức (Cognitive Layer):** Emotion, DefenseMechanism, CoreBelief.
+- **Edges:** TRIGGERS, CAUSES, REINFORCES, MITIGATES, LOCATED_IN, RELATED_TO.
+Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác Node.
+\n## 🏗️ KIẾN TRÚC HỆ THỐNG (AGENT-DRIVEN RAG LOOP)
 
 ```text
 ===========================================================================================================

@@ -38,7 +38,17 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
         id="morning_quests",
         replace_existing=True,
     )
+
+    _scheduler.add_job(
+        _check_expired_quests,
+        trigger="interval",
+        minutes=5,
+        args=[bot],
+        id="check_expired_quests",
+        replace_existing=True,
+    )
     logger.info(
+
         "Scheduler configured: reminders every %dm, daily check-in at %02d:%02d, quests at 06:30",
         settings.reminder_check_interval_minutes,
         settings.daily_checkin_hour,
@@ -123,3 +133,47 @@ async def _generate_morning_quests(bot: Bot) -> None:
             )
         except Exception as exc:
             logger.error("Failed to generate quest for user %d: %s", user.telegram_id, exc)
+
+async def _check_expired_quests(bot: Bot) -> None:
+    from db.database import AsyncSessionLocal
+    from db.models import User, SystemQuest
+    from sqlmodel import select
+    from datetime import datetime
+    import asyncio
+    from core.llm_tools import update_physical_status_async
+    
+    async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
+        result = await session.execute(
+            select(SystemQuest).where(SystemQuest.status == "pending", SystemQuest.expires_at != None, SystemQuest.expires_at <= now)
+        )
+        expired_quests = result.scalars().all()
+        
+        for q in expired_quests:
+            q.status = "failed"
+            session.add(q)
+            
+            # Fetch user to notify
+            user_res = await session.execute(select(User).where(User.id == q.user_id))
+            user = user_res.scalars().first()
+            if user:
+                # Apply penalty silently (e.g. -5HP) by extracting integer if possible, else default -5
+                penalty_val = -5
+                import re
+                hp_match = re.search(r'\d+', q.penalty)
+                if hp_match:
+                    penalty_val = -int(hp_match.group())
+                
+                await update_physical_status_async(user.id, energy=5, mood=5, health=penalty_val, sleep_hours=0, notes=f"Failed quest: {q.title}")
+                
+                try:
+                    await bot.send_message(
+                        chat_id=user.telegram_id,
+                        text=f"⏳ **[HỆ THỐNG] Nhiệm vụ Hết hạn:** {q.title}\n_Trạng thái: FAILED_\n_Hình phạt: {q.penalty}_",
+                        parse_mode="Markdown",
+                    )
+                except Exception as exc:
+                    logger.error("Failed to notify user %d of expired quest: %s", user.telegram_id, exc)
+                    
+        if expired_quests:
+            await session.commit()

@@ -93,6 +93,8 @@ class SystemQuest(SQLModel, table=True):
     penalty: str = ""
     status: str = "pending"
     h3_index: Optional[str] = None
+    proof_required: str = "Hình ảnh hoặc Giải trình logic"
+    expires_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 

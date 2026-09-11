@@ -493,3 +493,23 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Cập nhật file luật lõi `GEMINI.md` với kiến trúc và Persona mới nhất.
 **Files thay đổi:** core/brain.py, core/llm.py, config.py, GEMINI.md, PROMPT_HISTORY.md
 ---
+
+## [Session 2026-09-12 04:29]
+**Ng?i thc hin:** Antigravity (AI)
+**NTi dung cA'ng vic:**
+1. **Lu tr_ C`t lAi:** To file docs/RAPHAEL_BLUEPRINT.md lu tr_ vcnh vi.n h t tYng (ToM, Action-Stated Delta, RPG of Life).
+2. **C-p nh-t LLM Core:** Rewrite SYSTEM_RAPHAEL trong core/llm.py Ap dng Lnh KAcp (Adaptive Gamification - Default Mentor / Trigger RPG).
+3. **Refactor Neo4j 3 T ng:** C-p nh-t _persist_to_graph trong core/brain.py Acp DeepSeek-V4.1-Flash nh chucn JSON 3 T ng vA s- dng Cypher MERGE ` ch`ng phAn mnh thc th (Entity Fragmentation).
+4. **Vc khA- Genesis Ingestion:** PhAt trin scripts/genesis_ingest.py vA scripts/test_genesis.py. 
+   - S- dng chin thu-t **Hit Cache Kh ng L" (726k+ Tokens)** c a SiliconFlow ` `?c toAn bT l<ch s- 47 Session c a d An.
+   - G?i SYSTEM_RAPHAEL ` t AI bA3c tAch ?" th< NhAn qu v? chA-nh quA khc c a nA3.
+5. **D?n d1p DB:** Vit scripts/wipe_neo4j.py ` Master d?n d1p DB khi c n.
+
+## [Session 2026-09-12 05:40]
+**Người thực hiện:** Antigravity (AI)
+**Nội dung công việc:**
+1. **Hoàn thiện Hệ sinh thái Database (Docker Neo4j):** Khắc phục lỗi và khởi động thành công tiến trình Docker Neo4j cho việc lưu trữ Đồ thị 3 Tầng.
+2. **Kiểm thử Giai đoạn 1 & 2 (Gamification):** Khắc phục lỗi Regex Interceptor và lỗi Unicode Encode của PowerShell. Xác nhận AI tạo Quest gắt gao và Interceptor bóc tách chuẩn xác 5 tham số lưu vào SQLite, đồng thời render UI Telegram `🔥 NHIỆM VỤ MỚI`.
+3. **Kiểm thử Giai đoạn 3 (Genesis Ingestion):** Khắc phục lỗi import `get_ai_response` bằng direct `AsyncOpenAI` call. Thực hiện thành công việc tiêu hóa 700k Token lịch sử để tạo ra Graph JSON và nạp trơn tru vào Neo4j.
+4. **Vệ sinh Codebase:** Rà soát toàn bộ `.py` files và thay thế hoàn toàn `.cn` thành `.com` cho mọi request về SiliconFlow (tổng cộng 2 chỗ cuối cùng trong `scripts/brain_dump_import.py`).
+5. **Vận hành Version Control:** Commit lên branch `feature/gamification-neo4j-genesis` và push lên Origin để triển khai Production.
