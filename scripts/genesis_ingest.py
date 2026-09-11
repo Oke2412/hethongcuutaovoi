@@ -49,7 +49,7 @@ async def inject_to_neo4j(driver, json_data):
             for node in json_data.get("nodes", []):
                 label, name = node.get("label"), node.get("name")
                 if label and name:
-                    await session.run(f"MERGE (n:{label} {{name: $name}})", name=name)
+                    await session.run(f"MERGE (n:{label} {{name: $name}}) SET n.timestamp = $ts, n.h3_index = $h3", name=name, ts=node.get("timestamp"), h3=node.get("h3_index"))
                     await session.run(f"MATCH (u:User), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", name=name)
                     
             for edge in json_data.get("edges", []):

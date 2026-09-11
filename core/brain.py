@@ -84,7 +84,7 @@ class RaphaelBrain:
         except ImportError:
             h3_index = None
 
-        async def _add_to_mem0(mem, uid, text):
+        async def _add_to_mem0(mem, uid, text, h3_idx=""): 
             if not mem:
                 return
             try:
@@ -92,7 +92,7 @@ class RaphaelBrain:
                     mem.add,
                     messages=[{"role": "user", "content": text}],
                     user_id=uid,
-                    metadata={"timestamp": datetime.now().isoformat(), "source": "chat"},
+                    metadata={"timestamp": datetime.now().isoformat(), "source": "chat", "h3_index": h3_idx},
                 )
             except Exception as exc:
                 logger.warning("Mem0 add failed: %s", exc)
@@ -149,7 +149,7 @@ class RaphaelBrain:
                     for node in neo4j_data.get("nodes", []):
                         label, name = node.get("label"), node.get("name")
                         if label and name:
-                            await session.run(f"MERGE (n:{label} {{name: $name}})", name=name)
+                            await session.run(f"MERGE (n:{label} {{name: $name}}) ON CREATE SET n.timestamp = $ts, n.h3_index = $h3", name=name, ts=datetime.now().isoformat(), h3=h3_idx)
                             await session.run(f"MATCH (u:User {{id: $uid}}), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", uid=uid, name=name)
                             
                     for edge in neo4j_data.get("edges", []):
@@ -364,7 +364,7 @@ class RaphaelBrain:
         background_tasks.add(t1)
         t1.add_done_callback(background_tasks.discard)
         
-        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, combined_memory_string))
+        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, combined_memory_string, h3_index))
         background_tasks.add(t2)
         t2.add_done_callback(background_tasks.discard)
 

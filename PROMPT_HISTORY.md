@@ -513,3 +513,8 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 3. **Kiểm thử Giai đoạn 3 (Genesis Ingestion):** Khắc phục lỗi import `get_ai_response` bằng direct `AsyncOpenAI` call. Thực hiện thành công việc tiêu hóa 700k Token lịch sử để tạo ra Graph JSON và nạp trơn tru vào Neo4j.
 4. **Vệ sinh Codebase:** Rà soát toàn bộ `.py` files và thay thế hoàn toàn `.cn` thành `.com` cho mọi request về SiliconFlow (tổng cộng 2 chỗ cuối cùng trong `scripts/brain_dump_import.py`).
 5. **Vận hành Version Control:** Commit lên branch `feature/gamification-neo4j-genesis` và push lên Origin để triển khai Production.
+
+6. **Khắc phục Lỗ hổng Không gian/Thời gian & Docker Deployment:**
+   - Vá `docker-compose.yml` (override NEO4J_URI) và thêm `.dockerignore` để tăng tốc độ build.
+   - Sửa `ontology_prompt.py` ép LLM trích xuất `timestamp` và `h3_index` từ text log.
+   - Cập nhật Cypher `MERGE` trong `core/brain.py` và `genesis_ingest.py` để inject thẳng tọa độ/thời gian vào đồ thị Neo4j và metadata của Mem0.
