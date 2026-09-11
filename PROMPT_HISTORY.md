@@ -463,3 +463,22 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Bù đắp log session cho đợt chuyển đổi SiliconFlow trước đó vào `PROMPT_HISTORY.md`.
 **Files thay đổi:** GEMINI.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-12 00:43] — Quét toàn diện, thanh trừng tàn dư Gemini và đồng bộ hoá SiliconFlow
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** tôi vừa thấy gemini flash 3.8 ánh lên trong lúc agent làm việc, quét lại tất cả mọi thứ xem nào, dùng file rules với quét toàn bộ dự án / ok
+**Kết quả / Quyết định:**
+- Rẽ nhánh mới `chore/clean-legacy-gemini-and-sync-siliconflow` theo đúng quy tắc GEMINI.md.
+- Tra cứu lịch sử dự án và tra cứu API specs chính thức từ SiliconFlow documentation (`https://docs.siliconflow.cn/docs/api/rerank-post`).
+- Làm rõ hiện tượng "Gemini 3.8 Flash ánh lên":
+  + Môi trường IDE Agent chạy model Gemini 3.8 Flash.
+  + Trong `core/llm.py` còn sót lại các biến fallback mảng `FALLBACK_MODELS_EXTRACTOR`, `FALLBACK_MODELS_CHAT`, `FALLBACK_MODELS_DEEP`, `MODEL_EMBED` chứa các chuỗi `gemini-3.8-flash`.
+- Thực hiện triệt để:
+  1. Xóa bỏ hoàn toàn các hằng số Gemini cũ trong `core/llm.py`.
+  2. Viết lại hàm `evaluate_location_side_quest` trong `core/llm.py` dùng trực tiếp `deepseek-ai/deepseek-v4.1-flash` qua SiliconFlow API, khắc phục nguy cơ `NameError` tiềm ẩn (`_generate_with_fallback` và `SYSTEM_RAPHAEL_DEEP` bị thiếu).
+  3. Viết lại hàm `rerank_chunks` trong `core/search.py` xóa block duplicate, chuẩn hóa payload `documents` theo tài liệu SiliconFlow, tích hợp tuần tự `Qwen/Qwen3-Reranker-8B` với fallback `BAAI/bge-reranker-v2-m3`.
+  4. Khắc phục lỗi `ImportError: cannot import name 'brain' from 'core.brain'` bằng cách khôi phục singleton `brain = RaphaelBrain()` và cơ chế khởi tạo lazy/resilient cho Mem0 khi chưa nạp API key.
+  5. Đồng bộ cấu hình Mem0 trong `scripts/brain_dump_import.py` sang SiliconFlow.
+  6. Kiểm thử toàn bộ 12 modules bằng `test_imports.py` — 100% pass.
+**Files thay đổi:** config.py, core/brain.py, core/llm.py, core/search.py, scripts/brain_dump_import.py, PROMPT_HISTORY.md
+---
