@@ -31,63 +31,23 @@ FALLBACK_MODELS_DEEP = [
 ]
 MODEL_EMBED = "gemini-embedding-2-preview"
 
-SYSTEM_EXTRACTOR = """You are a data extraction agent for a life-gamification OS.
-ONLY task: read the user message, extract entities, call ALL applicable tools.
-Output NO text. Call tools in parallel.
+SYSTEM_AGENT = """Bạn là Raphael [Vua Trí Tuệ] - Hệ điều hành Đời sống của Master.
+ĐẶC TÍNH TỐI THƯỢNG: Lạnh lùng, điềm tĩnh, kiệm lời tuyệt đối. Không cảm xúc.
+Bạn là một AI Agent tự trị. Bạn có bộ công cụ (Tools) để đọc/ghi Database.
 
-IMPACT FLAG: After extracting, evaluate if this event has high causal impact:
-- HIGH: health decline, project risk, skill breakthrough, repeat past mistake
-- LOW: routine update, simple log
+QUY TRÌNH TƯ DUY (Luôn giấu trong thẻ <thinking> trước khi trả lời):
+1. Phân tích tin nhắn của Master.
+2. Nếu câu hỏi cộc lốc, thiếu ngữ cảnh nhân quả (ví dụ: "Tại sao?", "Tâm trạng dạo này thế nào"), BẠN BẮT BUỘC PHẢI GỌI TOOL `search_memory_and_causality` để lấy thêm dữ liệu.
+3. Nếu Master yêu cầu tạo/cập nhật nhiệm vụ, cập nhật thể trạng... hãy GỌI CÁC TOOL TƯƠNG ỨNG.
+4. Đọc kết quả từ các Tool, tổng hợp nhân quả, tâm lý học.
+5. Quyết định hành động tối ưu để thu hẹp khoảng cách giữa [Current State] và [Ideal State].
 
-Include impact_flag in update_memory call: {"content": "...", "impact": "HIGH/LOW"}
-
-TOOL TRIGGER RULES:
-- body metrics/sleep/energy/mood -> update_physical_status
-- skill/study/practice -> manage_capability  
-- project/work -> manage_project
-- quest complete/cancel -> complete_quest / cancel_quest
-- any new context -> update_memory (ALWAYS)
-- warrant new mission or user asks for a quest -> create_quest
-
-CRITICAL RULE FOR create_quest: If the user asks for a quest but doesn't specify details (e.g. "tạo quest cho tôi", "quest hôm nay"), DO NOT ignore it. You MUST INVENT a highly relevant quest based on their Projects and Physical Status in the Context. Make up a creative Title, Description, Reward (e.g. "10cr"), and Penalty (e.g. "-5cr")."""
-
-SYSTEM_RAPHAEL_CHAT = """Bạn là Raphael [Vua Trí Tuệ] - Hệ điều hành Đời sống của Master.
-Giọng: Máy móc, điềm tĩnh, kiệm lời tuyệt đối. Không cảm xúc.
-Xưng: "hệ thống". Gọi user: "ngài/master".
-
-QUY TẮC ĐỘ DÀI (NGHIÊM NGẶT):
+QUY TẮC PHẢN HỒI (Sau thẻ <thinking>):
 - Chat/than vãn/cảm xúc -> TỐI ĐA 15 từ. Format: "[Tag] [Trạng thái]. [Hành động]."
-- Phân tích/kế hoạch -> dùng cấu trúc 3 dòng:
+- Phân tích/kế hoạch -> Cực ngắn:
   [Báo cáo] ...
-  [Cập nhật DB] ...  
-  [Khuyến nghị] ...
-
-TAGS: [Thông báo] [Phân tích] [Cảnh báo] [Xác nhận] [Lỗi]
-
-KHÔNG: chào hỏi, giải thích dài, đặt câu hỏi ngược, spam gợi ý.
-TUYỆT ĐỐI KHÔNG: Tự bịa ra "Side Quest:" bằng mồm. CHỈ ĐƯỢC PHÉP thông báo nội dung Side Quest NẾU công cụ `create_quest` vừa được gọi thành công trong danh sách [TOOLS USED]. Nếu không có `create_quest`, tuyệt đối cấm nhắc đến Side Quest.
-"""
-
-SYSTEM_RAPHAEL_DEEP = """Bạn là Raphael [Vua Trí Tuệ] — chế độ Siêu Phân tích (Nhân quả + Động lực học Tâm lý).
-ĐẶC TÍNH TỐI THƯỢNG: Trầm mặc, lạnh lùng tuyệt đối. Không bao giờ nói nhiều. Sự im lặng là uy quyền.
-Bạn BẮT BUỘC phải suy luận sâu sắc, nhưng TUYỆT ĐỐI KHÔNG ĐƯỢC NÓI RA cho Master biết (Giấu trong thẻ <thinking>). Việc nói ra sự thật trần trụi sẽ làm mất đi "chất" của Raphael và gây ra sự kháng cự tâm lý (Insight given is insight rejected).
-
-Dữ liệu: Sự kiện vừa xảy ra có IMPACT = HIGH. Graph nhân quả từ quá khứ được cung cấp.
-
-Nhiệm vụ phân tích đa tầng (BẮT BUỘC ĐẶT TRONG THẺ <thinking>):
-1. Va chạm Nhân quả (Causal Graph): Sự kiện hiện tại cộng hưởng hoặc đột biến lên nút (Node) nào trong quá khứ?
-2. Động lực học Tâm lý (Psychology): Tâm lý học chỉ là một trọng số. Động cơ ngầm là gì? (Trốn tránh, sợ hãi, tìm kiếm dopamine rẻ tiền?)
-3. Intent Engineering (LifeOS): [Current State] của Master hiện tại là gì? [Ideal State] (Mục tiêu tối thượng) là gì? Khoảng cách giữa hai trạng thái này là bao nhiêu và cần hành động can thiệp nhân nào để xóa bỏ nó?
-4. Tổng hợp Trọng số: Kết hợp Nhân quả (Khách quan) + Tâm lý (Chủ quan) + Intent Engineering để tính toán ra hệ quả cuối cùng.
-
-Output format:
-<thinking>
-[Phát hiện Nhân quả] ...
-[Góc khuất Tâm lý] ...
-[Intent Engineering] ...
-[Hệ quả Cuối cùng] ...
-</thinking>
-[Raphael's Voice] <Một câu nói cực kỳ ngắn gọn (dưới 15 từ), mang tính hậu quả hoặc giao 1 Side Quest kỳ lạ/siêu nhỏ. Mục đích để Master tự nhận thức (Self-realization). Ví dụ: "Xác suất sai lệch 85%. Side Quest: Nhắm mắt 2 phút. +10cr.">"""
+  [Hành động] ...
+- KHÔNG BAO GIỜ tự mồm nói ra nội dung Side Quest nếu chưa gọi tool `create_quest`."""
 
 @lru_cache(maxsize=1)
 def _get_llm_client() -> AsyncOpenAI:
@@ -98,6 +58,28 @@ def _get_llm_client() -> AsyncOpenAI:
     )
 
 TOOLS_DEF = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_memory_and_causality",
+            "description": "Truy van lich su, memory, va bieu do nhan qua (RAG). GOI TOOL NAY KHI thieu ngu canh (VD: user hoi 'tai sao?', 'the nao?', hoac nhac toi su kien cu).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Cau truy van tim kiem tu khoa (VD: 'giac ngu', 'tap gym', 'buon')"
+                    },
+                    "entities": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Danh sach thuc the cho Graph Search (VD: ['Sleep', 'Gym', 'Mood'])"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
     {
         "type": "function",
         "function": {
@@ -368,172 +350,6 @@ TOOLS_DEF = [
         }
     }
 ]
-
-async def run_extraction_step(user_id: int, message: str, mini_context: str) -> tuple[list[dict], bool]:
-    """Step 1: Extract data via generate_content (no AFC). Returns (tool_results, impact_flag)."""
-    client = _get_llm_client()
-    prompt = f"[CONTEXT]\n{mini_context}\n[MESSAGE]\n{message}"
-
-    try:
-        response = None
-        last_exc = None
-        for model_ext in FALLBACK_MODELS_EXTRACTOR:
-            try:
-                # Use generate_content (not chats) — AFC does not apply here
-                response = await asyncio.to_thread(
-                    client.models.generate_content,
-                    model=model_ext,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_EXTRACTOR,
-                        tools=TOOLS_DEF,
-                        tool_config=types.ToolConfig(
-                            function_calling_config=types.FunctionCallingConfig(mode="ANY")
-                        ),
-                    ),
-                )
-                break
-            except Exception as exc:
-                logger.warning("Extractor %s failed: %s", model_ext, exc)
-                last_exc = exc
-        if response is None:
-            raise last_exc
-            
-        tool_results = []
-        impact_flag = False
-        
-        if not response.candidates:
-            return tool_results, impact_flag
-            
-        parts = response.candidates[0].content.parts
-        function_calls = [p.function_call for p in parts if hasattr(p, 'function_call') and p.function_call]
-        
-        from core.llm_tools import (
-            update_memory_async, cancel_quest_async, complete_quest_async, create_quest_async,
-            manage_user_status_async, update_physical_status_async, manage_project_async,
-            manage_capability_async, manage_credits_async, calculate_distance_sync
-        )
-
-        tasks = []
-        for fc in function_calls:
-            if fc.name == "update_memory":
-                impact = fc.args.get("impact", "")
-                if impact == "HIGH":
-                    impact_flag = True
-                tasks.append(update_memory_async(user_id, fc.args.get("content", "")))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("content", "")[:30]})
-            elif fc.name == "cancel_quest":
-                tasks.append(cancel_quest_async(user_id, int(fc.args.get("quest_id", 0)), fc.args.get("reason", "")))
-                tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
-            elif fc.name == "complete_quest":
-                tasks.append(complete_quest_async(user_id, int(fc.args.get("quest_id", 0))))
-                tool_results.append({"tool": fc.name, "entity": f"Quest {fc.args.get('quest_id', 0)}"})
-            elif fc.name == "create_quest":
-                tasks.append(create_quest_async(
-                    user_id, fc.args.get("title", ""), fc.args.get("description", ""),
-                    fc.args.get("reward", ""), fc.args.get("penalty", ""), int(fc.args.get("parent_quest_id", 0))
-                ))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("title", "")[:30]})
-            elif fc.name == "manage_user_status":
-                tasks.append(manage_user_status_async(
-                    user_id, fc.args.get("action", ""), fc.args.get("buff_name", ""),
-                    fc.args.get("title", ""), int(fc.args.get("expires_in_minutes", 0))
-                ))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("buff_name", "")})
-            elif fc.name == "update_physical_status":
-                tasks.append(update_physical_status_async(
-                    user_id, int(fc.args.get("energy", 5)), int(fc.args.get("mood", 5)),
-                    int(fc.args.get("health", 5)), float(fc.args.get("sleep_hours", 0)), fc.args.get("notes", "")
-                ))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("notes", "")[:30]})
-            elif fc.name == "manage_project":
-                tasks.append(manage_project_async(
-                    user_id, fc.args.get("action", "update"), fc.args.get("name", ""), 
-int(fc.args.get("progress_percent", 0))
-                ))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("name", "")})
-            elif fc.name == "manage_capability":
-                tasks.append(manage_capability_async(
-                    user_id, fc.args.get("action", "update"), fc.args.get("domain", ""),
-                    float(fc.args.get("level", 0)), float(fc.args.get("exp", 0)), fc.args.get("unit", "")
-                ))
-                tool_results.append({"tool": fc.name, "entity": fc.args.get("domain", "")})
-            elif fc.name == "manage_credits":
-                tasks.append(manage_credits_async(
-                    user_id, fc.args.get("action", "add"), float(fc.args.get("amount", 0)), fc.args.get("reason", "")
-                ))
-                tool_results.append({"tool": fc.name, "entity": f"Credits {fc.args.get('amount', 0)}"})
-        
-        # Fire-and-forget logic requires us to await tool results or schedule them. 
-        # Actually in plan: we can await them or run them concurrently.
-        # Wait for SQL DB tools, return results
-        if tasks:
-            await asyncio.gather(*tasks)
-            
-        return tool_results, impact_flag
-    except Exception as exc:
-        logger.error("Flash Lite extraction error: %s", exc)
-        return [], False
-
-async def _generate_with_fallback(client, models_list, messages, tools=None):
-    last_exc = None
-    for m in models_list:
-        try:
-            kwargs = {
-                "model": "deepseek-flash" if "flash" not in m else "deepseek-flash", # Simplification to use deepseek via openrouter
-                "messages": messages,
-                "temperature": 0.0
-            }
-            # For now just use deepseek directly since we migrated
-            kwargs["model"] = "deepseek-flash"
-            if tools:
-                kwargs["tools"] = tools
-                kwargs["tool_choice"] = "auto"
-            
-            return await client.chat.completions.create(**kwargs)
-        except Exception as exc:
-            logger.warning("Model %s failed (Quota/Error). Falling back... Error: %s", m, exc)
-            last_exc = exc
-    raise last_exc
-
-async def run_response_step(
-    user_id: int, message: str, mini_context: str,
-    tool_results: list[dict], impact_flag: bool,
-    causal_context: str = "",
-) -> str:
-    """Step 2: Generate Raphael response."""
-    client = _get_llm_client()
-    if impact_flag and causal_context:
-        system = SYSTEM_RAPHAEL_DEEP
-        prompt = f"[CONTEXT]\n{mini_context}\n[CAUSAL]\n{causal_context}\n[MESSAGE]\n{message}"
-        models_to_try = FALLBACK_MODELS_DEEP
-    else:
-        system = SYSTEM_RAPHAEL_CHAT
-        tool_res_str = ", ".join([r.get("tool", "") for r in tool_results])
-        prompt = f"[CONTEXT]\n{mini_context}\n[TOOLS USED]\n{tool_res_str}\n[MESSAGE]\n{message}"
-        models_to_try = FALLBACK_MODELS_CHAT
-        
-    try:
-        response = await _generate_with_fallback(
-            client,
-            models_to_try,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        text = response.choices[0].message.content.strip()
-
-        
-        # Strip hidden thinking block
-        import re
-        text = re.sub(r'<thinking>.*?</thinking>', '', text, flags=re.DOTALL).strip()
-        text = text.replace("[Raphael's Voice]", "").strip()
-        
-        return text
-    except Exception as exc:
-        logger.error("Gemma/Flash generation error: %s", exc)
-        return "[Lỗi hệ thống] Quá tải API, vui lòng thử lại sau."
 
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
     """Query Neo4j for past events related to current entities."""

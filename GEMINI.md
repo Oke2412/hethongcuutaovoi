@@ -38,7 +38,7 @@
 
 ---
 
-## 🏗️ KIẾN TRÚC HỆ THỐNG (AGENTIC MODE 4-STEP RAG)
+## 🏗️ KIẾN TRÚC HỆ THỐNG (AGENT-DRIVEN RAG LOOP)
 
 ```text
 ===========================================================================================================
@@ -59,15 +59,12 @@
                                🧠 CORE BRAIN (core/brain.py) - THE ORCHESTRATOR
 ===========================================================================================================
 |                                                                                                         |
-|  +---------------------------+       +---------------------------+       +---------------------------+  |
-|  | 1. SEMANTIC ROUTER        | ----> | 2. QUERY EXPANSION        | ----> | 3. HYBRID RAG ENGINE      |  |
-|  | (DeepSeek V4.1)           |       | (DeepSeek V4.1)           |       | (Gửi lệnh song song)      |  |
-|  | Phân loại: Chat/Deep/Data |       | Sinh Keyword, Entity, Mở  |       | Giao tiếp với 3 tầng DB   |  |
-|  | Cắt giảm lãng phí tài     |       | rộng ngữ nghĩa câu hỏi.   |       | cùng một lúc.             |  |
-|  +---------------------------+       +---------------------------+       +---------------------------+  |
+|  [ ⚡ OMNI-AGENTIC LOOP ] (DeepSeek V4.1 Flash via SiliconFlow API)                                     |
+|  - Agent liên tục lặp (while loop) để đọc ngữ cảnh.                                                     |
+|  - Nếu nhận thấy thiếu dữ kiện, Agent TỰ ĐỘNG phát ra Tool Call: `search_memory_and_causality()`        |
 |                                                                                                         |
 =========================================================================================|=================
-                                                                                         |
+                                                                                         | (Tool Calling)
              +-----------------------------------+---------------------------------------+
              |                                   |                                       |
              v                                   v                                       v
@@ -77,20 +74,18 @@
 | - Users & MessageLogs    |        | - Causal Nodes (Nhân quả)|            | - Qwen3-Embedding-8B     |
 | - FTS5 Sparse Search     |        | - H3 Grid Cells (Tọa độ) |            |   (4096 Dimensions)      |
 |   (Tìm Keyword chính xác)|        | - [:VISITED] Relations   |            | - Lưu trữ Semantic       |
-| - SystemQuests (Side     |        | - LifeEvents (Sự kiện)   |            | - Truy xuất ngữ cảnh mờ  |
-|   Quests Pending)        |        | - Truy xuất Graph Paths  |            |   qua độ tương đồng.     |
 +--------------------------+        +--------------------------+            +--------------------------+
              |                                   |                                       |
-             | (Top 15 Chunks)                   | (Local & Global Paths)                | (Top 15 Chunks)
+             | (Top 5 Chunks)                    | (Graph Paths)                         | (Top 5 Chunks)
              +-----------------------------------+---------------------------------------+
                                                  |
                                                  v
 ===========================================================================================================
                                ⚖️ SCORER & FILTER (Qwen3-Reranker-8B)
-                Chấm điểm và ép nén ~40 mẩu dữ liệu thô xuống còn TOP 15 Contexts sắc bén nhất.
+                Chấm điểm và nén ngữ cảnh. Bơm ngược kết quả về cho LLM dưới dạng Tool Result.
 ===========================================================================================================
                                                  |
-                                                 v
+                                                 v (Nạp lại vào Context của Vòng lặp)
 ===========================================================================================================
                        ⚡ DEEPSEEK-V4.1-FLASH (LÕI SUY LUẬN NHÂN QUẢ & TÂM LÝ)
 ===========================================================================================================
