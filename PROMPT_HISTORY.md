@@ -482,3 +482,14 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   6. Kiểm thử toàn bộ 12 modules bằng `test_imports.py` — 100% pass.
 **Files thay đổi:** config.py, core/brain.py, core/llm.py, core/search.py, scripts/brain_dump_import.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-12 01:49] - Hoàn thiện Kiến trúc 2-Pass, Anthropic HHH Persona và Metacognition (Siêu nhận thức)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** Kỹ thuật 4: Tăng ngân sách Token đầu ra... test thử max rồi so sánh, nói lại delay và thẻ thinking xem hay đến mức nào... làm nào cho nó nói chuyện mượt 1 tí được không, bạn search web nghiên cứu đê với xưng hô méo gì đây? thêm vào là nó thực sự có 3 trụ cột như anrthopic nói được ko... nó có db giống tôi không... cập nhật trong file rule chưa?
+**Kết quả / Quyết định:**
+- **Sửa API & Reasoning Effort:** Chuyển `api.siliconflow.cn` sang `.com` để dùng global key. Sửa cú pháp DeepSeek V4.1 Flash bằng cách truyền `extra_body={"reasoning_effort": "high"}` (hoặc `"max"`). Đã viết test script chứng minh AI phân tích tâm lý thành công (Nhìn thấu "cơn thèm người yêu" là Autophobia/thuốc giảm đau).
+- **Cập nhật Persona (Anthropic HHH):** Cấu trúc lại `SYSTEM_RAPHAEL` trong `core/llm.py` loại bỏ quy tắc "tối đa 15 từ, tàn nhẫn" cứng nhắc. Thay bằng 3 trụ cột HHH (Helpful, Honest, Harmless), xưng hô "Tôi" - "Master", trả lời 1-2 câu ngắn gọn điềm tĩnh như một Cố vấn thực sự. Bổ sung đối chiếu `Current State` vs `Ideal State`.
+- **Cơ chế Compound Metacognition (Lưu trữ suy nghĩ AI):** Thay đổi `core/brain.py` để lấy nguyên cục `<thinking>` của AI ghép cùng User Input, sau đó đẩy ngược vào **3 Database** (SQLite `MessageLog` cho FTS5, `Mem0` cho Vector Search, và `Neo4j` cho Graph). Việc này giúp AI RAG lại chính những quyết định phân tích cũ của mình để ngày càng thông minh hơn.
+- Cập nhật file luật lõi `GEMINI.md` với kiến trúc và Persona mới nhất.
+**Files thay đổi:** core/brain.py, core/llm.py, config.py, GEMINI.md, PROMPT_HISTORY.md
+---
