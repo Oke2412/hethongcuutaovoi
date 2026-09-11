@@ -249,10 +249,17 @@ class RaphaelBrain:
         tool_context = []
         for m in messages:
             if m["role"] == "tool":
-                tool_context.append(f"[{m.get('name', 'tool')}]: {m.get('content', '')}")
-        context_str = "\n".join(tool_context) if tool_context else "Không có thêm dữ kiện từ hệ thống."
+                tool_context.append(f"<{m.get('name', 'tool')}_data>\n{m.get('content', '')}\n</{m.get('name', 'tool')}_data>")
+        context_str = "\n".join(tool_context) if tool_context else "<system_state>No additional DB events.</system_state>"
         
-        raphael_prompt = f"[NGỮ CẢNH RAG/DB]\n{context_str}\n\n[TIN NHẮN MASTER]\n{text_content or ''}"
+        raphael_prompt = f"""
+<sensor_truth>
+{context_str}
+</sensor_truth>
+<chat_history>
+{text_content or ''}
+</chat_history>
+"""
         
         # Second Pass: Persona Synthesis
         try:
@@ -263,7 +270,8 @@ class RaphaelBrain:
                     {"role": "user", "content": raphael_prompt}
                 ],
                 max_tokens=8000,
-                temperature=0.0
+                temperature=0.0,
+                extra_body={"reasoning_effort": 85}
             )
             final_text = response2.choices[0].message.content or ""
         except Exception as e:
