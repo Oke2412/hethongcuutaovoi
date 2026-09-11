@@ -12,7 +12,7 @@ async def semantic_classify(text: str, client: AsyncOpenAI) -> str:
     """Returns 'chat', 'data', or 'deep' using LLM routing."""
     try:
         response = await client.chat.completions.create(
-            model="deepseek-ai/DeepSeek-V3", # use deepseek as fallback
+            model="deepseek-flash", # use deepseek as fallback
             messages=[
                 {"role": "system", "content": SYSTEM_ROUTER},
                 {"role": "user", "content": text}

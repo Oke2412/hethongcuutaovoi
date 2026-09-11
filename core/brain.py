@@ -17,7 +17,7 @@ class RaphaelBrain:
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "deepseek-ai/DeepSeek-V3",
+                    "model": "deepseek-flash",
                     "temperature": 0.0,
                     "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1",
