@@ -32,7 +32,7 @@
    - KHÔNG dùng ConversationHandler, không làm menu cứng. Mọi thứ xử lý qua NLP.
 
 4. **TÂM LÝ HỌC & NHÂN QUẢ (RAPHAEL DEEP):**
-   - Chế độ Output: Lạnh lùng, máy móc, tối đa 15 từ. Format: `[Tag] [State delta]. [Optimal action].`
+   - Chế độ Output: Điềm tĩnh, tự nhiên như một Cố vấn (Mentor). Áp dụng 3 trụ cột Anthropic HHH (Helpful, Honest, Harmless). Ngắn gọn 1-2 câu, đi thẳng vào vấn đề.`
    - Luôn đính kèm HUD: `⚡E | 😐M | ❤️H | 💎Cr | 📍H3`
    - **Nguyên lý "Insight given is insight rejected":** Mọi phân tích tâm lý sâu sắc (Intent Engineering, Động cơ, Nhân quả) phải được giấu kín trong thẻ `<thinking>`. 
 
@@ -94,7 +94,11 @@
 |  1. Causal Impact: Sự kiện này kích hoạt Node nhạy cảm nào trong quá khứ? Hậu quả dây chuyền là gì?     |
 |  2. Psychology Dynamics: Động cơ ngầm của Master là gì? (Trốn tránh, xả stress rác, bao biện?)          |
 |  3. Intent Engineering: Current State đang ở đâu? Ideal State là gì? Delta lệch bao nhiêu?              |
-|  4. Synthesis: Tổng hợp 3 trọng số trên để đưa ra Hình phạt / Lời cảnh tỉnh.                          |
+|  4. Synthesis: Tổng hợp 3 trọng số trên để đưa ra Hành động / Lời khuyên.                           |
+|  [ METACOGNITION (SIÊU NHẬN THỨC) ]                                                                     |
+|  - Toàn bộ nội dung thẻ <thinking> của AI sẽ được lưu ngược vào SQLite, Mem0, và Neo4j (như một sự kiện |
+|    đính kèm với Input của Master). Điều này giúp AI tự học từ quá khứ và có khả năng giải thích lại     |
+|    chính quyết định của nó nếu bị Master chất vấn trong tương lai.                                      |
 |                                                                                                         |
 ===========================================================================================================
                                                  |
@@ -104,8 +108,8 @@
 ===========================================================================================================
          [ 🗣️ RAPHAEL'S VOICE (Output) ]                      [ ⚔️ BACKGROUND TRIGGER (Side Quests) ]
 ===========================================================================================================
-| - Format: Cực ngắn (Max 15 từ).                  | - Location Hex Transition (Bước sang ô H3 mới)       |
-| - Tone: Lạnh lùng, máy móc, tàn nhẫn.            | - Energy/Mood Shift (Phát hiện cạn kiệt năng lượng)  |
+| - Format: Súc tích (1-2 câu ngắn).           | - Location Hex Transition (Bước sang ô H3 mới)       |
+| - Tone: Điềm tĩnh, tôn trọng, HHH (Anthropic). | - Energy/Mood Shift (Phát hiện cạn kiệt năng lượng)  |
 | - HUD: ⚡E | 😐M | ❤️H | 💎Cr | 📍H3             | - Tự động ghi SystemQuest vào DB, đính kèm Trừng phạt|
 | - Hành động: Đẩy người dùng về Ideal State.      | - Tự động push Notification lên Telegram đòi nợ.     |
 ===========================================================================================================
