@@ -19,11 +19,11 @@
    - CODE XONG mới đẩy (push) nhánh đó lên. **KHÔNG BAO GIỜ code trực tiếp trên nhánh `main`.**
    - Luôn chạy `git status` và `git pull origin main` đầu mỗi session.
 
-2. **TỰ CẬP NHẬT, TRA CỨU VÀ KIỂM CHỨNG KIẾN THỨC (CRITICAL MANDATORY):**
-   - **NGHIÊM CẤM ĐOÁN MÒ / PHÁN BỪA:** Nếu cảm thấy thiếu context hoặc tự bản thân có bất kỳ thắc mắc/nghi vấn nào (về lý do đổi model, đổi endpoint, kiến trúc, logic...), Agent BẮT BUỘC phải thực hiện 2 bước tra cứu trước khi nói hay code:
-     1. **Tra cứu `PROMPT_HISTORY.md`:** Đọc kỹ toàn bộ các session gần nhất để hiểu ý định của Master và việc làm của các agent trước. BẮT BUỘC phải cập nhật session của mình vào cuối `PROMPT_HISTORY.md` sau mỗi phiên làm việc.
-     2. **Tra cứu Web (`search_web`):** Tra cứu tài liệu chính thức, bảng xếp hạng SOTA mới nhất và docs API (không dựa vào kiến thức cũ bị cutoff).
-   - **KHÔNG ĐƯỢC TỰ Ý LÀM BỪA HOẶC DỰA DẪM VÀO GIẢ ĐỊNH.** Mọi thao tác đổi tên Model, sửa API endpoint, hoặc tích hợp thư viện mới đều phải được **kiểm chứng (check legit)** bằng web search. Đừng bao giờ đoán mò!
+2. **BẮT BUỘC TRA CỨU TRƯỚC TOÀN BỘ MỌI QUYẾT ĐỊNH (CRITICAL MANDATORY):**
+   - **NGHIÊM CẤM TỰ Ý RA QUYẾT ĐỊNH / ĐOÁN MÒ / PHÁN BỪA:** Trước **BẤT KỲ** nhận định, câu trả lời, hay quyết định code/kiến trúc nào của bản thân (hoặc khi thấy thiếu context, có thắc mắc/nghi vấn về model, endpoint, logic...), Agent **BẮT BUỘC** phải thực hiện đầy đủ 2 bước tra cứu:
+     1. **BƯỚC 1 - Tra cứu `PROMPT_HISTORY.md`:** Đọc kỹ toàn bộ lịch sử các session gần nhất để hiểu thấu đáo ý định của Master và việc các agent trước đã làm. BẮT BUỘC phải cập nhật session của mình vào cuối `PROMPT_HISTORY.md` sau mỗi phiên làm việc.
+     2. **BƯỚC 2 - Tra cứu Web (`search_web`):** Bắt buộc dùng `search_web` để kiểm chứng tài liệu kỹ thuật chính thức, bảng xếp hạng SOTA mới nhất và docs API trước khi đưa ra quyết định (tuyệt đối không dựa vào kiến thức cũ bị cutoff).
+   - **KHÔNG CÓ NGOẠI LỆ.** Toàn bộ mọi quyết định của Agent đều phải có căn cứ từ 2 nguồn trên, tuyệt đối không được dựa dẫm vào giả định hay suy đoán chủ quan!
    - (Lưu ý: Mọi rules cũ từ file AGENTS.md đã được gộp vào đây và AGENTS.md đã bị xóa bỏ).
 
 3. **CẤU TRÚC VÀ MÃ NGUỒN:**
