@@ -43,11 +43,11 @@ class RaphaelBrain:
         image_bytes: bytes = None,
         audio_bytes: bytes = None,
     ) -> tuple[str, Any]:
-        from core.router import semantic_classify
+        from core.router import semantic_router_and_expansion
         from core.omniscience import get_mini_context, log_message
         from core.llm import run_extraction_step, run_response_step, query_causal_graph, _get_llm_client
         from core.hud import build_hud
-        from core.search import expand_query, sparse_search, rerank_chunks
+        from core.search import sparse_search, rerank_chunks
         import asyncio
         from datetime import datetime
 
@@ -57,7 +57,7 @@ class RaphaelBrain:
         mini_ctx = await get_mini_context(int(user_id))
         client = _get_llm_client()
         
-        msg_class = await semantic_classify(text_content or "", client)
+        msg_class, keywords = await semantic_router_and_expansion(text_content or "", mini_ctx, client)
 
         tool_results, impact_flag, causal_ctx = [], False, ""
         
@@ -119,12 +119,7 @@ class RaphaelBrain:
             except Exception as e:
                 logger.warning("Neo4j log error: %s", e)
 
-        # 4-STEP RAG PIPELINE
-        
-        # Step 1: Query Expansion & Extraction
-        keywords = []
-        if text_content:
-            keywords = await expand_query(client, text_content)
+        # Step 1: Extraction
         
         if msg_class == "data":
             tool_results, impact_flag = await run_extraction_step(int(user_id), text_content or "", mini_ctx)
