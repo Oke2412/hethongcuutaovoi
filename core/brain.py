@@ -270,7 +270,8 @@ class RaphaelBrain:
                     {"role": "user", "content": raphael_prompt}
                 ],
                 max_tokens=8000,
-                temperature=0.0
+                temperature=0.0,
+                extra_body={"reasoning_effort": "high"}
             )
             final_text = response2.choices[0].message.content or ""
         except Exception as e:
