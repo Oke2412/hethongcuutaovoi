@@ -17,7 +17,7 @@ Output ONLY the JSON array of strings, nothing else. Example: ["từ khóa 1", "
     
     try:
         response = await client.chat.completions.create(
-            model="deepseek/deepseek-v4.1-flash",
+            model="deepseek-ai/DeepSeek-V3",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
@@ -79,7 +79,7 @@ async def rerank_chunks(query: str, chunks: List[str], top_k: int = 3) -> List[s
     }
     
     payload = {
-        "model": "qwen/qwen3-reranker-8b",
+        "model": "Qwen/Qwen3-Reranker-8B",
         "query": query,
         "documents": chunks,
         "top_n": top_k

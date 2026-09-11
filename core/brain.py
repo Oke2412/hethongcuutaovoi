@@ -17,7 +17,7 @@ class RaphaelBrain:
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "deepseek/deepseek-v4.1-flash",
+                    "model": "deepseek-ai/DeepSeek-V3",
                     "temperature": 0.0,
                     "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1",
@@ -27,7 +27,7 @@ class RaphaelBrain:
             "embedder": {
                 "provider": "openai",
                 "config": {
-                    "model": "qwen/qwen3-embedding-8b", 
+                    "model": "Qwen/Qwen3-Embedding-8B", 
                     "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.cn/v1"
                 },

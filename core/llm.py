@@ -480,12 +480,12 @@ async def _generate_with_fallback(client, models_list, messages, tools=None):
     for m in models_list:
         try:
             kwargs = {
-                "model": "deepseek/deepseek-v4.1-flash" if "flash" not in m else "deepseek/deepseek-v4.1-flash", # Simplification to use deepseek via openrouter
+                "model": "deepseek-ai/DeepSeek-V3" if "flash" not in m else "deepseek-ai/DeepSeek-V3", # Simplification to use deepseek via openrouter
                 "messages": messages,
                 "temperature": 0.0
             }
             # For now just use deepseek directly since we migrated
-            kwargs["model"] = "deepseek/deepseek-v4.1-flash"
+            kwargs["model"] = "deepseek-ai/DeepSeek-V3"
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
