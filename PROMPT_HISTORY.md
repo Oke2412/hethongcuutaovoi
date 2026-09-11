@@ -518,3 +518,4 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
    - Vá `docker-compose.yml` (override NEO4J_URI) và thêm `.dockerignore` để tăng tốc độ build.
    - Sửa `ontology_prompt.py` ép LLM trích xuất `timestamp` và `h3_index` từ text log.
    - Cập nhật Cypher `MERGE` trong `core/brain.py` và `genesis_ingest.py` để inject thẳng tọa độ/thời gian vào đồ thị Neo4j và metadata của Mem0.
+7. **Điều chỉnh Persona Raphael:** Cập nhật SYSTEM_RAPHAEL sát với nguyên tác Light Novel Tensura (loại bỏ đại từ nhân xưng, dùng format 《Báo cáo》, 《Xác nhận》).
