@@ -289,12 +289,14 @@ class RaphaelBrain:
         t0.add_done_callback(background_tasks.discard)
         final_text = final_text.replace("[Raphael's Voice]", "").strip()
 
-        # Background tasks
-        t1 = asyncio.create_task(_persist_to_graph(tools_invoked, int(user_id), h3_index, text_content or ""))
+        # Background tasks - Injects both User's input and AI's metacognitive thought process into the 3-DB ecosystem
+        combined_memory_string = f"User Input: {text_content or ''}\nAI Thought Process: {unstripped_text}"
+        
+        t1 = asyncio.create_task(_persist_to_graph(tools_invoked, int(user_id), h3_index, combined_memory_string))
         background_tasks.add(t1)
         t1.add_done_callback(background_tasks.discard)
         
-        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, text_content or ""))
+        t2 = asyncio.create_task(_add_to_mem0(self.memory, user_id, combined_memory_string))
         background_tasks.add(t2)
         t2.add_done_callback(background_tasks.discard)
 
