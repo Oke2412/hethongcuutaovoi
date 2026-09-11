@@ -93,8 +93,8 @@ Output format:
 def _get_llm_client() -> AsyncOpenAI:
     from config import settings
     return AsyncOpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=settings.openrouter_api_key,
+        base_url="https://api.siliconflow.cn/v1",
+        api_key=settings.siliconflow_api_key,
     )
 
 TOOLS_DEF = [

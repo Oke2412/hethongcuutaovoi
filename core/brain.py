@@ -18,17 +18,18 @@ class RaphaelBrain:
                 "provider": "openai",
                 "config": {
                     "model": "deepseek/deepseek-v4.1-flash",
-                    "api_key": settings.openrouter_api_key,
-                    "openai_base_url": "https://openrouter.ai/api/v1",
-                    "max_tokens": 2048
+                    "temperature": 0.0,
+                    "api_key": settings.siliconflow_api_key,
+                    "openai_base_url": "https://api.siliconflow.cn/v1",
+                    "max_tokens": 1500,
                 }
             },
             "embedder": {
                 "provider": "openai",
                 "config": {
                     "model": "qwen/qwen3-embedding-8b", 
-                    "api_key": settings.openrouter_api_key,
-                    "openai_base_url": "https://openrouter.ai/api/v1"
+                    "api_key": settings.siliconflow_api_key,
+                    "openai_base_url": "https://api.siliconflow.cn/v1"
                 },
             },
             "vector_store": {"provider": "chroma", "config": {"collection_name": "raphael_memories", "path": "./chroma_db"}},

@@ -66,11 +66,11 @@ async def rerank_chunks(query: str, chunks: List[str], top_k: int = 3) -> List[s
     if len(chunks) <= top_k:
         return chunks
         
-    api_key = settings.openrouter_api_key
+    api_key = settings.siliconflow_api_key
     url = settings.reranker_api_url
     
     if not api_key:
-        logger.warning("No OPENROUTER_API_KEY provided, skipping reranking.")
+        logger.warning("No SILICONFLOW_API_KEY provided, skipping reranking.")
         return chunks[:top_k]
         
     headers = {
