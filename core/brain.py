@@ -127,6 +127,7 @@ class RaphaelBrain:
                     model="deepseek-ai/deepseek-v4.1-flash",
                     messages=messages,
                     tools=TOOLS_DEF,
+                    max_tokens=8000,
                     temperature=0.0
                 )
             except Exception as e:
