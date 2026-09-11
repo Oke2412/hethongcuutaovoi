@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # LLM
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     siliconflow_api_key: str = Field(default="", alias="SILICONFLOW_API_KEY")
-    reranker_api_url: str = Field(default="https://api.siliconflow.cn/v1/rerank", alias="RERANKER_API_URL")
+    reranker_api_url: str = Field(default="https://api.siliconflow.com/v1/rerank", alias="RERANKER_API_URL")
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
 
     # Database
