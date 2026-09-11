@@ -438,3 +438,28 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   - Kích hoạt FTS5 Virtual Table trong SQLite.
   - Rẽ nhánh mới `feature/deepseek-hybrid-rag` và đẩy code lên origin.
 - **Result**: Đã push code lên nhánh thành công.
+
+## [Session 2026-09-11 18:50] - [Session 2026-09-11 19:03]
+- **Agent**: Raphael Architect & Migration Specialist
+- **Goal**: Hoàn tất chuyển đổi hạ tầng từ OpenRouter sang SiliconFlow, tối ưu hóa latency và chi phí.
+- **Action**:
+  - Đổi API base URL sang `https://api.siliconflow.cn/v1` và Reranker sang `https://api.siliconflow.cn/v1/rerank`.
+  - Cập nhật định danh models: LLM/Extraction/Generation dùng `deepseek-ai/DeepSeek-V3` / `DeepSeek-V4.1-Flash`, Embedder dùng `Qwen/Qwen3-Embedding-8B`, Reranker dùng `Qwen/Qwen3-Reranker-8B` (với fallback `BAAI/bge-reranker-v2-m3`).
+  - Hợp nhất Semantic Router và Query Expansion thành 1 bước context-aware LLM call duy nhất (`semantic_router_and_expansion`).
+  - Hợp nhất toàn bộ quy tắc vào `GEMINI.md` và bổ sung sơ đồ ASCII kiến trúc 4-Step RAG chi tiết.
+- **Result**: Đã commit lên nhánh chính/nhánh làm việc.
+
+---
+
+### [2026-09-11 19:11] — Cập nhật Quy tắc Cốt lõi về Tra cứu Context & PROMPT_HISTORY
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** rồi, giờ chỉnh lại file rules theo ý tôi đi, thêm vào nếu thiếu context hoặc tự bản thân thắc mắc gì thì phải 1 là tra promthistory, cập nhật nó mỗi session, và 2 là tra mạng như trong rules đã ghi
+**Kết quả / Quyết định:**
+- Rẽ nhánh mới `chore/update-rules-context-awareness` theo đúng quy định.
+- Cập nhật mục **2. TỰ CẬP NHẬT, TRA CỨU VÀ KIỂM CHỨNG KIẾN THỨC** trong `GEMINI.md`:
+  + Nghiêm cấm tuyệt đối đoán mò / phán bừa khi thiếu context hoặc có thắc mắc.
+  + Bắt buộc tra cứu 2 tầng: (1) Đọc kỹ `PROMPT_HISTORY.md` để hiểu lịch sử/quyết định của Master và các agent trước; (2) Dùng `search_web` tra cứu tài liệu chính thức/bảng xếp hạng SOTA mới nhất.
+  + Bắt buộc ghi log session vào cuối `PROMPT_HISTORY.md` sau mỗi phiên làm việc.
+- Bù đắp log session cho đợt chuyển đổi SiliconFlow trước đó vào `PROMPT_HISTORY.md`.
+**Files thay đổi:** GEMINI.md, PROMPT_HISTORY.md
+---
