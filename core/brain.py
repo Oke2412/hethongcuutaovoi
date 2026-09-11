@@ -278,8 +278,15 @@ class RaphaelBrain:
             logger.error(f"Persona LLM Error: {e}")
             final_text = "[Lỗi hệ thống] API DeepSeek gặp sự cố khi tổng hợp."
 
+        # Cache the thinking block to DB so the assistant can remember its rationale
+        unstripped_text = final_text
         # Strip hidden thinking block from final text before returning to user
         final_text = re.sub(r'<thinking>.*?</thinking>', '', final_text, flags=re.DOTALL).strip()
+        
+        # Background task to log the assistant's FULL response (with thinking) to SQLite
+        t0 = asyncio.create_task(log_message(int(user_id), "assistant", unstripped_text))
+        background_tasks.add(t0)
+        t0.add_done_callback(background_tasks.discard)
         final_text = final_text.replace("[Raphael's Voice]", "").strip()
 
         # Background tasks
