@@ -359,7 +359,7 @@ async def main(json_path: str, telegram_id: int):
                     "model": "deepseek-ai/deepseek-v4.1-flash",
                     "temperature": 0.0,
                     "api_key": settings.siliconflow_api_key,
-                    "openai_base_url": "https://api.siliconflow.cn/v1",
+                    "openai_base_url": "https://api.siliconflow.com/v1",
                     "max_tokens": 1500,
                 }
             },
@@ -368,7 +368,7 @@ async def main(json_path: str, telegram_id: int):
                 "config": {
                     "model": "Qwen/Qwen3-Embedding-8B",
                     "api_key": settings.siliconflow_api_key,
-                    "openai_base_url": "https://api.siliconflow.cn/v1"
+                    "openai_base_url": "https://api.siliconflow.com/v1"
                 },
             },
             "vector_store": {

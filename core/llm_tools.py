@@ -195,9 +195,11 @@ async def manage_user_status_async(user_id: int, action: str, buff_name: str = "
             
         return "Action không hợp lệ."
 
-async def create_quest_async(user_id: int, title: str, description: str, reward: str, penalty: str, parent_quest_id: int = 0) -> str:
-    """Tạo một Nhiệm vụ mới (Quest) hoặc chuỗi kỹ năng (Cây Kỹ Năng) nếu có parent_quest_id."""
+async def create_quest_async(user_id: int, title: str, description: str, reward: str, penalty: str, parent_quest_id: int = 0, expires_in_minutes: int = 0, proof_required: str = "Tùy chọn") -> str:
+    """Tạo một Nhiệm vụ mới."""
     async with AsyncSessionLocal() as session:
+        from datetime import datetime, timedelta
+        exp_dt = datetime.utcnow() + timedelta(minutes=expires_in_minutes) if expires_in_minutes > 0 else None
         quest = SystemQuest(
             user_id=user_id,
             title=title,
@@ -205,7 +207,9 @@ async def create_quest_async(user_id: int, title: str, description: str, reward:
             reward=reward,
             penalty=penalty,
             parent_quest_id=parent_quest_id if parent_quest_id > 0 else None,
-            status="pending"
+            status="pending",
+            expires_at=exp_dt,
+            proof_required=proof_required
         )
         session.add(quest)
         await session.commit()
