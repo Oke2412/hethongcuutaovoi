@@ -121,3 +121,8 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
 | - Hành động: Đẩy người dùng về Ideal State.      | - Tự động push Notification lên Telegram đòi nợ.     |
 ===========================================================================================================
 ```
+
+
+## ⚠️ KÝ ỨC ĐAU THƯƠNG CỦA AGENT (BẮT BUỘC NHỚ)
+- **API Domain SiliconFlow:** https://api.siliconflow.com (TUYỆT ĐỐI KHÔNG PHẢI .cn).
+- **Model Lõi:** deepseek-ai/deepseek-v4.1-flash (1M Context, CED Architecture, Output khổng lồ, KHÔNG có thinking tokens, phải truyền reasoning_effort: none).
