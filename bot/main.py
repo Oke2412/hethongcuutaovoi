@@ -56,7 +56,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE & filters.LOCATION, handle_location))
 
     # Text messages
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat.handle))
+    app.add_handler(MessageHandler((filters.TEXT | filters.PHOTO) & ~filters.COMMAND, chat.handle))
 
     logger.info("Starting bot with long polling...")
     app.run_polling(

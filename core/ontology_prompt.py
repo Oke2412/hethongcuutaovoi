@@ -1,4 +1,4 @@
-﻿ONTOLOGY_PROMPT_TEMPLATE = """Bạn là Kiến trúc sư Dữ liệu (Omni-Data Architect).
+ONTOLOGY_PROMPT_TEMPLATE = """Bạn là Kiến trúc sư Dữ liệu (Omni-Data Architect).
 Nhiệm vụ: Bóc tách dữ liệu thành Đồ thị tri thức Neo4j (3 Tầng) VÀ Hệ thống Nhiệm vụ SQLite (Gamification).
 
 [NGUYÊN LÝ NEO4J (MASTER BLUEPRINT)]

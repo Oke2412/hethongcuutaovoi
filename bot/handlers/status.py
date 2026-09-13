@@ -69,36 +69,36 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         f'\U0001f464 *{user.name}*',
         f'\U0001f550 {current_time_str}',
         '',
-        '\u26a1 *Th\u1ec3 tr\u1ea1ng*',
+        '\u26a1 *Thể trạng*',
     ]
 
     if status:
         lines += [
-            f'  N\u0103ng l\u01b0\u1ee3ng: [{_bar(status.energy)}] {status.energy}/10',
-            f'  T\u00a2m tr\u1ea1ng:  [{_bar(status.mood)}] {status.mood}/10',
-            f'  S\u1ee9c kh\u1ecfe:   [{_bar(status.health)}] {status.health}/10',
-            f'  Ng\u1ee7: {status.sleep_hours}h  |  {status.recorded_at.strftime("%d/%m")}',
+            f'  Năng lượng: [{_bar(status.energy)}] {status.energy}/10',
+            f'  Tâm trạng:  [{_bar(status.mood)}] {status.mood}/10',
+            f'  Sức khỏe:   [{_bar(status.health)}] {status.health}/10',
+            f'  Ngủ: {status.sleep_hours}h  |  {status.recorded_at.strftime("%d/%m")}',
         ]
         if status.notes:
             lines.append(f'  \U0001f4dd {status.notes}')
     else:
-        lines.append('  _(chua co du lieu \u2014 hay chat de cap nhat)_')
+        lines.append('  _(chưa có dữ liệu — hãy chat để cập nhật)_')
 
 
-    lines += ['', '\U0001f9e0 *N\u0103ng l\u1eef1c*']
+    lines += ['', '\U0001f9e0 *Năng lực*']
     if caps:
         for c in caps:
             pct = int((c.current_level / max(c.max_ever, 1)) * 10)
             lines.append(f'  {c.domain}: [{_bar(pct)}] {c.current_level}/{c.max_ever} {c.unit}')
     else:
-        lines.append('  _(ch\u01b0a c\u00f4 \u2014 d\u00fang /report)_')
+        lines.append('  _(chưa có — dùng /report)_')
 
-    lines += ['', '\U0001f4bc *Ti\u1ebfn tr\u00ecnh c\u00f4ng vi\u1ec7c*']
+    lines += ['', '\U0001f4bc *Tiến trình công việc*']
     if projects:
         for p in projects:
             filled = p.progress_percent // 10
-            lines.append(f'  [{_bar(filled)}] {p.progress_percent}% \u2014 {p.name}')
+            lines.append(f'  [{_bar(filled)}] {p.progress_percent}% — {p.name}')
     else:
-        lines.append('  _(ch\u01b0a c\u00f4 project \u2014 d\u00fang /report)_')
+        lines.append('  _(chưa có project — dùng /report)_')
 
     await update.message.reply_text('\n'.join(lines), parse_mode='Markdown')

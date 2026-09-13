@@ -306,6 +306,13 @@ class RaphaelBrain:
 <chat_history>
 {text_content or ''}
 </chat_history>
+
+<CRITICAL_RULE>
+- OUTPUT_FORMAT: Max 3 concise sentences or short bullet points.
+- CONTENT_FOCUS: Deliver high-density causal analysis and constructive insights.
+- EXCLUSIONS: NO greetings, NO conversational fillers, NO repetitive explanations.
+- TONE: Objective, analytical, strict, and purely logical. Do not use attacking or toxic language.
+</CRITICAL_RULE>
 """
         
         # Second Pass: Persona Synthesis

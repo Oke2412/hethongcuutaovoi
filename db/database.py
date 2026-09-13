@@ -32,14 +32,14 @@ async def init_db() -> None:
             from sqlalchemy import text
             await conn.execute(text("""
                 CREATE VIRTUAL TABLE IF NOT EXISTS messagelog_fts 
-                USING fts5(id UNINDEXED, content, sender);
+                USING fts5(id UNINDEXED, content, role);
             """))
             # Trigger for insert
             await conn.execute(text("""
                 CREATE TRIGGER IF NOT EXISTS messagelog_ai AFTER INSERT ON messagelog
                 BEGIN
-                    INSERT INTO messagelog_fts(id, content, sender) 
-                    VALUES (new.id, new.content, new.sender);
+                    INSERT INTO messagelog_fts(id, content, role) 
+                    VALUES (new.id, new.content, new.role);
                 END;
             """))
             # Trigger for delete
@@ -54,8 +54,8 @@ async def init_db() -> None:
                 CREATE TRIGGER IF NOT EXISTS messagelog_au AFTER UPDATE ON messagelog
                 BEGIN
                     DELETE FROM messagelog_fts WHERE id = old.id;
-                    INSERT INTO messagelog_fts(id, content, sender) 
-                    VALUES (new.id, new.content, new.sender);
+                    INSERT INTO messagelog_fts(id, content, role) 
+                    VALUES (new.id, new.content, new.role);
                 END;
             """))
         except Exception as e:
