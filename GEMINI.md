@@ -125,4 +125,5 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
 
 ## ⚠️ KÝ ỨC ĐAU THƯƠNG CỦA AGENT (BẮT BUỘC NHỚ)
 - **API Domain SiliconFlow:** https://api.siliconflow.com (TUYỆT ĐỐI KHÔNG PHẢI .cn).
-- **Model Lõi:** deepseek-ai/deepseek-v4.1-flash (1M Context, CED Architecture, Output khổng lồ, KHÔNG có thinking tokens, phải truyền reasoning_effort: none).
+- **Model Lõi:** deepseek-ai/deepseek-v4.1-flash. Model này CÓ HỖ TRỢ Thinking Tokens qua thẻ ngầm `<thinking>`. Để kích hoạt khả năng phân tích tâm lý sâu, BẮT BUỘC phải duy trì `extra_body={"reasoning_effort": "high"}` ở Orchestrator và Raphael (hoặc tối thiểu là Raphael).
+- **Tối ưu Tokens (Token Optimization):** BẮT BUỘC 100% System Prompts, System Tools, và các logic nhồi vào não LLM phải được viết bằng TIẾNG ANH (English). Tiếng Việt tốn rất nhiều BPE Tokens. Chỉ Output cho Master là bằng Tiếng Việt.
