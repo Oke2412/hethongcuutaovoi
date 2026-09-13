@@ -21,9 +21,8 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
     from telegram import ReplyKeyboardMarkup, KeyboardButton
     sticky_menu = ReplyKeyboardMarkup(
-        [[KeyboardButton("📊 Cập nhật Thể trạng"), KeyboardButton("📜 Danh sách Quest")]],
-        resize_keyboard=True,
-        persistent=True
+        [[KeyboardButton("🔄 Cập nhật Thể trạng"), KeyboardButton("📜 Danh sách Quest")]],
+        resize_keyboard=True
     )
     await update.message.reply_text(
         "⚡Hệ Thống Khởi Động*\n\n"
