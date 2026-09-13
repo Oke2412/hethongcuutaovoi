@@ -90,6 +90,9 @@ async def get_mini_context(user_id: int) -> str:
         stmt_proj = select(WorkProject).where(WorkProject.user_id == user_id, WorkProject.progress_percent < 100)
         projs = (await session.execute(stmt_proj)).scalars().all()
         
+        stmt_quest = select(SystemQuest).where(SystemQuest.user_id == user_id, SystemQuest.status == "pending")
+        quests = (await session.execute(stmt_quest)).scalars().all()
+        
     e = phys.energy if phys else "?"
     m = phys.mood if phys else "?"
     h = phys.health if phys else "?"
@@ -97,6 +100,7 @@ async def get_mini_context(user_id: int) -> str:
     
     cap_str = ",".join([f"{c.domain} Lv{c.current_level}" for c in caps])
     proj_str = ",".join([f"{p.name}({p.progress_percent}%)" for p in projs])
+    quest_str = ",".join([f"ID{q.id}:{q.title}" for q in quests])
     
     from datetime import datetime, timezone, timedelta
     vn_tz = timezone(timedelta(hours=7))
@@ -109,5 +113,5 @@ async def get_mini_context(user_id: int) -> str:
     except ImportError:
         hex_id = "Unknown"
     
-    return f"[Time: {now_str}] [Location H3: {hex_id}] | E:{e} M:{m} H:{h} | Credits:{c} | Skills:{cap_str} | Projects:{proj_str}"
+    return f"[Time: {now_str}] [Location H3: {hex_id}] | E:{e} M:{m} H:{h} | Credits:{c} | Skills:{cap_str} | Projects:{proj_str} | Quests:{quest_str}"
 

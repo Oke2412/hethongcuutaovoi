@@ -77,6 +77,9 @@ async def main():
     
     print("Extracting graph JSON via LLM...")
     json_data = await extract_graph(text)
+    print("\n--- RAW JSON EXTRACTED FROM LLM ---")
+    print(json.dumps(json_data, indent=2, ensure_ascii=False))
+    print("-----------------------------------\n")
     print("Injecting into Neo4j...")
     await inject_to_neo4j(json_data)
 

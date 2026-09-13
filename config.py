@@ -5,6 +5,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # Telegram
     telegram_bot_token: str = Field(..., alias="TELEGRAM_BOT_TOKEN")
+    allowed_user_id: int = Field(default=0, alias="ALLOWED_USER_ID")
 
     # LLM
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")

@@ -1,12 +1,13 @@
 """bot/handlers/quest.py -- Command to view active system quests."""
 import logging
 from telegram import Update
-from telegram.ext import ContextTypes, CommandHandler
+from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from sqlmodel import select
 
 from db.database import AsyncSessionLocal
 from db.models import SystemQuest
 from core.memory import get_or_create_user
+from core.llm_tools import complete_quest_async, cancel_quest_async
 
 logger = logging.getLogger(__name__)
 
@@ -24,21 +25,18 @@ async def handle_quests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         quests = result.scalars().all()
         
         if not quests:
-            await update.message.reply_text("✨ Hiện tại không có Nhiệm vụ Hệ thống nào đang chờ xử lý.")
+            await update.message.reply_text("《Báo cáo》: Master hiện không có Nhiệm vụ Hệ thống nào đang chờ xử lý.")
             return
             
-        text = "📜 *Danh sách Nhiệm vụ Hệ thống Đang chờ:*\n\n"
+        text = "📜 *Danh sách Nhiệm vụ Đang chờ của Master:*\n\n"
         for q in quests:
             text += f"🔹 *[ID: {q.id}] {q.title}*\n"
             text += f"   - Mô tả: {q.description}\n"
             text += f"   - Phần thưởng: 🎁 {q.reward}\n\n"
             
-        text += "💡 *Mẹo:* Bạn có thể xác nhận hoàn thành, từ chối hoặc báo cáo lại (ví dụ 'Tôi đã làm xong nhiệm vụ ID 2', 'Hủy nhiệm vụ 1 vì nay ốm') bằng cách chat trực tiếp."
+        text += "💡 *Mẹo:* Master có thể hoàn thành nhanh bằng cách bấm nút ở màn hình chat, hoặc ra lệnh trực tiếp (VD: 'Ta đã làm xong nhiệm vụ 2')."
         
         await update.message.reply_text(text, parse_mode="Markdown")
-
-from telegram.ext import CallbackQueryHandler
-from core.llm_tools import complete_quest_async, cancel_quest_async
 
 async def handle_quest_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -54,7 +52,6 @@ async def handle_quest_callback(update: Update, context: ContextTypes.DEFAULT_TY
     if data.startswith("complete_"):
         q_id = int(data.split("_")[1])
         res = await complete_quest_async(internal_id, q_id)
-        # Edit HUD message to remove buttons
         try:
             await query.edit_message_reply_markup(reply_markup=None)
         except:

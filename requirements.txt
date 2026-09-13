@@ -18,3 +18,4 @@ sentence-transformers
 google-genai
 h3==4.1.*
 neo4j==5.*
+mcp

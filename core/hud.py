@@ -35,8 +35,9 @@ async def build_hud(user_id: int) -> tuple[str, InlineKeyboardMarkup | None]:
         if quests:
             buttons = []
             for q in quests:
+                short_title = (q.title[:20] + '..') if q.title and len(q.title) > 20 else (q.title or f"Quest #{q.id}")
                 buttons.append([
-                    InlineKeyboardButton(f"✅ Hoàn thành quest #{q.id}", callback_data=f"complete_{q.id}"),
+                    InlineKeyboardButton(f"✅ Hoàn thành: {short_title}", callback_data=f"complete_{q.id}"),
                     InlineKeyboardButton("❌ Hủy", callback_data=f"cancel_{q.id}")
                 ])
             keyboard = InlineKeyboardMarkup(buttons)

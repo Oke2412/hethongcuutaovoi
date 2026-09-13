@@ -2,7 +2,7 @@
 import logging
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, TypeHandler, ApplicationHandlerStop
 
 from config import settings
 from db.database import init_db
@@ -20,6 +20,14 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+
+async def auth_check(update: Update, context) -> None:
+    if settings.allowed_user_id == 0:
+        return
+    user = update.effective_user
+    if user and user.id != settings.allowed_user_id:
+        logger.warning(f"Unauthorized access from user {user.id} ({user.full_name})")
+        raise ApplicationHandlerStop
 
 async def post_init(application: Application) -> None:
     logger.info("Initialising database...")
@@ -42,6 +50,9 @@ def main() -> None:
         .post_init(post_init)
         .build()
     )
+
+    # Global security filter
+    app.add_handler(TypeHandler(Update, auth_check), group=-1)
 
     app.add_handler(CommandHandler("start", start.handle))
     app.add_handler(CommandHandler("status", status.handle))

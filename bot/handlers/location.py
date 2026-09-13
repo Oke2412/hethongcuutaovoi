@@ -74,7 +74,8 @@ async def _process_hex_transition(
 
             await neo_session.run(
                 """
-                MATCH (u:User {user_id: $uid}), (h:H3_Cell {hex_id: $hex_id})
+                MERGE (u:User {user_id: $uid})
+                MERGE (h:H3_Cell {hex_id: $hex_id})
                 CREATE (u)-[:VISITED {entered_at: datetime(), dwell_seconds: 0}]->(h)
                 """,
                 uid=str(user_id), hex_id=new_hex,

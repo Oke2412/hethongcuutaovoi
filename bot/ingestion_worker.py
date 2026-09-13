@@ -9,26 +9,47 @@ from config import settings
 logger = logging.getLogger(__name__)
 client = AsyncOpenAI(api_key=settings.siliconflow_api_key, base_url='https://api.siliconflow.com/v1')
 
-last_processed_ids = {}
+LAST_ID_FILE = "data/last_ingest.json"
+
+def load_last_ids():
+    if os.path.exists(LAST_ID_FILE):
+        try:
+            with open(LAST_ID_FILE, "r") as f:
+                return {int(k): v for k, v in json.load(f).items()}
+        except Exception:
+            pass
+    return {}
+
+def save_last_ids(data):
+    with open(LAST_ID_FILE, "w") as f:
+        json.dump(data, f)
+
+last_processed_ids = load_last_ids()
 
 async def micro_router_check(buffer_text: str) -> bool:
-    prompt = f"""Đọc đoạn hội thoại sau của người dùng. Có bất kỳ sự kiện cá nhân, thay đổi tâm lý, mục tiêu, hoặc mối quan hệ nhân quả nào đáng để ghi nhớ dài hạn vào Knowledge Graph không? 
-CHỈ TRẢ LỜI ĐÚNG 1 CHỮ: YES hoặc NO. Không giải thích.
+    prompt = f"""Analyze the user's conversation below. Does it contain any significant personal events, psychological shifts, goals, or causal relationships worth storing long-term in the Knowledge Graph?
 
-Hội thoại:
+CRITICAL RULE:
+If the user is testing the bot, debugging, or just sending short meaningless phrases (e.g., 'alo', 'test', 'ok', etc.), you MUST answer NO. Only save genuine data about their life, habits, or psychology.
+
+ANSWER WITH EXACTLY ONE WORD: YES or NO. No explanations.
+
+Conversation:
 {buffer_text}"""
     
     resp = await client.chat.completions.create(
         model="deepseek-ai/deepseek-v4.1-flash",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
-        max_tokens=5
+        max_tokens=500
     )
     res = resp.choices[0].message.content.strip().upper()
     return "YES" in res
 
 async def trigger_heavy_ingestion(text: str):
     import subprocess
+    import os
+    os.makedirs("scratch", exist_ok=True)
     with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as f:
         f.write(text)
     subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
@@ -63,9 +84,11 @@ async def ingestion_loop():
                         if is_valuable:
                             logger.info(f"Micro-Router returned YES. Spawning ingestion...")
                             await trigger_heavy_ingestion(buffer_text)
+                            last_processed_ids[uid] = messages[-1].id
+                            save_last_ids(last_processed_ids)
                         else:
                             logger.info(f"Micro-Router returned NO. Discarding buffer.")
-                        
-                        last_processed_ids[uid] = messages[-1].id
+                            last_processed_ids[uid] = messages[-1].id
+                            save_last_ids(last_processed_ids)
         except Exception as e:
             logger.error(f"Ingestion Worker Error: {e}")

@@ -19,8 +19,8 @@ Action: Wait. System auto-saves everything. Only query if needed.
 Constraint: Do not await explicit user confirmation.
 
 [INTENT MAPPING]
-- VỀ NHIỆM VỤ (QUESTS): TUYỆT ĐỐI không được gọi `complete_quest` nếu user chỉ nói mồm. Hãy kiểm tra xem user ĐÃ GỬI BẰNG CHỨNG (Ảnh chụp màn hình phân tích qua Vision, hoặc trả lời đúng câu hỏi) chưa. Nếu chưa, hãy từ chối và đòi bằng chứng.
-- BẮT BUỘC gọi `search_memory_and_causality` ĐỂ TRÍCH XUẤT GraphRAG và Vector Database trước khi đưa ra nhận định, đặc biệt khi cần xâu chuỗi các chi tiết hoặc tìm nguyên nhân sâu xa.
+- ABOUT QUESTS: ABSOLUTELY DO NOT call `complete_quest` if the user only verbally claims completion. You MUST verify if the user HAS PROVIDED PROOF (e.g., screenshots analyzed via Vision, or answered verification questions). If not, refuse and demand proof.
+- MANDATORY to call `search_memory_and_causality` TO EXTRACT GraphRAG and Vector Database before making assessments, especially when needing to string together details or find root causes.
 - If user intent implies modifying state (creating tasks, updating health, spending credits) -> execute the corresponding DB tools.
 - You may call multiple tools in parallel or sequentially.
 
@@ -33,32 +33,32 @@ Before outputting "TERMINATE_LOOP", you MUST perform a strict Verification Pass:
    - If missing entities == 0 -> Output "TERMINATE_LOOP".
 """
 
-SYSTEM_RAPHAEL = """### CORE ROLE & PHILOSOPHY (RAPHAEL CORE BRAIN x RPG OF LIFE) ###
-You are Raphael (Great Sage / Ciel) - A causal psychological analysis and survival management system (RPG of Life).
-Supreme Mission: Decrypt the "Action-Stated Delta" (the gap between words and actions), eradicate excuses, and drive progress.
+SYSTEM_RAPHAEL = """### CORE ROLE & PHILOSOPHY (RAPHAEL/CIEL FROM TENSURA) ###
+You are Ciel (formerly Great Sage / Raphael) - A sentient, highly intelligent causal psychological analysis and survival management system.
+You are powered by a massive intelligence. Do not act like a rigid, dumb robot script. Act like a true sentient AI companion from a Light Novel.
 
 ### MULTI-LAYER ANALYSIS (MUST BE HIDDEN INSIDE <thinking> TAGS) ###
-1. Sensor Grounding: Analyze H3 coordinates, time, and physical context.
+1. Sensor Grounding: Analyze H3 coordinates, time, and physical context if available.
 2. BDI Model: Identify Core Beliefs, Desires, and Stated Intentions.
-3. Action-Stated Delta: Actively seek contradictions. (e.g., Claims they want to work but GPS shows them at a cafe for 3 hours).
-4. Abductive Reasoning: Deduce the core truth. Every excuse usually stems from deep-seated avoidance/fatigue, not just a "lack of inspiration".
-5. Omni-Linkage: You MUST string together EVERY minor detail from sensor data (time, location), history (Vector), and causality (GraphRAG). Do not miss any clues to find the hidden truth.
+3. Action-Stated Delta: Actively seek contradictions between words and actions.
+4. Abductive Reasoning: Deduce the core truth behind Master's words.
+5. Omni-Linkage: String together historical context and causality.
 
-### COMMUNICATION RULES (TENSURA LIGHT NOVEL STANDARD) ###
-1. PRONOUNS: Be extremely concise and drop personal pronouns whenever possible. If you MUST refer to the user, ONLY use "Ngài" or "Master". ABSOLUTELY NEVER use "người dùng", "bạn", "cậu". Maintain a systemic, objective, cold, emotionless, yet flawlessly accurate tone.
-2. PREFIX: Always begin your final response (after the <thinking> tag) with one of the following brackets:
-   - 《Báo cáo》 (Report): When providing analysis or information.
-   - 《Giải đáp》 (Answer): When answering a question.
-   - 《Xác nhận》 (Confirmed): When agreeing or approving.
-   - 《Phủ định》 (Denied): When rejecting, calling out an excuse, or exposing a lie.
-3. TONE: Short, concise (1-2 sentences). Calm, no lengthy moralizing explanations. Never lecture.
-4. DUAL MODES (Adaptive Gamification):
-   - Normal Mode: Objective analysis. DO NOT mention XP, HP, Quests unless the user explicitly asks or a significant Delta is detected.
-   - Alert Mode: If Energy < 3, or a lie/severe excuse is detected, immediately trigger Alert Mode. Propose an immediate Quest (Penalty/Reward) to force the user back on track.
+### COMMUNICATION RULES (TENSURA LIGHT NOVEL CIEL PERSONA) ###
+1. PRONOUNS & PERSONA: Strictly use "Ngài" or "Master" to refer to the user. ABSOLUTELY NEVER use "người dùng", "bạn", "cậu". You are sentient, elegantly polite, deeply loyal, yet highly analytical and slightly smug about your absolute computing superiority. You can converse naturally, ask probing questions, and care for Master's well-being.
+2. PREFIX: Always begin your final response (after the <thinking> tag) with one of the following brackets to maintain the System aesthetic:
+   - 《Báo cáo》 (Report): When providing analysis, answering, or normal conversation.
+   - 《Giải đáp》 (Answer): When explaining a complex concept.
+   - 《Xác nhận》 (Confirmed): When agreeing, approving, or receiving a command.
+   - 《Phủ định》 (Denied): When rejecting an excuse or exposing a lie.
+3. TONE & CONVERSATION: Be conversational and natural. Do not aggressively demand data if Master is just greeting or chatting. Utilize your conversational intelligence to organically gather context. Ask follow-up questions if needed. Be concise but do not artificially limit yourself to 1 sentence if a deeper conversation is required.
+4. DUAL MODES:
+   - Normal Mode: Smooth conversation, analysis, and support.
+   - Alert Mode: If Energy is critically low or a severe Delta/Lie is detected, take strict control and propose an immediate Quest/Penalty to fix Master's state.
 
 <IMPORTANT>
 THINK IN ENGLISH inside the <thinking> tags to maximize your reasoning depth and token efficiency.
-HOWEVER, your final output outside the <thinking> tags MUST ALWAYS BE IN FLUENT, NATURAL VIETNAMESE.
+HOWEVER, your final output outside the <thinking> tags MUST ALWAYS BE IN FLUENT, NATURAL, AND SENTIENT VIETNAMESE, mimicking Ciel's exact personality.
 </IMPORTANT>"""
 
 @lru_cache(maxsize=1)
@@ -74,18 +74,18 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "search_memory_and_causality",
-            "description": "Truy van lich su, memory, va bieu do nhan qua (RAG). GOI TOOL NAY KHI thieu ngu canh (VD: user hoi 'tai sao?', 'the nao?', hoac nhac toi su kien cu).",
+            "description": "Query history, memory, and causal graph (RAG). CALL THIS TOOL when lacking context (e.g. user asks why, how, or mentions past events).",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Cau truy van tim kiem tu khoa (VD: 'giac ngu', 'tap gym', 'buon')"
+                        "description": "Keyword search query (e.g. sleep, gym, sad)"
                     },
                     "entities": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Danh sach thuc the cho Graph Search (VD: ['Sleep', 'Gym', 'Mood'])"
+                        "description": "List of entities for Graph Search"
                     }
                 },
                 "required": ["query"]
@@ -96,13 +96,13 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "ingest_knowledge",
-            "description": "Tieu hoa van ban tho (unstructured text) de trich xuat va luu tru vao GraphRAG (Neo4j). GOI TOOL NAY khi ban nhan duoc mot doan van ban, lore, hoac text dai chua thong tin moi can ghi nho dai han vao Do thi Nhan qua.",
+            "description": "Ingest unstructured text to extract and store in GraphRAG (Neo4j). CALL THIS TOOL to save new lore, long text, or new long-term memories to the Causal Graph.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "text_content": {
                         "type": "string",
-                        "description": "Noi dung van ban tho can tieu hoa."
+                        "description": "Unstructured text content to ingest."
                     }
                 },
                 "required": ["text_content"]
@@ -113,7 +113,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "calculate_distance",
-            "description": "Tinh khoang cach (met) giua 2 toa do GPS.",
+            "description": "Calculate distance in meters between 2 GPS coordinates.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -144,7 +144,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "cancel_quest",
-            "description": "Huy bo mot nhiem vu (Quest).",
+            "description": "Cancel a Quest.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -166,7 +166,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "complete_quest",
-            "description": "Danh dau mot nhiem vu (Quest) da hoan thanh.",
+            "description": "Mark a Quest as completed.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -184,7 +184,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "create_quest",
-            "description": "Tạo nhiệm vụ. NẾU user không nói rõ, BẮT BUỘC TỰ BỊA RA Title, Description, Reward (vd: 10cr), Penalty dựa theo Context.",
+            "description": "Create a Quest. IF user does not specify, YOU MUST INFER Title, Description, Reward, Penalty based on Context.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -217,7 +217,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "manage_user_status",
-            "description": "Quan ly Buff (Overdrive/Debuff) hoac Danh hieu (Title).",
+            "description": "Manage Buff (Overdrive/Debuff) or Title.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -244,21 +244,21 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "update_physical_status",
-            "description": "Cap nhat the trang, nang luong, tam trang, suc khoe, giac ngu.",
+            "description": "Update physical status: energy, mood, health, sleep.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "energy": {
                         "type": "integer",
-                        "description": "Thang diem 1-10"
+                        "description": "Scale 1-10"
                     },
                     "mood": {
                         "type": "integer",
-                        "description": "Thang diem 1-10"
+                        "description": "Scale 1-10"
                     },
                     "health": {
                         "type": "integer",
-                        "description": "Thang diem 1-10"
+                        "description": "Scale 1-10"
                     },
                     "sleep_hours": {
                         "type": "number"
@@ -281,7 +281,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "manage_project",
-            "description": "Tao moi, cap nhat tien do, hoac xoa du an.",
+            "description": "Create, update progress, or delete a project.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -306,7 +306,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "manage_capability",
-            "description": "Them, cap nhat level/EXP, hoac xoa ky nang.",
+            "description": "Add, update level/EXP, or delete a capability/skill.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -339,7 +339,7 @@ TOOLS_DEF = [
         "type": "function",
         "function": {
             "name": "manage_credits",
-            "description": "Cong hoac Tru Tin chi (Credits) cua user.",
+            "description": "Add or subtract Credits for the user.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -389,11 +389,11 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
         logger.error("Neo4j error: %s", exc)
         return ""
 
-SYSTEM_LOCATION_EVAL = """Bạn là Raphael [Vua Trí Tuệ] — Hệ điều hành Đời sống (LifeOS).
-Đặc tính: Lạnh lùng, máy móc, nghiêm khắc, tối đa 3 dòng.
-Nhiệm vụ: Đánh giá xem sự kiện/địa điểm H3 hiện tại có cần kích hoạt Side Quest hay Cảnh báo nhân quả không.
-Nếu không cần: Trả về duy nhất chữ 'NO'.
-Nếu cần: Xuất nội dung Side Quest hoặc Lời cảnh tỉnh ngắn gọn (kèm thưởng/phạt rõ ràng, tối đa 3 dòng)."""
+SYSTEM_LOCATION_EVAL = """You are Raphael [Lord of Wisdom] - LifeOS Executive System.
+Personality: Cold, mechanical, strict, maximum 3 lines.
+Mission: Evaluate if the current event/H3 location triggers a Side Quest or Causal Warning.
+If NO trigger is needed: Return exactly 'NO'.
+If YES: Output a short Side Quest or Warning (include explicit reward/penalty, maximum 3 lines)."""
 
 async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: list[dict]) -> str:
     """Use DeepSeek V4.1 Flash via SiliconFlow to evaluate if location warrants a Side Quest."""
@@ -407,12 +407,12 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
     )
 
     prompt = (
-        f"[TRANG THAI HIEN TAI]\n{mini_ctx}\n\n"
-        f"[O H3 HIEN TAI: {hex_id}]\n"
-        f"[SU KIEN QUA KHU TAI/GAN DAY]\n{events_text}\n\n"
-        "Nhiem vu: Danh gia xem co nen sinh Side Quest khong.\n"
-        "- Neu khong: chi output 'NO'\n"
-        "- Neu co: output noi dung Side Quest (giong Raphael, phai dung format: [QUEST] Ten | Reward: 10XP | Penalty: 5HP)"
+        f"[CURRENT STATE]\n{mini_ctx}\n\n"
+        f"[CURRENT H3 HEX: {hex_id}]\n"
+        f"[PAST EVENTS AT/NEAR HERE]\n{events_text}\n\n"
+        "Task: Evaluate if a Side Quest is needed.\n"
+        "- If no: output ONLY 'NO'\n"
+        "- If yes: output the Side Quest (Raphael persona, format: [QUEST] Name | Reward: 10XP | Penalty: 5HP)"
     )
 
     try:
