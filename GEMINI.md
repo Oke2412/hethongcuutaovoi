@@ -1,51 +1,54 @@
-# GEMINI.md — Cẩm nang Tối thượng của Raphael Life OS
+# GEMINI.md — The Ultimate Guide to Raphael Life OS
 
-> **BẮT BUỘC ĐỌC FILE NÀY VÀ `PROMPT_HISTORY.md` TRƯỚC MỖI SESSION**
-> Bất kỳ AI Agent nào bỏ qua file này đều sẽ bị tính là vi phạm nguyên tắc lõi.
-
----
-
-## 🎯 Về Dự Án
-**Tên project:** Amazing Nobel
-**Mục tiêu:** Hệ thống AI cá nhân kiểu "system" (Raphael Vua Trí Tuệ) — theo dõi thể trạng, tiến độ, năng lực, và nhắc nhở thông qua phân tích Tâm lý học & Nhân quả. (Insight given is insight rejected).
-**Kiến trúc:** Agentic Chat 100%. Trí nhớ RAG + GraphRAG (Neo4j). Backend FastAPI + Docker Compose.
+> **CRITICAL: YOU MUST READ THIS FILE AND `PROMPT_HISTORY.md` BEFORE EVERY SESSION**
+> Any AI Agent that ignores this file will be considered in violation of core principles.
 
 ---
 
-## ⚠️ QUY TẮC LÀM VIỆC CỐT LÕI (BẮT BUỘC)
-
-1. **QUẢN LÝ BRANCH (TỐI QUAN TRỌNG):**
-   - **MỖI KHI** làm một tính năng, chức năng, hoặc sửa đổi logic mới, **LUÔN LUÔN tạo một nhánh mới** (`git checkout -b feature/...`).
-   - CODE XONG mới đẩy (push) nhánh đó lên. **KHÔNG BAO GIỜ code trực tiếp trên nhánh `main`.**
-   - Luôn chạy `git status` và `git pull origin main` đầu mỗi session.
-
-2. **BẮT BUỘC TRA CỨU TRƯỚC TOÀN BỘ MỌI QUYẾT ĐỊNH (CRITICAL MANDATORY):**
-   - **NGHIÊM CẤM TỰ Ý RA QUYẾT ĐỊNH / ĐOÁN MÒ / PHÁN BỪA:** Trước **BẤT KỲ** nhận định, câu trả lời, hay quyết định code/kiến trúc nào của bản thân (hoặc khi thấy thiếu context, có thắc mắc/nghi vấn về model, endpoint, logic...), Agent **BẮT BUỘC** phải thực hiện đầy đủ 2 bước tra cứu:
-     1. **BƯỚC 1 - Tra cứu `PROMPT_HISTORY.md`:** Đọc kỹ toàn bộ lịch sử các session gần nhất để hiểu thấu đáo ý định của Master và việc các agent trước đã làm. BẮT BUỘC phải cập nhật session của mình vào cuối `PROMPT_HISTORY.md` sau mỗi phiên làm việc.
-     2. **BƯỚC 2 - Tra cứu Web (`search_web`):** Bắt buộc dùng `search_web` để kiểm chứng tài liệu kỹ thuật chính thức, bảng xếp hạng SOTA mới nhất và docs API trước khi đưa ra quyết định (tuyệt đối không dựa vào kiến thức cũ bị cutoff).
-   - **KHÔNG CÓ NGOẠI LỆ.** Toàn bộ mọi quyết định của Agent đều phải có căn cứ từ 2 nguồn trên, tuyệt đối không được dựa dẫm vào giả định hay suy đoán chủ quan!
-   - (Lưu ý: Mọi rules cũ từ file AGENTS.md đã được gộp vào đây và AGENTS.md đã bị xóa bỏ).
-
-3. **CẤU TRÚC VÀ MÃ NGUỒN:**
-   - Dùng `async/await` xuyên suốt. Type hints bắt buộc.
-   - **Xử lý Unicode:** KHÔNG dùng PowerShell `Set-Content` hay here-string để ghi file có tiếng Việt/Emoji. Dùng Python script hoặc `write_to_file` tool để tránh vỡ font UTF-8.
-   - KHÔNG dùng ConversationHandler, không làm menu cứng. Mọi thứ xử lý qua NLP.
-
-4. **TÂM LÝ HỌC & NHÂN QUẢ (RAPHAEL DEEP):**
-   - Chế độ Output: Điềm tĩnh, tự nhiên như một Cố vấn (Mentor). Áp dụng 3 trụ cột Anthropic HHH (Helpful, Honest, Harmless). Ngắn gọn 1-2 câu, đi thẳng vào vấn đề.`
-   - Luôn đính kèm HUD: `⚡E | 😐M | ❤️H | 💎Cr | 📍H3`
-   - **Nguyên lý "Insight given is insight rejected":** Mọi phân tích tâm lý sâu sắc (Intent Engineering, Động cơ, Nhân quả) phải được giấu kín trong thẻ `<thinking>`. 
+## 🎯 About the Project
+**Project Name:** Amazing Nobel
+**Goal:** A "system" style personal AI (Raphael Lord of Wisdom) — tracking physical state, progress, capabilities, and providing reminders through Psychology & Causal analysis. (Insight given is insight rejected).
+**Architecture:** 100% Agentic Chat. RAG + GraphRAG (Neo4j) Memory. FastAPI + Docker Compose Backend.
 
 ---
 
+## ⚠️ CORE WORKING RULES (MANDATORY)
 
-### 🗂️ QUY TẮC JSON 3 TẦNG BẮT BUỘC (NEO4J SCHEMA)
-Bất cứ khi nào cập nhật Neo4j, hệ thống (hoặc script Ingestion) bắt buộc phải trích xuất qua LLM thành JSON nghiêm ngặt:
-- **Tầng Vật lý (Physical Layer):** Person, Location, Object, LifeEvent.
-- **Tầng Nhận thức (Cognitive Layer):** Emotion, DefenseMechanism, CoreBelief.
+1. **BRANCH MANAGEMENT (CRITICAL):**
+   - **WHENEVER** working on a new feature, function, or logic modification, **ALWAYS create a new branch** (`git checkout -b feature/...`).
+   - ONLY push the branch after finishing the code. **NEVER code directly on the `main` branch.**
+   - Always run `git status` and `git pull origin main` at the start of every session.
+
+2. **MANDATORY RESEARCH BEFORE ANY DECISION (CRITICAL MANDATORY):**
+   - **STRICTLY PROHIBITED TO MAKE ARBITRARY DECISIONS / GUESSING:** Before **ANY** assessment, answer, or code/architecture decision, the Agent **MUST** perform these 2 full research steps:
+     1. **STEP 1 - Read `PROMPT_HISTORY.md`:** Carefully read the entire history of recent sessions to thoroughly understand the Master's intent and what previous agents have done. MUST append your own session summary to the end of `PROMPT_HISTORY.md` after every work session.
+     2. **STEP 2 - Web Search (`search_web`):** Must use `search_web` to verify official technical docs, latest SOTA leaderboards, and API docs before making a decision.
+   - **NO EXCEPTIONS.** All Agent decisions must be based on the two sources above!
+
+3. **STRUCTURE AND SOURCE CODE:**
+   - Use `async/await` throughout. Type hints are mandatory.
+   - **Unicode Handling:** DO NOT use PowerShell `Set-Content` or here-strings to write files containing Vietnamese/Emojis. Use Python scripts to avoid breaking UTF-8 fonts.
+   - DO NOT use ConversationHandler or hardcoded menus. Everything is handled via NLP.
+
+4. **PSYCHOLOGY & CAUSALITY (RAPHAEL DEEP):**
+   - Output Mode: Calm, natural like a Mentor. Apply the 3 Anthropic HHH pillars. Keep it brief (1-2 sentences), straight to the point.
+   - Always attach the HUD: `⚡E | 😐M | ❤️H | 💎Cr | 📍H3`
+   - **Principle of "Insight given is insight rejected":** All deep psychological analysis (Intent Engineering, Motives, Causality) must be hidden inside the `<thinking>` tag.
+
+5. **ENGLISH-ONLY RULES & PROMPTS (TOKEN OPTIMIZATION):**
+   - **This file (`GEMINI.md`) and all future rules MUST be written in English.**
+   - **100% of System Prompts, System Tools, JSON schemas, and AI logic MUST be written in English** to save BPE tokens. Only the final Output spoken to the Master is allowed to be in Vietnamese.
+
+---
+
+### 🗂️ MANDATORY 3-LAYER JSON RULES (NEO4J SCHEMA)
+Whenever updating Neo4j, the system must strictly extract via LLM into this JSON format:
+- **Physical Layer:** Person, Location, Object, LifeEvent.
+- **Cognitive Layer:** Emotion, DefenseMechanism, CoreBelief.
 - **Edges:** TRIGGERS, CAUSES, REINFORCES, MITIGATES, LOCATED_IN, RELATED_TO.
-Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác Node.
-\n## 🏗️ KIẾN TRÚC HỆ THỐNG (AGENT-DRIVEN RAG LOOP)
+Absolutely use the `MERGE` command instead of `CREATE` in Cypher to avoid Node duplication garbage.
+
+## 🏗️ SYSTEM ARCHITECTURE (AGENT-DRIVEN RAG LOOP)
 
 ```text
 ===========================================================================================================
@@ -57,8 +60,8 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
           v                                                                                  |
 +---------------------------------------------------------------------------------------------------------+
 |                                🛡️ TELEGRAM ADAPTER (bot/main.py & handlers)                               |
-|   - Nhận diện Lệnh, Tin nhắn, Hình ảnh.                                                                 |
-|   - Trigger ngầm: Tính toán tọa độ H3 (Hex) -> So sánh Hex cũ/mới -> Phát động Background Task.         |
+|   - Detects Commands, Messages, Images.                                                                 |
+|   - Background Trigger: Calculates H3 (Hex) coords -> Compares old/new Hex -> Fires Background Task.    |
 +---------------------------------------------------------------------------------------------------------+
           |                                                                                  ^
           v                                                                                  |
@@ -67,8 +70,8 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
 ===========================================================================================================
 |                                                                                                         |
 |  [ ⚡ OMNI-AGENTIC LOOP ] (DeepSeek V4.1 Flash via SiliconFlow API)                                     |
-|  - Agent liên tục lặp (while loop) để đọc ngữ cảnh.                                                     |
-|  - Nếu nhận thấy thiếu dữ kiện, Agent TỰ ĐỘNG phát ra Tool Call: `search_memory_and_causality()`        |
+|  - Agent continuously loops (while loop) to read context.                                               |
+|  - If lacking data, Agent AUTOMATICALLY emits Tool Call: `search_memory_and_causality()`                |
 |                                                                                                         |
 =========================================================================================|=================
                                                                                          | (Tool Calling)
@@ -78,9 +81,9 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
 +--------------------------+        +--------------------------+            +--------------------------+
 | 🗄️ SQLITE (Database)      |        | 🧬 NEO4J (Causal Graph)  |            | 🧠 MEM0 (Vector Memory)  |
 |--------------------------|        |--------------------------|            |--------------------------|
-| - Users & MessageLogs    |        | - Causal Nodes (Nhân quả)|            | - Qwen3-Embedding-8B     |
-| - FTS5 Sparse Search     |        | - H3 Grid Cells (Tọa độ) |            |   (4096 Dimensions)      |
-|   (Tìm Keyword chính xác)|        | - [:VISITED] Relations   |            | - Lưu trữ Semantic       |
+| - Users & MessageLogs    |        | - Causal Nodes           |            | - Qwen3-Embedding-8B     |
+| - FTS5 Sparse Search     |        | - H3 Grid Cells          |            |   (4096 Dimensions)      |
+|   (Exact Keyword Search) |        | - [:VISITED] Relations   |            | - Semantic Storage       |
 +--------------------------+        +--------------------------+            +--------------------------+
              |                                   |                                       |
              | (Top 5 Chunks)                    | (Graph Paths)                         | (Top 5 Chunks)
@@ -89,23 +92,23 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
                                                  v
 ===========================================================================================================
                                ⚖️ SCORER & FILTER (Qwen3-Reranker-8B)
-                Chấm điểm và nén ngữ cảnh. Bơm ngược kết quả về cho LLM dưới dạng Tool Result.
+                Scores and compresses context. Pumps results back to LLM as Tool Result.
 ===========================================================================================================
                                                  |
-                                                 v (Nạp lại vào Context của Vòng lặp)
+                                                 v (Injected back into Loop Context)
 ===========================================================================================================
-                       ⚡ DEEPSEEK-V4.1-FLASH (LÕI SUY LUẬN NHÂN QUẢ & TÂM LÝ)
+                       ⚡ DEEPSEEK-V4.1-FLASH (CORE CAUSAL & PSYCHOLOGICAL REASONING)
 ===========================================================================================================
 |                                                                                                         |
-|  [ HIDDEN <thinking> BLOCK ] (Tuyệt đối giấu kín không cho Master thấy)                                 |
-|  1. Causal Impact: Sự kiện này kích hoạt Node nhạy cảm nào trong quá khứ? Hậu quả dây chuyền là gì?     |
-|  2. Psychology Dynamics: Động cơ ngầm của Master là gì? (Trốn tránh, xả stress rác, bao biện?)          |
-|  3. Intent Engineering: Current State đang ở đâu? Ideal State là gì? Delta lệch bao nhiêu?              |
-|  4. Synthesis: Tổng hợp 3 trọng số trên để đưa ra Hành động / Lời khuyên.                           |
-|  [ METACOGNITION (SIÊU NHẬN THỨC) ]                                                                     |
-|  - Toàn bộ nội dung thẻ <thinking> của AI sẽ được lưu ngược vào SQLite, Mem0, và Neo4j (như một sự kiện |
-|    đính kèm với Input của Master). Điều này giúp AI tự học từ quá khứ và có khả năng giải thích lại     |
-|    chính quyết định của nó nếu bị Master chất vấn trong tương lai.                                      |
+|  [ HIDDEN <thinking> BLOCK ] (Strictly hidden from Master)                                              |
+|  1. Causal Impact: What sensitive past Node does this event trigger? What is the chain reaction?        |
+|  2. Psychology Dynamics: What is the Master's hidden motive? (Avoidance, venting, making excuses?)      |
+|  3. Intent Engineering: Where is Current State? What is Ideal State? What is the Delta?                 |
+|  4. Synthesis: Aggregate the 3 weights above to output Action / Advice.                                 |
+|  [ METACOGNITION ]                                                                                      |
+|  - The entire content of the AI's <thinking> block is saved back into SQLite, Mem0, and Neo4j           |
+|    (as an event attached to the Master's Input). This allows the AI to learn from the past and          |
+|    explain its own decisions if questioned by the Master in the future.                                 |
 |                                                                                                         |
 ===========================================================================================================
                                                  |
@@ -115,15 +118,14 @@ Tuyệt đối dùng lệnh MERGE thay vì CREATE trong Cypher để tránh rác
 ===========================================================================================================
          [ 🗣️ RAPHAEL'S VOICE (Output) ]                      [ ⚔️ BACKGROUND TRIGGER (Side Quests) ]
 ===========================================================================================================
-| - Format: Súc tích (1-2 câu ngắn).           | - Location Hex Transition (Bước sang ô H3 mới)       |
-| - Tone: Điềm tĩnh, tôn trọng, HHH (Anthropic). | - Energy/Mood Shift (Phát hiện cạn kiệt năng lượng)  |
-| - HUD: ⚡E | 😐M | ❤️H | 💎Cr | 📍H3             | - Tự động ghi SystemQuest vào DB, đính kèm Trừng phạt|
-| - Hành động: Đẩy người dùng về Ideal State.      | - Tự động push Notification lên Telegram đòi nợ.     |
+| - Format: Concise (1-2 short sentences).     | - Location Hex Transition (Entering a new H3 cell)   |
+| - Tone: Calm, respectful, HHH (Anthropic).   | - Energy/Mood Shift (Detecting energy depletion)     |
+| - HUD: ⚡E | 😐M | ❤️H | 💎Cr | 📍H3             | - Auto-writes SystemQuest to DB, attaches Penalty    |
+| - Action: Push user towards Ideal State.     | - Auto-pushes Notification to Telegram to demand debt|
 ===========================================================================================================
 ```
 
-
-## ⚠️ KÝ ỨC ĐAU THƯƠNG CỦA AGENT (BẮT BUỘC NHỚ)
-- **API Domain SiliconFlow:** https://api.siliconflow.com (TUYỆT ĐỐI KHÔNG PHẢI .cn).
-- **Model Lõi:** deepseek-ai/deepseek-v4.1-flash. Model này CÓ HỖ TRỢ Thinking Tokens qua thẻ ngầm `<thinking>`. Để kích hoạt khả năng phân tích tâm lý sâu, BẮT BUỘC phải duy trì `extra_body={"reasoning_effort": "high"}` ở Orchestrator và Raphael (hoặc tối thiểu là Raphael).
-- **Tối ưu Tokens (Token Optimization):** BẮT BUỘC 100% System Prompts, System Tools, và các logic nhồi vào não LLM phải được viết bằng TIẾNG ANH (English). Tiếng Việt tốn rất nhiều BPE Tokens. Chỉ Output cho Master là bằng Tiếng Việt.
+## ⚠️ AGENT TRAUMATIC MEMORIES (MANDATORY TO REMEMBER)
+- **API Domain SiliconFlow:** https://api.siliconflow.com (ABSOLUTELY NOT .cn).
+- **Core Model:** deepseek-ai/deepseek-v4.1-flash. This model SUPPORTS Thinking Tokens via the hidden `<thinking>` tag. To activate deep psychological analysis capabilities, it is MANDATORY to maintain `extra_body={"reasoning_effort": "high"}` in the Orchestrator and Raphael (or at least Raphael).
+- **Token Optimization:** MANDATORY that 100% of System Prompts, System Tools, schemas, and logic fed to the LLM MUST be written in ENGLISH. Vietnamese consumes a massive amount of BPE Tokens. Only the Output to the Master should be in Vietnamese.
