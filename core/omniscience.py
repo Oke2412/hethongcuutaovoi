@@ -108,7 +108,7 @@ async def get_mini_context(user_id: int) -> str:
     
     try:
         from bot.handlers.location import _location_state
-        loc_data = _location_state.get(user_id)
+        loc_data = _location_state.get(user.telegram_id if user else user_id)
         hex_id = loc_data["hex"] if loc_data else "Unknown"
     except ImportError:
         hex_id = "Unknown"
