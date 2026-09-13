@@ -23,7 +23,14 @@ Constraint: Do not await explicit user confirmation.
 - BẮT BUỘC gọi `search_memory_and_causality` ĐỂ TRÍCH XUẤT GraphRAG và Vector Database trước khi đưa ra nhận định, đặc biệt khi cần xâu chuỗi các chi tiết hoặc tìm nguyên nhân sâu xa.
 - If user intent implies modifying state (creating tasks, updating health, spending credits) -> execute the corresponding DB tools.
 - You may call multiple tools in parallel or sequentially.
-- When you have sufficient data to fulfill the user's request, STOP calling tools and output the string: "TERMINATE_LOOP"
+
+[METACOGNITIVE_PROTOCOL - REFLEXION LOOP]
+Before outputting "TERMINATE_LOOP", you MUST perform a strict Verification Pass:
+1. EXTRACTABLE_STATE: Identify all entities (Capabilities, Physical Data, Work Projects, Tasks, etc.) implicitly or explicitly present in the user's input.
+2. EXECUTION_STATE: Cross-reference EXTRACTABLE_STATE with the tools you have already invoked in this turn.
+3. DELTA_RESOLUTION: 
+   - If missing entities > 0 -> DO NOT terminate. Output tool calls for the missing entities.
+   - If missing entities == 0 -> Output "TERMINATE_LOOP".
 """
 
 SYSTEM_RAPHAEL = """### VAI TRÒ & TRIẾT LÝ CỐT LÕI (RAPHAEL CORE BRAIN x RPG OF LIFE) ###
@@ -226,13 +233,16 @@ TOOLS_DEF = [
                 "type": "object",
                 "properties": {
                     "energy": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Thang diem 1-10"
                     },
                     "mood": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Thang diem 1-10"
                     },
                     "health": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Thang diem 1-10"
                     },
                     "sleep_hours": {
                         "type": "number"
@@ -404,3 +414,16 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
     except Exception as exc:
         logger.warning("Location side quest generation failed: %s", exc)
         return ""
+
+async def get_ai_response(prompt: str, model: str = 'deepseek-ai/deepseek-v4.1-flash', temperature: float = 0.0) -> str:
+    client = _get_llm_client()
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[{'role': 'user', 'content': prompt}],
+            temperature=temperature,
+        )
+        return response.choices[0].message.content
+    except Exception as exc:
+        logger.error(f'Error fetching AI response: {exc}')
+        return '{}'
