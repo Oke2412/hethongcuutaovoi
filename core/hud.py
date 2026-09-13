@@ -28,4 +28,18 @@ async def build_hud(user_id: int) -> tuple[str, InlineKeyboardMarkup | None]:
             
         hud_line = f"━━━━━━━━━━━━━━━━━━━━━\n⚡ {energy}/10 | 😐 {mood}/10 | ❤️ {health}/10 | 💎 {credits}cr | 📍 H3:{hex_id}"
         
-        return hud_line, None
+        stmt_quest = select(SystemQuest).where(SystemQuest.user_id == user_id, SystemQuest.status == "pending")
+        quests = (await session.execute(stmt_quest)).scalars().all()
+        
+        keyboard = None
+        if quests:
+            buttons = []
+            for q in quests:
+                short_title = (q.title[:20] + '..') if q.title and len(q.title) > 20 else (q.title or f"Quest #{q.id}")
+                buttons.append([
+                    InlineKeyboardButton(f"✅ Hoàn thành: {short_title}", callback_data=f"complete_{q.id}"),
+                    InlineKeyboardButton("❌ Hủy", callback_data=f"cancel_{q.id}")
+                ])
+            keyboard = InlineKeyboardMarkup(buttons)
+            
+        return hud_line, keyboard

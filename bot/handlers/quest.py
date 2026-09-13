@@ -34,19 +34,9 @@ async def handle_quests(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             text += f"   - Mô tả: {q.description}\n"
             text += f"   - Phần thưởng: 🎁 {q.reward}\n\n"
             
-        text += "💡 *Mẹo:* Bấm nút dưới đây để báo cáo hoàn thành nhanh."
+        text += "💡 *Mẹo:* Master có thể hoàn thành nhanh bằng cách bấm nút ở màn hình chat, hoặc ra lệnh trực tiếp (VD: 'Ta đã làm xong nhiệm vụ 2')."
         
-        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-        buttons = []
-        for q in quests:
-            short_title = (q.title[:20] + '..') if q.title and len(q.title) > 20 else (q.title or f"Quest #{q.id}")
-            buttons.append([
-                InlineKeyboardButton(f"✅ Xong: {short_title}", callback_data=f"complete_{q.id}"),
-                InlineKeyboardButton("❌ Hủy", callback_data=f"cancel_{q.id}")
-            ])
-        keyboard = InlineKeyboardMarkup(buttons)
-        
-        await update.message.reply_text(text, parse_mode="Markdown", reply_markup=keyboard)
+        await update.message.reply_text(text, parse_mode="Markdown")
 
 async def handle_quest_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
