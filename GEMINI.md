@@ -127,5 +127,5 @@ Absolutely use the `MERGE` command instead of `CREATE` in Cypher to avoid Node d
 
 ## ⚠️ AGENT TRAUMATIC MEMORIES (MANDATORY TO REMEMBER)
 - **API Domain SiliconFlow:** https://api.siliconflow.com (ABSOLUTELY NOT .cn).
-- **Core Model:** deepseek-ai/deepseek-v4.1-flash. This model SUPPORTS Thinking Tokens via the hidden `<thinking>` tag. To activate deep psychological analysis capabilities, it is MANDATORY to maintain `extra_body={"reasoning_effort": "high"}` in the Orchestrator and Raphael (or at least Raphael).
+- **Core Model:** deepseek-ai/deepseek-v4.1-flash. This model SUPPORTS Thinking Tokens via the hidden `<thinking>` tag. You CAN pass `extra_body={"reasoning_effort": "high"}` to activate deep psychological analysis, or set it to `"none"` if the Master prefers to save costs. It is entirely configurable.
 - **Token Optimization:** MANDATORY that 100% of System Prompts, System Tools, schemas, and logic fed to the LLM MUST be written in ENGLISH. Vietnamese consumes a massive amount of BPE Tokens. Only the Output to the Master should be in Vietnamese.
