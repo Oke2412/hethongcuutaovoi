@@ -85,13 +85,14 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         lines.append('  _(chưa có dữ liệu — hãy chat để cập nhật)_')
 
 
-    lines += ['', '\U0001f9e0 *Năng lực*']
+    lines += ['', '🧠 *Năng lực*']
     if caps:
         for c in caps:
-            pct = int((c.current_level / max(c.max_ever, 1)) * 10)
-            lines.append(f'  {c.domain}: [{_bar(pct)}] {c.current_level}/{c.max_ever} {c.unit}')
+            # Tính % exp hiện tại (giả định 100 exp là lên 1 cấp, hoặc exp / 100)
+            exp_pct = int((c.exp % 100) / 10) if c.exp else 0
+            lines.append(f'  {c.domain}: Lv.{c.current_level} [{_bar(exp_pct)}] {c.exp} XP')
     else:
-        lines.append('  _(chưa có — dùng /report)_')
+        lines.append('  _(chưa có dữ liệu — hãy chat để cập nhật)_')
 
     lines += ['', '\U0001f4bc *Tiến trình công việc*']
     if projects:

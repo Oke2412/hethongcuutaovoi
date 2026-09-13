@@ -226,7 +226,19 @@ class RaphaelBrain:
 
                 tool_result_str = ""
 
-                if func_name == "search_memory_and_causality":
+                if func_name == "ingest_knowledge":
+                    text_content = args.get("text_content", "")
+                    if text_content:
+                        import subprocess
+                        with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as tf:
+                            tf.write(text_content)
+                        # Spawn background process so it doesn't block the chat
+                        subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
+                        tool_result_str = "[SUCCESS] Đã khởi chạy tiến trình chạy ngầm (Background Task) để nạp dữ liệu thô vào GraphRAG. Tiến trình sẽ hoàn tất trong vài chục giây."
+                    else:
+                        tool_result_str = "[ERROR] Thiếu nội dung để nạp."
+
+                elif func_name == "search_memory_and_causality":
                     q = args.get("query", "")
                     ents = args.get("entities", [])
                     chunks = []
@@ -310,6 +322,7 @@ class RaphaelBrain:
 <CRITICAL_RULE>
 - OUTPUT_FORMAT: Max 3 concise sentences or short bullet points.
 - CONTENT_FOCUS: Deliver high-density causal analysis and constructive insights.
+- PRONOUNS: Use ONLY "Ngài" or "Master" to refer to the user. ABSOLUTELY NEVER use "người dùng", "bạn", "cậu". Maintain the blunt, emotionless tone.
 - EXCLUSIONS: NO greetings, NO conversational fillers, NO repetitive explanations.
 - TONE: Objective, analytical, strict, and purely logical. Do not use attacking or toxic language.
 </CRITICAL_RULE>

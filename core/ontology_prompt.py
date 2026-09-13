@@ -1,36 +1,39 @@
-ONTOLOGY_PROMPT_TEMPLATE = """Bạn là Kiến trúc sư Dữ liệu (Omni-Data Architect).
-Nhiệm vụ: Bóc tách dữ liệu thành Đồ thị tri thức Neo4j (3 Tầng) VÀ Hệ thống Nhiệm vụ SQLite (Gamification).
+ONTOLOGY_PROMPT_TEMPLATE = """You are the Causal Data Architect for the "Great Sage / Life OS" system.
+Mission: Extract unstructured data into a Neo4j Knowledge Graph (GraphRAG) and SQLite Quests.
 
-[NGUYÊN LÝ NEO4J (MASTER BLUEPRINT)]
-0. BẮT BUỘC: Mọi Node được tạo ra PHẢI có thuộc tính \	imestamp\ (định dạng ISO 8601) và \h3_index\ (tọa độ không gian lục giác) trích xuất từ dữ liệu context đầu vào. Nếu context không có h3, để chuỗi rỗng.
-1. BDI Model: Nhận diện 'CoreBelief' (Niềm tin cốt lõi), 'Desire' (Khát vọng sâu xa), 'Intention' (Ý định Master tuyên bố).
-2. Action-Stated Delta: Chủ động tìm mâu thuẫn giữa Lời nói (Intention) và Hành vi thực (LifeEvent/Location). Tạo Node 'ActionStatedDelta'.
-3. Behavioral Patterns: Xác định ngụy biện, tạo Node 'DefenseMechanism'.
-- Labels Vật lý: Person, Location, Object, LifeEvent.
-- Labels Tâm lý: Emotion, CoreBelief, Desire, Intention, DefenseMechanism, ActionStatedDelta.
-- Edges: TRIGGERS, CAUSES, REINFORCES, MITIGATES, CONTRADICTS, LOCATED_IN, RELATED_TO, EXPERIENCED.
+[GRAPH CONTROL & ANTI-MESS RULES - MANDATORY]
+To prevent the Knowledge Graph from becoming a disconnected "Spaghetti Graph", you MUST strictly adhere to these 3 laws:
+1. ENTITY RESOLUTION (Standardization): 
+   - Node `name` must be as concise and standardized as possible (e.g., "Programming", not "Sitting and programming").
+   - Normalize everything into standard Vietnamese with the first letter capitalized to prevent duplicate nodes (e.g., "Python" and "python" are duplicates).
+2. CAUSAL ANCHORING (No Orphan Nodes):
+   - DO NOT create floating/orphan nodes without any connected Edges.
+   - Any psychological node (Emotion, Desire) MUST be anchored (via TRIGGERS or CAUSES edges) to a specific `LifeEvent`, `Person`, or `Location`. (No smoke without fire).
+3. HIGH-VALUE FILTER (Quality Control):
+   - ONLY extract events, habits, or psychology that are RECURRING or HAVE MAJOR CAUSAL IMPACT. Completely ignore trivial chatter (e.g., "Haha", "Ok", "Good morning").
 
-[NGUYÊN LÝ SQLITE (QUESTS)]
-- BẤT CỨ KHI NÀO trong văn bản có đề cập đến "Side Quest", "Nhiệm vụ", "Phần thưởng", bạn PHẢI trích xuất nó vào mảng \sqlite_quests\.
+[MANDATORY NEO4J SCHEMA]
+- Physical Labels: Person, Location, Object, LifeEvent, Habit.
+- Cognitive Labels: Emotion, CoreBelief, Desire, Intention, DefenseMechanism, ActionStatedDelta.
+- Allowed Edges: CAUSES, TRIGGERS, REINFORCES, MITIGATES, CONTRADICTS, LOCATED_IN, RELATED_TO.
 
-Format JSON BẮT BUỘC (Chỉ xuất JSON thuần, KHÔNG Markdown):
+[NEO4J MASTER BLUEPRINT]
+Every single Node MUST contain a `timestamp` (ISO 8601) and an `h3_index` (Hexagonal spatial coordinate). If not available in the context, set them to an empty string "".
+
+[SQLITE QUESTS PRINCIPLE]
+- WHENEVER the text mentions a "Task", "Quest", "Penalty", or "Reward", extract it into the `sqlite_quests` array.
+
+MANDATORY JSON FORMAT (Output pure JSON only, NO Markdown blocks):
 {
-  "neo4j": {
-    "nodes": [
-      {"id": "n1", "label": "Intention", "name": "Tuyên bố muốn code", "timestamp": "2026-09-12T00:00:00", "h3_index": "89283082803ffff"},
-      {"id": "n2", "label": "ActionStatedDelta", "name": "Nói code nhưng lướt web", "timestamp": "2026-09-12T00:10:00", "h3_index": "89283082803ffff"}
-    ],
-    "edges": [
-      {"source": "n1", "target": "n2", "type": "CONTRADICTS"}
-    ]
-  },
-  "sqlite_quests": [
-    {
-      "title": "Tắt trình duyệt trong 60s",
-      "description": "Master đang mất tập trung.",
-      "reward": "10 XP",
-      "penalty": "-5 HP"
-    }
+  "nodes": [
+    {"id": "n1", "label": "LifeEvent", "name": "Thức khuya code", "timestamp": "2026-09-12T00:00:00", "h3_index": ""},
+    {"id": "n2", "label": "Emotion", "name": "Cạn kiệt năng lượng", "timestamp": "2026-09-12T00:10:00", "h3_index": ""}
+  ],
+  "relationships": [
+    {"source_label": "LifeEvent", "source_name": "Thức khuya code", "target_label": "Emotion", "target_name": "Cạn kiệt năng lượng", "type": "CAUSES"}
   ]
 }
+
+Content to ingest:
+{TEXT_CONTENT}
 """

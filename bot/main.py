@@ -29,6 +29,10 @@ async def post_init(application: Application) -> None:
     scheduler = setup_scheduler(application.bot)
     scheduler.start()
 
+    from bot.ingestion_worker import ingestion_loop
+    import asyncio
+    asyncio.create_task(ingestion_loop())
+
     logger.info("Bot ready. Long polling started.")
 
 def main() -> None:
