@@ -64,7 +64,10 @@ async def _process_after_delay(tg_user, update: Update, context: ContextTypes.DE
             await update.message.reply_text(response, reply_markup=sticky_menu)
     except Exception as e:
         logger.error(f"Fatal error in _process_after_delay: {e}", exc_info=True)
-        await update.message.reply_text(f"《Lỗi》 Hệ thống gặp sự cố: {str(e)}")
+        try:
+            await update.message.reply_text(f"《Lỗi》 Hệ thống gặp sự cố: {str(e)}")
+        except Exception as e2:
+            logger.error(f"Failed to send error message to user (network down?): {e2}")
 
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
