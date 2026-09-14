@@ -520,3 +520,14 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
    - Cập nhật Cypher `MERGE` trong `core/brain.py` và `genesis_ingest.py` để inject thẳng tọa độ/thời gian vào đồ thị Neo4j và metadata của Mem0.
 7. **Điều chỉnh Persona Raphael:** Cập nhật SYSTEM_RAPHAEL sát với nguyên tác Light Novel Tensura (loại bỏ đại từ nhân xưng, dùng format 《Báo cáo》, 《Xác nhận》).
 8. **Omni-Linkage & GraphRAG Enforcement:** Bổ sung bước phân tích Omni-Linkage vào SYSTEM_RAPHAEL ép AI xâu chuỗi mọi mảnh ghép nhỏ nhất, đồng thời sửa Intent Mapping buộc AI chủ động gọi search_memory_and_causality để trích xuất Neo4j GraphRAG.
+
+### [2026-09-14 23:14] - Vá lỗi Vòng lặp Nhiệm vụ, Tối ưu Token và Thổi hồn Hiến pháp Tâm lý
+**Agent:** Antigravity
+**Prompt:** Fix bug hệ thống, Dịch Rules sang Tiếng Anh, và Tích hợp Triết lý Amor Fati
+**Kết quả / Quyết định:**
+- **Bug Fix:** Sửa /start crash, fix H3 location unknown trong mini_ctx.
+- **Spatial:** Dạy AI hiểu thuật toán Uber H3, cấm tạo quest đòi GPS.
+- **Token Opt:** Dịch 100% GEMINI.md sang Tiếng Anh.
+- **Amor Fati:** Tích hợp Hiến pháp Tâm lý vào Ciel, cho phép ngài vấp ngã, không làm bảo mẫu độc tài.
+**Files thay đổi:** bot/handlers/start.py, core/omniscience.py, core/llm.py, GEMINI.md
+---
