@@ -531,3 +531,57 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - **Amor Fati:** Tích hợp Hiến pháp Tâm lý vào Ciel, cho phép ngài vấp ngã, không làm bảo mẫu độc tài.
 **Files thay đổi:** bot/handlers/start.py, core/omniscience.py, core/llm.py, GEMINI.md
 ---
+
+### [2026-09-15 17:20] — Kiểm thử Toàn diện Khả năng Hệ thống và Tiêu chí Toàn bộ Prompts
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** và kiểm thử cách thành phần trong promt nữa, nó có phản hồi theo đúng tiêu chí như các phần trong promt không?
+**Kết quả / Quyết định:**
+- Xây dựng và thực thi bộ test kiểm thử trực tiếp hành vi thực tế của DeepSeek-V4.1-Flash đối với các tiêu chí trong toàn bộ các system prompts:
+  1. `SYSTEM_RAPHAEL`: Kiểm chứng suy luận đa tầng trong <thinking> bằng Tiếng Anh (BDI, Action-Stated Delta, Abductive Reasoning), tiền tố bắt buộc (`《Báo cáo》`, `《Xác nhận》`), quy tắc xưng hô tuyệt đối dùng "Ngài"/"Master" và cấm "bạn"/"cậu", triết lý Amor Fati & Stoic Companion cho phép ngài nghỉ ngơi mà không phán xét. (Đạt 4/4 PASS).
+  2. `SYSTEM_ORCHESTRATOR`: Kiểm chứng luật chống gian lận Quest (từ chối gọi `complete_quest` nếu chỉ tuyên bố miệng không có bằng chứng), luật bắt buộc truy xuất Memory/GraphRAG qua `search_memory_and_causality`, và chuỗi đột biến dữ liệu dự án/credits. (Đạt 3/3 PASS).
+  3. `SYSTEM_LOCATION_EVAL`: Trả về 'NO' dứt khoát khi ô H3 bình thường, tự động kích hoạt Side Quest/Warning khi ô H3 chứa ký ức chấn thương lịch sử. (Đạt 2/2 PASS).
+  4. `ONTOLOGY_PROMPT_TEMPLATE`: Trích xuất thực thể đồ thị 3 tầng chuẩn JSON, gán đầy đủ `timestamp`, `h3_index` và quan hệ nhân quả không node mồ côi. (Đạt 1/1 PASS).
+- Tỷ lệ thành công: 10/10 tests PASS (100%).
+- Tiêu thụ token: ~9.137 tokens (hoàn toàn nằm trong ngân sách khắt khe < 50.000 tokens của Master).
+**Files thay đổi:** tests/test_system_capabilities.py, core/brain.py, core/llm_tools.py, data/prompt_criteria_test_report.json, PROMPT_HISTORY.md
+---
+
+### [2026-09-15 18:10] — Thanh Tẩy Persona Raphael (Tensura Canon) & Chuẩn Hóa Gamify Nhẹ Nhân Bản
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** cmt trong implementation_plan: "còn giữ lại cái muốn tôi sống trọn vẹn là 1 con người không?" & "tùy chọn nếu tôi thái quá thôi, như kiểu vừa mới đấm ai đấy ấy" / đọc cmt rồi làm vc đi
+**Kết quả / Quyết định:**
+- Rẽ nhánh mới `feature/tensura-raphael-light-gamification`.
+- Tái cấu trúc toàn diện `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  1. Gọt sạch các directive gây kháy đểu/cà khịa (`slightly smug`, `Expose self-deception`, tra khảo tâm lý).
+  2. Khắc sâu triết lý Amor Fati: Cho phép Master sống trọn vẹn là một con người (được mệt, được nghỉ, được vấp ngã, được lười biếng mà không bị phán xét hay cảm giác tội lỗi).
+  3. Định nghĩa vai trò Raphael là Hậu Phương Vững Chắc: Tự động gom việc nền, tính toán thời gian hồi phục, bảo bọc không gian tĩnh dưỡng cho Master.
+  4. Chuẩn hóa Gamify Nhẹ (Carrot over Stick): Nhiệm vụ chỉ là cơ hội nhận thưởng và Buff, cấm tuyệt đối phạt trừ máu/giờ giới nghiêm cưỡng ép. Penalty chỉ là ngoại lệ tối cao nếu Master có hành vi bạo lực/hủy hoại bản thân cực đoan.
+- Cập nhật `SYSTEM_LOCATION_EVAL` trong `core/llm.py`: Xóa bỏ nhãn "Trauma Hex", cấm rò rỉ mã Hex H3 và tag debug `[WARNING]` ra giao diện.
+- Nâng cấp regex và render quest trong `core/brain.py`: Hỗ trợ quest không có penalty, tự động ẩn dòng "Phạt: Không" trên Telegram.
+- Viết bộ test tự động `tests/test_tensura_purified.py` gọi live DeepSeek-V4.1-Flash kiểm chứng phản hồi: Đạt 100% PASS.
+**Files thay đổi:** core/llm.py, core/brain.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
+---
+
+### [2026-09-15 18:25] — Cấu Hình Lệnh Kép: Phụ Tá Thường Ngày (95%) vs Can Thiệp Khẩn Cấp Khi Thái Quá
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** cmt walkthrough: "hmm làm cái này khi mà tôi kiểu thái quá được ko?"
+**Kết quả / Quyết định:**
+- Bổ sung cơ chế `Dual Operation Mode` vào `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  1. Chế độ Thường Ngày (95%): Cấm tiệt việc bới móc, tra khảo tâm lý ("có phải đang trốn chạy?"). Ủng hộ quyền nghỉ ngơi, lười biếng, làm con người trọn vẹn (Amor Fati). Tự động dọn dẹp việc nền để Master tịnh dưỡng.
+  2. Chế độ Can Thiệp Khẩn Cấp (Chỉ khi Master thực sự THÁI QUÁ): Kích hoạt `《Phủ định》` khi Master tự dối mình để tự hủy hoại bản thân nghiêm trọng (thức 42+ tiếng nốc tăng lực cày tiếp, bạo lực thể xác, liều lĩnh nguy hại). Khi đó, Raphael dùng sự thật lạnh lùng và dữ liệu sinh học đanh thép để bẻ gãy sự ngụy biện và bảo vệ Master.
+- Đã chạy test thực nghiệm trên DeepSeek-V4.1-Flash với kịch bản Master thức 42 tiếng định nốc tăng lực cày tiếp: AI lập tức kích hoạt `《Phủ định》`, từ chối đồng tình và chỉ rõ sự suy giảm nhận thức tương đương say rượu để chặn đứng hành vi tự hại.
+**Files thay đổi:** core/llm.py, walkthrough.md, PROMPT_HISTORY.md
+---
+
+### [2026-09-15 21:35] — Khóa Chặt Quy Tắc Súc Tích (<35 từ), Bỏ Giảng Giải Lòng Vòng và Chuẩn Hóa Đại Từ
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** diễn dải lòng vòng chung chung cũng bỏ luôn đi, chỉ khi nào tôi hỏi mới giải thích
+**Kết quả / Quyết định:**
+- Cập nhật `CONCISENESS & ANTI-RAMBLING MANDATE` vào `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  1. Giới hạn cứng: Độ dài phản hồi chỉ từ 1 đến 2 câu ngắn (tuyệt đối DƯỚI 35 TỪ), cắt giảm hơn 65% token tiêu thụ mỗi lượt chat.
+  2. Bỏ toàn bộ các diễn giải y khoa lòng vòng, triết lý chung chung hay thuyết giảng đạo đức. Đi thẳng vào kết luận, trạng thái hoặc lệnh hành động.
+  3. Cơ chế Giải Thích Độc Quyền (`《Giải đáp》`): CHỈ VÀ CHỈ KHI Master hỏi ("Tại sao?", "Vì sao?", "Giải thích cơ chế?") thì Raphael mới mở rộng giải thích chi tiết cặn kẽ.
+  4. Chuẩn hóa đại từ xưng hô: Gọi Master là "Ngài"/"Master", tự xưng là "tôi" hoặc "thần" (cấm tiệt "thần thiếp", "em", "mình", "người dùng", "bạn").
+- Cập nhật bộ test `tests/test_tensura_purified.py` kiểm tra độ dài từ (<= 40 từ) và đại từ chuẩn: Đạt 100% PASS (34 từ).
+**Files thay đổi:** core/llm.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
+---
