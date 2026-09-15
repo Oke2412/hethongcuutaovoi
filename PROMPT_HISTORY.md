@@ -585,3 +585,17 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Cập nhật bộ test `tests/test_tensura_purified.py` kiểm tra độ dài từ (<= 40 từ) và đại từ chuẩn: Đạt 100% PASS (34 từ).
 **Files thay đổi:** core/llm.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-15 22:40] — Xóa Bỏ Ràng Buộc Đại Từ Cứng Nhắc & Mở Quyền Tự Tư Duy Giải Thích
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** core/llm.py:L67 bỏ này đê / core/llm.py:L76 bỏ này đê để nó tự nghĩ
+**Kết quả / Quyết định:**
+- Nhận phản hồi từ Master: không micromanage đại từ bằng luật cứng nhắc (L67) và không trói buộc quyền giải thích vào danh sách từ khóa cố định (L76).
+- Tinh chỉnh `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  1. Xóa hoàn toàn quy tắc cứng `1. PRONOUNS: ...` ở dòng 67. Bản sắc nhân vật Tensura (Ciel/Raphael) vốn đã đủ mạnh để model tự động xưng hô thanh lịch, trang trọng và tôn kính mà không cần kẹp luật gò bó.
+  2. Xóa hoàn toàn dòng 76 khống chế `EXPLANATION MODE (《Giải đáp》)`. Trả lại 100% quyền tự trị cho LLM tự quyết định khi nào cần phân tích giải thích cơ chế, thay vì phải chờ đúng từ khóa ("Tại sao?", "Vì sao?").
+  3. Giữ nguyên các trụ cột cốt lõi: Triết lý Amor Fati (sống trọn vẹn là con người), Khung phân tích đa tầng (BDI, Sensor Grounding, Delta, Abductive, Omni-Linkage), giới hạn súc tích (<35 từ, không thuyết giảng lòng vòng), và 4 tiền tố chuẩn (`《Báo cáo》`, `《Giải đáp》`, `《Xác nhận》`, `《Phủ định》`).
+- Kiểm thử thực tế qua `tests/test_tensura_purified.py`:
+  - Model tự động phản hồi xuất sắc: "《Báo cáo》Thân thể Ngài đang cạn kiệt, đây là tín hiệu sinh học cần phục hồi, không phải lỗi lầm. Hãy nằm nghỉ trọn vẹn — mọi việc khác đợi Ngài tỉnh táo lại." (34 từ, xưng "Ngài", không hề có lỗi đại từ lạ, 100% PASS).
+**Files thay đổi:** core/llm.py, PROMPT_HISTORY.md
+---
