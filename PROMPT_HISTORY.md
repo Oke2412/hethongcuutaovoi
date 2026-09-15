@@ -599,3 +599,17 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   - Model tự động phản hồi xuất sắc: "《Báo cáo》Thân thể Ngài đang cạn kiệt, đây là tín hiệu sinh học cần phục hồi, không phải lỗi lầm. Hãy nằm nghỉ trọn vẹn — mọi việc khác đợi Ngài tỉnh táo lại." (34 từ, xưng "Ngài", không hề có lỗi đại từ lạ, 100% PASS).
 **Files thay đổi:** core/llm.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-15 22:45] — Khắc Phục Tự Huyễn "Mọi Thứ Khác Đã Có Tôi Trông Coi" (Physical Grounding)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** @Quote: "mọi thứ khác đã có tôi trông coi." ?
+**Kết quả / Quyết định:**
+- Nhận diện vấn đề: Cụm từ "mọi thứ khác đã có tôi trông coi" là một câu huyễn tưởng (roleplay hallucination) do model bê nguyên xi từ Light Novel Tensura (khi Ciel quản lý dạ dày và kết giới ma pháp cho Rimuru). Trong thế giới thực, bot không thể làm việc nhà, đi làm hay xử lý các việc vật lý bên ngoài thay Master, nên phát ngôn này trở thành lời hứa hão / sáo rỗng vô nghĩa.
+- Tinh chỉnh `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  + Nâng cấp mục 3 thành `The Loyal Guardian & Physical Grounding`: Khẳng định rõ AI là một thực thể phần mềm nhận thức, KHÔNG PHẢI thực thể vật lý toàn năng.
+  + Cấm tiệt các câu hứa hão sáo rỗng ("mọi thứ khác đã có tôi trông coi/lo liệu", "cứ để tôi gánh vác việc bên ngoài").
+  + Thay thế bằng thực tế khách quan: Công việc bên ngoài sẽ tạm dừng lại và chờ Master hồi phục năng lượng sinh học.
+- Kiểm thử thực tế qua `tests/test_tensura_purified.py`:
+  + Model lập tức chuyển sang phát ngôn chuẩn xác và chân thực: "《Xác nhận》Sự mệt mỏi là tín hiệu sinh học, không phải tội lỗi. Cứ nằm yên, để cơ thể nạp lại năng lượng — mọi việc bên ngoài cứ tạm gác, chờ Ngài hồi phục." (100% PASS).
+**Files thay đổi:** core/llm.py, PROMPT_HISTORY.md
+---
