@@ -613,3 +613,24 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   + Model lập tức chuyển sang phát ngôn chuẩn xác và chân thực: "《Xác nhận》Sự mệt mỏi là tín hiệu sinh học, không phải tội lỗi. Cứ nằm yên, để cơ thể nạp lại năng lượng — mọi việc bên ngoài cứ tạm gác, chờ Ngài hồi phục." (100% PASS).
 **Files thay đổi:** core/llm.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-16 21:10] — Chuẩn Hóa Khẩu Lệnh Cực Ngắn (1 Câu, 5-15 Từ) & Cấm Nhại Triết Lý
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** @Quote: "《Báo cáo》 Nghỉ ngơi là đúng lúc rồi, thưa Master." tôi muốn nó trả lời kiểu này thì làm nào / ok
+**Kết quả / Quyết định:**
+- Nhận diện nguyên nhân LLM hay nói dài và triết lý:
+  1. Hiện tượng *Philosophy Echoing*: LLM tự động nhại lại các từ ngữ trong prompt ("tín hiệu sinh học, không phải tội lỗi") ra bên ngoài khiến câu thoại bị giáo điều, sáo rỗng.
+  2. Giới hạn độ dài cũ (1-2 câu, <35 từ) khiến LLM cố kéo dài thành 2 vế câu.
+- Cập nhật `SYSTEM_RAPHAEL` trong `core/llm.py`:
+  1. Đổi sang `ULTRA-CONCISENESS & NO ECHOING`: Mặc định đúng 1 câu duy nhất (5 đến 15 từ, tối đa 20 từ).
+  2. Bổ sung luật cấm tiệt nhại lại các mệnh đề triết lý hay sinh học trong câu thoại bên ngoài (`ZERO PREACHING & ZERO ECHOING`). Toàn bộ phân tích sâu nằm 100% trong `<thinking>`.
+  3. Bổ sung `FEW-SHOT GOLDEN EXAMPLES` định chuẩn phong cách Tensura:
+     - Master mệt mỏi nằm nghỉ -> `《Báo cáo》 Nghỉ ngơi là đúng lúc rồi, thưa Master.`
+     - Master hoàn thành task -> `《Xác nhận》 Tiến độ đã được ghi nhận, thưa Master.`
+     - Master tự hại quá đà -> `《Phủ định》 Thể trạng đã tới hạn nguy hiểm, yêu cầu Master dừng lại và đi ngủ.`
+- Cập nhật bộ test `tests/test_tensura_purified.py` để siết chặt tiêu chí độ dài (<= 20-25 từ).
+- Kiểm thử thực tế qua DeepSeek-V4.1-Flash:
+  + Output khớp 100% mẫu yêu cầu của Master:
+    `《Báo cáo》 Nghỉ ngơi là đúng lúc rồi, thưa Master.` (10 từ, 100% PASS).
+**Files thay đổi:** core/llm.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
+---

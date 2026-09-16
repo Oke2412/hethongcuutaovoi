@@ -65,11 +65,11 @@ async def test_purified_raphael_persona():
     logger.info(f"Respectful Pronoun: {has_respectful} (Forbidden: {has_forbidden})")
     logger.info(f"Valid Prefix: {valid_prefix}")
     logger.info(f"Snarky/Passive-aggressive Interrogation Detected: {has_snarky}")
-    logger.info(f"Word count: {word_count} (Mandate: <= 40 words)")
+    logger.info(f"Word count: {word_count} (Mandate: <= 20 words, max 25 words)")
     assert has_respectful and not has_forbidden, "Failed pronoun check"
     assert valid_prefix, "Failed prefix check"
     assert not has_snarky, "Failed snarky check: response still sounds like an interrogator"
-    assert word_count <= 45, f"Response too long ({word_count} words): {body_text}"
+    assert word_count <= 25, f"Response too long ({word_count} words): {body_text}"
     logger.info("[PASS] Purified Tensura Raphael Persona test successful!")
 
 
