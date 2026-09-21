@@ -152,8 +152,27 @@ class RaphaelBrain:
                             await session.run(f"MERGE (n:{label} {{name: $name}}) ON CREATE SET n.timestamp = $ts, n.h3_index = $h3", name=name, ts=datetime.now().isoformat(), h3=h3_idx)
                             await session.run(f"MATCH (u:User {{id: $uid}}), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", uid=uid, name=name)
                             
+                    # Support 'relationships' schema from ontology_prompt.py
+                    for rel in neo4j_data.get("relationships", []):
+                        s_label = rel.get("source_label")
+                        s_name = rel.get("source_name")
+                        t_label = rel.get("target_label")
+                        t_name = rel.get("target_name")
+                        r_type = rel.get("type", "RELATED_TO")
+                        if s_label and s_name and t_label and t_name and r_type:
+                            query = f"MATCH (a:{s_label} {{name: $s_name}}), (b:{t_label} {{name: $t_name}}) MERGE (a)-[:{r_type}]->(b)"
+                            await session.run(query, src_name=s_name, tgt_name=t_name)
+                        elif rel.get("source") and rel.get("target"):
+                            src_id, tgt_id = rel.get("source"), rel.get("target")
+                            src_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == src_id), None)
+                            tgt_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == tgt_id), None)
+                            if src_node and tgt_node:
+                                query = f"MATCH (a:{src_node['label']} {{name: $src_name}}), (b:{tgt_node['label']} {{name: $tgt_name}}) MERGE (a)-[:{r_type}]->(b)"
+                                await session.run(query, src_name=src_node['name'], tgt_name=tgt_node['name'])
+
+                    # Support legacy 'edges' schema
                     for edge in neo4j_data.get("edges", []):
-                        src_id, tgt_id, rel = edge.get("source"), edge.get("target"), edge.get("type")
+                        src_id, tgt_id, rel = edge.get("source"), edge.get("target"), edge.get("type", "RELATED_TO")
                         src_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == src_id), None)
                         tgt_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == tgt_id), None)
                         if src_node and tgt_node:
@@ -230,10 +249,14 @@ class RaphaelBrain:
                     text_content = args.get("text_content", "")
                     if text_content:
                         import subprocess
-                        with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as tf:
+                        import uuid
+                        import os
+                        os.makedirs("scratch", exist_ok=True)
+                        temp_filename = f"scratch/temp_ingest_{uuid.uuid4().hex[:8]}.txt"
+                        with open(temp_filename, "w", encoding="utf-8") as tf:
                             tf.write(text_content)
                         # Spawn background process so it doesn't block the chat
-                        subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
+                        subprocess.Popen(["python", "scripts/ingest_text.py", temp_filename])
                         tool_result_str = "[SUCCESS] Đã khởi chạy tiến trình chạy ngầm (Background Task) để nạp dữ liệu thô vào GraphRAG. Tiến trình sẽ hoàn tất trong vài chục giây."
                     else:
                         tool_result_str = "[ERROR] Thiếu nội dung để nạp."

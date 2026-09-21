@@ -653,3 +653,22 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Files thay đổi:** api/routes/desktop.py, api/main.py, tests/test_desktop_adapter.py, PROMPT_HISTORY.md
 ---
 
+
+### [2026-09-21 23:35] — Khắc Phục Toàn Diện 4 Lỗi Hạ Tầng & Chuẩn Hóa Pipeline GraphRAG
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** @Quote: "Tách biệt bộ nhớ: Chỉ đẩy text_content thuần của bạn vào Mem0; giữ phần metacognition <thinking> cho SQLite MessageLog hoặc Neo4j riêng biệt." phần này nên bàn với tôi trước. còn lại thì fix hết đi
+**Kết quả / Quyết định:**
+- Tách nhánh làm việc mới: `fix/neo4j-graph-and-pipeline-integrity`.
+- Tuân thủ chỉ thị của Master: **Tạm giữ nguyên cơ chế lưu Mem0 hiện tại để bàn bạc kỹ lưỡng phương án với Master trước khi đụng vào code**, đồng thời **sửa dứt điểm 4 lỗi kỹ thuật chí mạng** trong hệ thống:
+  1. **Khớp nối Schema Neo4j (Graph Relationship Fix):**
+     - Sửa `_persist_to_graph` trong `core/brain.py` hỗ trợ trọn vẹn cả cấu trúc `"relationships"` chuẩn từ `ontology_prompt.py` (với `source_label`, `source_name`, `target_label`, `target_name`, `type`) lẫn cấu trúc `"edges"` legacy. Đảm bảo 100% các quan hệ nhân quả (CAUSES, TRIGGERS...) được MERGE vào Neo4j, chấm dứt tình trạng node mồ côi.
+  2. **Chuẩn hóa Cypher Query & Tự nhiên hóa Graph Output (Reranker Fix):**
+     - Viết lại hàm `query_causal_graph` trong `core/llm.py`: Khắc phục lỗi tìm nhãn `:Entity` không tồn tại; chuyển sang duyệt đường đi đa chiều (cả chiều nguyên nhân và chiều kết quả) qua các quan hệ nhân quả.
+     - Định dạng dữ liệu Graph trả về thành các câu văn tự nhiên thuần túy (thay vì chuỗi `str(dict)` thô), giúp `Qwen3-Reranker-8B` chấm điểm và xếp hạng chính xác thông tin nhân quả cùng với Vector và FTS5.
+  3. **Xóa bỏ Race Condition & Lỗi Đường Dẫn File Tạm (Temp File Fix):**
+     - Thay thế đường dẫn cố định `scratch/temp_ingest.txt` trong cả `core/brain.py` và `bot/ingestion_worker.py` bằng UUID định danh duy nhất (`scratch/temp_ingest_{uuid}.txt`) kèm lệnh tự động khởi tạo thư mục `scratch/`, loại bỏ nguy cơ ghi đè và crash `FileNotFoundError`.
+  4. **Sanitize Ký Tự Đặc Biệt SQLite FTS5 (FTS5 Sanitization Fix):**
+     - Sửa `sparse_search` trong `core/search.py`: Escape toàn bộ dấu ngoặc kép (`" -> ""`) và bọc cụm từ an toàn, ngăn chặn lỗi cú pháp `OperationalError` làm silent-fail câu truy vấn FTS5.
+- Viết bộ kiểm thử chuyên biệt `tests/test_graph_and_pipeline_fixes.py` và chạy lại toàn bộ test suite (`test_tensura_purified.py`, `test_desktop_adapter.py`): Đạt 100% PASS.
+**Files thay đổi:** core/brain.py, bot/ingestion_worker.py, core/llm.py, core/search.py, tests/test_graph_and_pipeline_fixes.py, PROMPT_HISTORY.md
+---

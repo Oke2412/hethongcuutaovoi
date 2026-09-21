@@ -51,11 +51,13 @@ Conversation:
 async def trigger_heavy_ingestion(text: str):
     import subprocess
     import os
+    import uuid
     os.makedirs("scratch", exist_ok=True)
-    with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as f:
+    temp_path = f"scratch/temp_ingest_{uuid.uuid4().hex[:8]}.txt"
+    with open(temp_path, "w", encoding="utf-8") as f:
         f.write(text)
-    subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
-    logger.info("Triggered heavy GraphRAG ingestion for buffer.")
+    subprocess.Popen(["python", "scripts/ingest_text.py", temp_path])
+    logger.info(f"Triggered heavy GraphRAG ingestion for buffer with file: {temp_path}")
 
 async def ingestion_loop():
     logger.info("Ingestion Worker started.")

@@ -388,27 +388,51 @@ TOOLS_DEF = [
 ]
 
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
-    """Query Neo4j for past events related to current entities."""
+    """Query Neo4j for causal paths related to current entities and format as natural language."""
     from core.neo4j_client import get_neo4j_driver
     driver = get_neo4j_driver()
-    if not driver:
+    if not driver or not entities:
         return ""
         
     try:
         async with driver.session() as session:
-            # Correct causal graph query matching the structure from _persist_to_graph
-            if not entities:
-                return ""
             query = """
-            MATCH (u:User {id: $uid})-[:EXPERIENCED]->(e:LifeEvent)-[:RELATED_TO]->(ent:Entity)
-            WHERE ent.name IN $entities
-            RETURN e.description AS event, e.timestamp AS time, ent.name AS entity
-            ORDER BY e.timestamp DESC
-            LIMIT 5
+            MATCH (n)
+            WHERE n.name IN $entities
+            OPTIONAL MATCH (cause)-[r1:CAUSES|TRIGGERS]->(n)
+            OPTIONAL MATCH (n)-[r2:CAUSES|TRIGGERS|REINFORCES|MITIGATES|LOCATED_IN|RELATED_TO]->(effect)
+            RETURN n.name AS entity, labels(n)[0] AS entity_type,
+                   cause.name AS cause, labels(cause)[0] AS cause_type, type(r1) AS cause_rel,
+                   effect.name AS effect, labels(effect)[0] AS effect_type, type(r2) AS effect_rel,
+                   n.timestamp AS time
+            ORDER BY n.timestamp DESC
+            LIMIT 8
             """
             result = await session.run(query, uid=int(user_id), entities=entities)
-            data = await result.data()
-            return str(data)
+            records = await result.data()
+            if not records:
+                return ""
+            
+            lines = []
+            for rec in records:
+                ent = rec.get("entity", "")
+                ent_type = rec.get("entity_type", "Khái niệm")
+                cause = rec.get("cause")
+                cause_rel = rec.get("cause_rel")
+                effect = rec.get("effect")
+                effect_rel = rec.get("effect_rel")
+                t = rec.get("time", "")
+
+                parts = [f"Thực thể '{ent}' ({ent_type})"]
+                if cause:
+                    parts.append(f"do '{cause}' {cause_rel or 'gây ra'}")
+                if effect:
+                    parts.append(f"dẫn đến '{effect}' ({effect_rel or 'hệ quả'})")
+                if t:
+                    parts.append(f"thời điểm {t}")
+                lines.append("; ".join(parts))
+            
+            return "\n".join(lines)
     except Exception as exc:
         logger.error("Neo4j error: %s", exc)
         return ""
