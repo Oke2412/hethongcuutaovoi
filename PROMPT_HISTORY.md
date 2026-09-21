@@ -634,3 +634,22 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
     `《Báo cáo》 Nghỉ ngơi là đúng lúc rồi, thưa Master.` (10 từ, 100% PASS).
 **Files thay đổi:** core/llm.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-16 22:45] — Triển khai Desktop App Adapter & Tích Hợp Real-time Voice/Cosmos Graph
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** Triển khai Desktop App Adapter trong amazing-nobel kết nối trực tiếp với native desktop overlay và local audio pipeline (tensurafrontend).
+**Kết quả / Quyết định:**
+- Nhận thức kiến trúc: `amazing-nobel` là Core Brain duy nhất (Omni-Agentic Loop, DeepSeek-V4.1-Flash, SQLite FTS5, Neo4j Causal Graph, Mem0 ChromaDB, Qwen3-Reranker-8B). Telegram chỉ là một adapter; desktop native app trong `tensurafrontend` cần Desktop Adapter chính thức.
+- Xây dựng `api/routes/desktop.py`:
+  1. `GET /api/chat`: Điểm kết nối ping kiểm tra trạng thái máy chủ cho `RemoteServerClient.test_connection()`.
+  2. `POST /api/chat`: Nhận prompt/messages từ Desktop UI và STT Whisper, giải quyết `user_id` mặc định (`settings.allowed_user_id` = Master), chuyển thẳng vào `RaphaelBrain.process_input()`. Hỗ trợ cả phản hồi JSON thông thường và Server-Sent Events (SSE) streaming (`data: {"text": token}\n\n` -> `data: [DONE]\n\n`) nạp gối đầu sang VieNeu-TTS + RVC với độ trễ thấp nhất. Tách riêng voice thuần (`《Báo cáo》...`) khỏi dòng HUD metrics (`⚡E | 😐M...`) để tránh việc TTS đọc cả biểu tượng metric ra loa.
+  3. `GET /api/graph/cosmos`: Truy vấn Async Neo4j lấy toàn bộ thực thể và liên kết nhân quả 3 tầng giới hạn `limit` nạp về canvas chòm sao vũ trụ (Cosmos Stars) hiển thị phía sau Orb Raphael. Tự động fallback sang chòm sao Tensura kiến trúc khi database đang ngoại tuyến.
+  4. `GET /api/status`: Trả về trạng thái thể trạng, năng lượng, mood, health, credits và H3 hex của Master từ `build_hud()`.
+- Cập nhật `api/main.py`:
+  - Thêm `CORSMiddleware` cho phép gọi cross-origin từ Electron overlay, Next.js static và Tailscale.
+  - Thêm `lifespan` tự động gọi `init_db()` khởi tạo bảng SQLite và triggers FTS5 khi server khởi động.
+  - Mount router `desktop.router` tại prefix `/api`.
+- Viết bộ kiểm thử tự động `tests/test_desktop_adapter.py`: Kiểm thử 6/6 kịch bản gồm `/health`, `GET /api/chat`, `POST /api/chat` (JSON + SSE stream tương thích `RemoteServerClient`), `GET /api/graph/cosmos`, `GET /api/status`. Toàn bộ 6 tests ĐẠT 100% PASS.
+**Files thay đổi:** api/routes/desktop.py, api/main.py, tests/test_desktop_adapter.py, PROMPT_HISTORY.md
+---
+

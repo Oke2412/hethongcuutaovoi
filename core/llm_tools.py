@@ -28,7 +28,7 @@ async def update_memory_async(user_id: int, content: str) -> str:
         brain.memory.add,
         messages=[{"role": "user", "content": "Master requested memory update"}, {"role": "assistant", "content": content}],
         user_id=str(user_id),
-        metadata={"timestamp": current_time, "source": "llm_tool_forced", "h3_index": _get_current_h3(user_id)}
+        metadata={"timestamp": current_time, "source": "llm_tool_forced", "h3_index": str(_get_current_h3(user_id) or "")}
     )
     return "Đã cập nhật Ký ức (Graph) thành công."
 
