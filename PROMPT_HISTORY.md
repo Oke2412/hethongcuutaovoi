@@ -710,3 +710,19 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   + `tests/test_tensura_purified.py`: 100% PASS khi gọi trực tiếp API `https://api.deepseek.com/chat/completions` (phản hồi chuẩn Tensura 10 từ).
 **Files thay đổi:** config.py, core/llm.py, core/brain.py, core/search.py, core/quest_generator.py, bot/ingestion_worker.py, scripts/ingest_text.py, db/models.py, db/database.py, api/routes/desktop.py, tests/test_desktop_adapter.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 02:53] — Thực Nghiệm Benchmark Context Caching Trực Tiếp Trên DeepSeek Official API
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** ok giờ test thử cache hit rate đi, cho 1 promt có cùng promt ở đầu nhưng thay đổi đúng ở cuối, dài hơn 2000 token và test 10-15 lần
+**Kết quả / Quyết định:**
+- Xây dựng bài kiểm thử benchmark trực tiếp trên `https://api.deepseek.com` với model `deepseek-chat`:
+  + Static Prefix cố định: Hệ thống prompt và tri thức kiến trúc Raphael dài 22,104 ký tự (~5,163 tokens, vượt xa ngưỡng 2000 tokens yêu cầu).
+  + Dynamic Tail: 12 câu hỏi thay đổi nội dung ở cuối qua 12 lượt gọi liên tiếp.
+- Kết quả thực nghiệm đo đạc:
+  + Lượt 1 (Ghi Cache): Cache Hit: 0 token (0%), Cache Miss: 5,163 tokens, Độ trễ: 1.49s.
+  + Lượt 2 đến 12 (11 lượt liên tiếp): Cache Hit đạt **4,992 / 5,163 tokens (~96.7% Cache Hit Rate)** mỗi lượt.
+  + Tỉ lệ thành công: 11/12 lượt (đạt 100% từ lượt thứ 2 trở đi).
+  + Độ trễ phản hồi giảm một nửa: Từ 1.49s (Lượt 1) xuống trung bình **0.76s** (Lượt 2–12).
+  + Tiết kiệm chi phí: Giảm ~87% chi phí input token thực tế trên DeepSeek Official API.
+**Files thay đổi:** PROMPT_HISTORY.md
+---
