@@ -20,6 +20,11 @@ client = TestClient(app)
 
 
 class TestDesktopAdapter(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import asyncio
+        from db.database import init_db
+        asyncio.run(init_db())
     def test_health_check(self):
         response = client.get("/health")
         self.assertEqual(response.status_code, 200)
@@ -108,6 +113,37 @@ class TestDesktopAdapter(unittest.TestCase):
         self.assertEqual(
             reconstructed, "《Xác nhận》 Tiến độ đã được ghi nhận, thưa Master."
         )
+
+    def test_ambient_transcript_flow(self):
+        """Tests POST /api/ambient/transcript and GET /api/ambient/transcripts with FTS5."""
+        # 1. Post ambient transcript
+        payload = {
+            "text": "Master và đồng đội thảo luận về thiết kế mạch ARM cho robot",
+            "speaker": "master_and_team",
+            "h3_index": "8928308280fffff",
+            "extract_to_graph": False,  # disable async neo4j call in unit test
+        }
+        post_resp = client.post("/api/ambient/transcript", json=payload)
+        self.assertEqual(post_resp.status_code, 200)
+        post_data = post_resp.json()
+        self.assertEqual(post_data.get("status"), "ok")
+        transcript_id = post_data.get("id")
+        self.assertIsNotNone(transcript_id)
+
+        # 2. Get list of ambient transcripts
+        get_resp = client.get("/api/ambient/transcripts")
+        self.assertEqual(get_resp.status_code, 200)
+        get_data = get_resp.json()
+        self.assertEqual(get_data.get("status"), "ok")
+        self.assertGreaterEqual(get_data.get("count", 0), 1)
+
+        # 3. Query with FTS5 keyword
+        search_resp = client.get("/api/ambient/transcripts?query=robot")
+        self.assertEqual(search_resp.status_code, 200)
+        search_data = search_resp.json()
+        self.assertEqual(search_data.get("status"), "ok")
+        matched = [t for t in search_data.get("transcripts", []) if "robot" in t.get("text", "")]
+        self.assertGreaterEqual(len(matched), 1)
 
 
 if __name__ == "__main__":

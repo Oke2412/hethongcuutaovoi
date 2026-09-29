@@ -14,11 +14,15 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
+from sqlmodel import select
+from sqlalchemy import text as sa_text
 
 from config import settings
 from core.brain import brain
 from core.hud import build_hud
 from core.neo4j_client import get_neo4j_driver
+from db.database import AsyncSessionLocal
+from db.models import AmbientTranscript
 
 logger = logging.getLogger(__name__)
 
@@ -300,3 +304,147 @@ async def get_system_status(user_id: Optional[str] = None) -> JSONResponse:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
+
+
+class AmbientTranscriptRequest(BaseModel):
+    text: str = Field(description="Raw transcribed ambient audio chunk from Native App")
+    speaker: Optional[str] = Field(default="ambient", description="Speaker identity or ambient tag")
+    h3_index: Optional[str] = Field(default="", description="Optional Uber H3 spatial index")
+    user_id: Optional[str] = Field(default=None, description="User ID (defaults to allowed_user_id)")
+    extract_to_graph: bool = Field(default=True, description="Whether to trigger async Neo4j extraction")
+
+
+async def _extract_ambient_to_graph_task(transcript_id: int, user_id: int, text_content: str, h3_index: str) -> None:
+    """Asynchronously extract entities and causal links from ambient transcript and inject into Neo4j."""
+    try:
+        from scripts.ingest_text import extract_graph, inject_to_neo4j
+        json_data = await extract_graph(text_content)
+        if json_data and isinstance(json_data, dict):
+            # Inject to Neo4j with pointer linking back to SQLite transcript ID
+            await inject_to_neo4j(json_data, source_transcript_id=transcript_id)
+
+            # Mark as extracted in SQLite
+            async with AsyncSessionLocal() as session:
+                record = await session.get(AmbientTranscript, transcript_id)
+                if record:
+                    record.is_extracted = True
+                    nodes = json_data.get("nodes", [])
+                    record.extracted_summary = f"{len(nodes)} entities extracted"
+                    session.add(record)
+                    await session.commit()
+            logger.info(f"Successfully extracted ambient transcript #{transcript_id} to Neo4j.")
+    except Exception as exc:
+        logger.warning(f"Async ambient graph extraction failed for #{transcript_id}: {exc}")
+
+
+@router.post("/ambient/transcript")
+async def record_ambient_transcript(request: AmbientTranscriptRequest) -> JSONResponse:
+    """
+    Ingests an ambient audio transcript from Raphael App.
+    Saves the full raw text in SQLite with FTS5 indexing, and schedules background Causal Graph extraction into Neo4j with pointer linking.
+    """
+    if not request.text or not request.text.strip():
+        raise HTTPException(status_code=400, detail="Empty transcript text.")
+
+    uid = int(request.user_id or settings.allowed_user_id or 0)
+
+    try:
+        record = AmbientTranscript(
+            user_id=uid,
+            text=request.text.strip(),
+            speaker=request.speaker or "ambient",
+            h3_index=request.h3_index or "",
+            recorded_at=datetime.now(timezone.utc),
+            is_extracted=False,
+        )
+        async with AsyncSessionLocal() as session:
+            session.add(record)
+            await session.commit()
+            await session.refresh(record)
+
+        # Trigger background Causal Graph extraction if requested
+        if request.extract_to_graph:
+            asyncio.create_task(
+                _extract_ambient_to_graph_task(
+                    transcript_id=record.id,
+                    user_id=uid,
+                    text_content=record.text,
+                    h3_index=record.h3_index,
+                )
+            )
+
+        return JSONResponse(
+            {
+                "status": "ok",
+                "id": record.id,
+                "recorded_at": record.recorded_at.isoformat(),
+                "message": "Ambient transcript recorded. Causal extraction scheduled.",
+            }
+        )
+    except Exception as exc:
+        logger.error(f"Error saving ambient transcript: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error saving transcript.")
+
+
+@router.get("/ambient/transcripts")
+async def get_ambient_transcripts(
+    query: Optional[str] = None,
+    limit: int = 20,
+    user_id: Optional[str] = None,
+) -> JSONResponse:
+    """
+    Retrieves ambient transcripts. Supports FTS5 keyword full-text search when query parameter is provided.
+    """
+    uid = int(user_id or settings.allowed_user_id or 0)
+    try:
+        async with AsyncSessionLocal() as session:
+            if query and query.strip():
+                # FTS5 search
+                safe_query = query.strip().replace('"', '""')
+                stmt = sa_text("""
+                    SELECT at.id, at.user_id, at.text, at.speaker, at.h3_index, at.recorded_at, at.is_extracted, at.extracted_summary
+                    FROM ambienttranscript at
+                    JOIN ambienttranscript_fts fts ON at.id = fts.id
+                    WHERE ambienttranscript_fts MATCH :q AND (:uid = 0 OR at.user_id = :uid)
+                    ORDER BY at.recorded_at DESC
+                    LIMIT :limit
+                """)
+                result = await session.execute(stmt, {"q": f'"{safe_query}"', "uid": uid, "limit": limit})
+                rows = result.fetchall()
+                data = [
+                    {
+                        "id": r[0],
+                        "user_id": r[1],
+                        "text": r[2],
+                        "speaker": r[3],
+                        "h3_index": r[4],
+                        "recorded_at": str(r[5]),
+                        "is_extracted": bool(r[6]),
+                        "extracted_summary": r[7],
+                    }
+                    for r in rows
+                ]
+            else:
+                stmt_select = select(AmbientTranscript)
+                if uid > 0:
+                    stmt_select = stmt_select.where(AmbientTranscript.user_id == uid)
+                stmt_select = stmt_select.order_by(AmbientTranscript.recorded_at.desc()).limit(limit)
+                records = (await session.execute(stmt_select)).scalars().all()
+                data = [
+                    {
+                        "id": r.id,
+                        "user_id": r.user_id,
+                        "text": r.text,
+                        "speaker": r.speaker,
+                        "h3_index": r.h3_index,
+                        "recorded_at": r.recorded_at.isoformat(),
+                        "is_extracted": r.is_extracted,
+                        "extracted_summary": r.extracted_summary,
+                    }
+                    for r in records
+                ]
+
+        return JSONResponse({"status": "ok", "count": len(data), "transcripts": data})
+    except Exception as exc:
+        logger.error(f"Error querying ambient transcripts: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error querying transcripts.")

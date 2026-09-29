@@ -5,17 +5,16 @@ import os
 import re
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from openai import AsyncOpenAI
 from config import settings
+from core.llm import _get_llm_client
 from core.neo4j_client import get_neo4j_driver
 from core.ontology_prompt import ONTOLOGY_PROMPT_TEMPLATE
 
-client = AsyncOpenAI(api_key=settings.siliconflow_api_key, base_url='https://api.siliconflow.com/v1')
-
 async def extract_graph(text):
+    client = _get_llm_client()
     prompt = ONTOLOGY_PROMPT_TEMPLATE.replace("{TEXT_CONTENT}", text)
     resp = await client.chat.completions.create(
-        model="deepseek-ai/deepseek-v4.1-flash",
+        model=settings.deepseek_model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0
     )
@@ -25,7 +24,7 @@ async def extract_graph(text):
         return json.loads(match.group(1))
     return json.loads(res)
 
-async def inject_to_neo4j(json_data):
+async def inject_to_neo4j(json_data, source_transcript_id: int = None):
     driver = get_neo4j_driver()
     if not driver:
         print("No Neo4j driver.")
@@ -37,6 +36,8 @@ async def inject_to_neo4j(json_data):
             for node in json_data.get("nodes", []):
                 label, name = node.get("label"), node.get("name")
                 if label and name:
+                    if source_transcript_id is not None:
+                        node["source_transcript_id"] = source_transcript_id
                     props = {k: v for k, v in node.items() if k not in ["label", "name"]}
                     prop_str = ", ".join([f"n.{k} = ${k}" for k in props.keys()])
                     query = f"MERGE (n:{label} {{name: $name}})"

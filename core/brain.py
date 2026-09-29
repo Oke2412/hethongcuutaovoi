@@ -21,15 +21,19 @@ class RaphaelBrain:
             logger.warning("SILICONFLOW_API_KEY is not set. Mem0 initialization deferred.")
             return
 
+        llm_api_key = settings.deepseek_api_key or settings.siliconflow_api_key
+        llm_base_url = settings.deepseek_base_url if settings.deepseek_api_key else "https://api.siliconflow.com/v1"
+        llm_model = settings.deepseek_model if settings.deepseek_api_key else "deepseek-ai/deepseek-v4.1-flash"
+
         config = {
             "version": "v1.1",
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "deepseek-ai/deepseek-v4.1-flash",
+                    "model": llm_model,
                     "temperature": 0.0,
-                    "api_key": api_key,
-                    "openai_base_url": "https://api.siliconflow.com/v1",
+                    "api_key": llm_api_key,
+                    "openai_base_url": llm_base_url,
                     "max_tokens": 1500,
                 }
             },
@@ -37,7 +41,7 @@ class RaphaelBrain:
                 "provider": "openai",
                 "config": {
                     "model": "Qwen/Qwen3-Embedding-8B", 
-                    "api_key": api_key,
+                    "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.com/v1"
                 },
             },
@@ -210,7 +214,7 @@ class RaphaelBrain:
             loop_count += 1
             try:
                 response = await client.chat.completions.create(
-                    model="deepseek-ai/deepseek-v4.1-flash",
+                    model=settings.deepseek_model,
                     messages=messages,
                     tools=TOOLS_DEF,
                     max_tokens=8000,
@@ -356,7 +360,7 @@ class RaphaelBrain:
         # Second Pass: Persona Synthesis
         try:
             response2 = await client.chat.completions.create(
-                model="deepseek-ai/deepseek-v4.1-flash",
+                model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": SYSTEM_RAPHAEL},
                     {"role": "user", "content": raphael_prompt}

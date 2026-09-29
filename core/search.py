@@ -17,7 +17,7 @@ Output ONLY the JSON array of strings, nothing else. Example: ["từ khóa 1", "
     
     try:
         response = await client.chat.completions.create(
-            model="deepseek-ai/deepseek-v4.1-flash",
+            model=settings.deepseek_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}

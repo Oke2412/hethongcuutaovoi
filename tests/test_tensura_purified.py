@@ -32,7 +32,7 @@ async def test_purified_raphael_persona():
     user_input = "Hôm nay tôi mệt mỏi quá, chả muốn làm gì cả, cứ lười biếng nằm một chỗ."
     
     response = await client.chat.completions.create(
-        model="deepseek-ai/deepseek-v4.1-flash",
+        model=settings.deepseek_model,
         messages=[
             {"role": "system", "content": SYSTEM_RAPHAEL},
             {"role": "user", "content": user_input}

@@ -687,3 +687,26 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Kiểm thử toàn diện: Chạy `tests/test_desktop_adapter.py` (6/6 PASS) và `tests/test_graph_and_pipeline_fixes.py` (3/3 PASS).
 **Files thay đổi:** docker-compose.yml, Dockerfile, Dockerfile.api, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 02:47] — Chuyển Sang DeepSeek Official API & Xây Dựng Pipeline Ambient Transcript Pointer Linking
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** tôi dán vào chỗ cuối của env rồi nhé
+**Kết quả / Quyết định:**
+- Nhánh làm việc: `feature/deepseek-official-and-ambient-pipeline`.
+- Định dạng và kiểm tra `DEEPSEEK_API_KEY` trong `.env`: Kết nối thành công tới `https://api.deepseek.com` với model `deepseek-chat` (kích hoạt Context Caching tự động với `prompt_cache_hit_tokens`).
+- Chuyển giao toàn bộ module suy luận sang DeepSeek Official:
+  1. `config.py`: Bổ sung `deepseek_api_key`, `deepseek_base_url` (`https://api.deepseek.com`), `deepseek_model` (`deepseek-chat`). Giữ nguyên `siliconflow_api_key` cho `reranker_api_url` và embedder.
+  2. `core/llm.py`: Cập nhật `_get_llm_client()` ưu tiên DeepSeek Official API khi có key; cập nhật `evaluate_location_side_quest`, `get_ai_response`.
+  3. `core/brain.py`: Cập nhật cả 2 pass (Agent Loop & Persona Synthesis) sang DeepSeek Official, cấu hình Mem0 LLM sang DeepSeek Official trong khi giữ nguyên Embedder `Qwen3-Embedding-8B` trên SiliconFlow.
+  4. `core/search.py`, `core/quest_generator.py`, `bot/ingestion_worker.py`, `scripts/ingest_text.py`: Đồng bộ sử dụng `settings.deepseek_model` và DeepSeek Official client.
+- Xây dựng Pipeline Ambient Transcript (Âm thanh môi trường & Pointer Linking):
+  1. `db/models.py`: Bổ sung model `AmbientTranscript` (id, user_id, text, speaker, h3_index, recorded_at, is_extracted, extracted_summary).
+  2. `db/database.py`: Tạo bảng ảo `ambienttranscript_fts` và 3 triggers (ai, ad, au) để lập chỉ mục tìm kiếm toàn văn FTS5 cho transcript tức thì với 0 token LLM.
+  3. `scripts/ingest_text.py`: Bổ sung tham số `source_transcript_id` vào `inject_to_neo4j`, gán thuộc tính `source_transcript_id` cho các Node khi nạp vào Neo4j (Pointer Linking trỏ ngược về SQLite).
+  4. `api/routes/desktop.py`: Tạo endpoint `POST /api/ambient/transcript` (nhận transcript từ Raphael App, ghi SQLite và kích hoạt background task trích xuất Neo4j) và `GET /api/ambient/transcripts` (truy vấn danh sách và tìm kiếm từ khóa FTS5).
+- Kiểm thử toàn diện:
+  + `tests/test_desktop_adapter.py`: 7/7 PASS (bao gồm cả endpoint ambient transcript và FTS5 keyword search).
+  + `tests/test_graph_and_pipeline_fixes.py`: 3/3 PASS.
+  + `tests/test_tensura_purified.py`: 100% PASS khi gọi trực tiếp API `https://api.deepseek.com/chat/completions` (phản hồi chuẩn Tensura 10 từ).
+**Files thay đổi:** config.py, core/llm.py, core/brain.py, core/search.py, core/quest_generator.py, bot/ingestion_worker.py, scripts/ingest_text.py, db/models.py, db/database.py, api/routes/desktop.py, tests/test_desktop_adapter.py, tests/test_tensura_purified.py, PROMPT_HISTORY.md
+---

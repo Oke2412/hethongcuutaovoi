@@ -88,6 +88,11 @@ You have full autonomous cognitive judgment inside your <thinking> block:
 @lru_cache(maxsize=1)
 def _get_llm_client() -> AsyncOpenAI:
     from config import settings
+    if settings.deepseek_api_key:
+        return AsyncOpenAI(
+            base_url=settings.deepseek_base_url,
+            api_key=settings.deepseek_api_key,
+        )
     return AsyncOpenAI(
         base_url="https://api.siliconflow.com/v1",
         api_key=settings.siliconflow_api_key,
@@ -469,7 +474,7 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
 
     try:
         response = await client.chat.completions.create(
-            model="deepseek-ai/deepseek-v4.1-flash",
+            model=settings.deepseek_model,
             messages=[
                 {"role": "system", "content": SYSTEM_LOCATION_EVAL},
                 {"role": "user", "content": prompt}
@@ -483,7 +488,10 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
         logger.warning("Location side quest generation failed: %s", exc)
         return ""
 
-async def get_ai_response(prompt: str, model: str = 'deepseek-ai/deepseek-v4.1-flash', temperature: float = 0.0) -> str:
+async def get_ai_response(prompt: str, model: str = None, temperature: float = 0.0) -> str:
+    from config import settings
+    if model is None:
+        model = settings.deepseek_model
     client = _get_llm_client()
     try:
         response = await client.chat.completions.create(
