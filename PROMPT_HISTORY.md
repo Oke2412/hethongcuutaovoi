@@ -672,3 +672,18 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Viết bộ kiểm thử chuyên biệt `tests/test_graph_and_pipeline_fixes.py` và chạy lại toàn bộ test suite (`test_tensura_purified.py`, `test_desktop_adapter.py`): Đạt 100% PASS.
 **Files thay đổi:** core/brain.py, bot/ingestion_worker.py, core/llm.py, core/search.py, tests/test_graph_and_pipeline_fixes.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-29 22:07] — Chuẩn Hóa Cấu Hình Docker Compose & Dockerfiles Sẵn Sàng Deploy
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** trong docker compose đã có đủ lệnh để deploy chưa? / à ko desktop app chỉ cần hiện thông tin trên neo4j thôi chứ trả câu hỏi ra là backend mà, hoàn toàn là uiux / ok
+**Kết quả / Quyết định:**
+- Tạo nhánh làm việc mới: `fix/docker-deployment-sync`.
+- Làm rõ ranh giới kiến trúc: Desktop App (`tensurafrontend`) là tầng UI/UX mỏng nhận diện chòm sao 3D và phát voice TTS; Backend (`amazing-nobel`) gánh toàn bộ Causal Graph Neo4j, Vector Mem0 ChromaDB, FTS5 và LLM.
+- Khắc phục 3 lỗ hổng cấu hình trong Docker:
+  1. Đồng bộ ChromaDB Volume cho service `api`: Thêm mount `- ./data/chroma:/app/chroma_db` vào `api.volumes` để backend không bị phân mảnh trí nhớ vector và tránh mất dữ liệu khi container khởi động lại.
+  2. Xử lý thứ tự khởi động (Race Condition): Bổ sung `healthcheck` cho service `neo4j` (sử dụng `cypher-shell -u neo4j -p password 'RETURN 1'`) và thêm `depends_on: { neo4j: { condition: service_healthy } }` vào cả 2 service `bot` và `api`.
+  3. Vá cú pháp build tools trong Dockerfile: Sửa lỗi escape ký tự `\n` trong `Dockerfile`, bổ sung `build-essential gcc` và lệnh tạo thư mục `/app/scratch` cho cả `Dockerfile` và `Dockerfile.api`.
+  4. Chuẩn hóa Compose v2: Xóa thuộc tính lỗi thời `version: "3.8"`, kiểm tra `docker compose config` đạt chuẩn 100%.
+- Kiểm thử toàn diện: Chạy `tests/test_desktop_adapter.py` (6/6 PASS) và `tests/test_graph_and_pipeline_fixes.py` (3/3 PASS).
+**Files thay đổi:** docker-compose.yml, Dockerfile, Dockerfile.api, PROMPT_HISTORY.md
+---
