@@ -800,3 +800,19 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   6. Bổ sung Bảng điểm tự đánh giá kiến trúc (Scorecard), danh mục nợ kỹ thuật (Technical Debts) và sơ đồ lộ trình phát triển 3 quý tới (Dream Cycle, Wearables, Edge Fallback).
 **Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 15:40] — Bổ Sung Chi Tiết Bản Đồ Prompt, Cơ Chế Điều Phối & Chuẩn Hóa Model DeepSeek V4.1 Flash
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** từng promt xử lí ra sao ở đâu? trong các thành phần của điều phối thì từng thành phần có ảnh hưởng thế nào? nó là gì? và thống nhất là dùng deepseek v4.1 flash
+**Kết quả / Quyết định:**
+- Chuẩn hóa định danh mô hình DeepSeek V4.1 Flash:
+  + Thử nghiệm thực tế trên DeepSeek Official API (`https://api.deepseek.com`): API chấp nhận mã định danh chính thức là `deepseek-flash` (alias `deepseek-chat`) và trả về lỗi 400 nếu truyền `deepseek-v4.1-flash`.
+  + Chuẩn hóa và đồng bộ thiết lập `DEEPSEEK_MODEL="deepseek-flash"` trong `config.py` và `.env`.
+- Kiểm thử hồi quy hệ thống (Regression Tests):
+  + `tests/test_graph_and_pipeline_fixes.py`: 3/3 PASS.
+  + `tests/test_desktop_adapter.py`: 7/7 PASS.
+- Bổ sung 2 chương chuyên sâu vào tài liệu kỹ thuật [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md):
+  1. *Chương 3.5: Bản đồ vòng đời từng Prompt (Prompt Lifecycle Architecture)*: Phân rã chi tiết 6 Prompt trong hệ thống (`get_mini_context`, `SYSTEM_ORCHESTRATOR`, `TOOLS_DEF`, `ONTOLOGY_PROMPT_TEMPLATE`, `SYSTEM_RAPHAEL`, `EVALUATE_SIDE_QUEST`), xác định chính xác vị trí tệp nguồn, luồng dữ liệu đầu vào và cách thức xử lý.
+  2. *Chương 3.6: Mổ xẻ 7 thành phần của Bộ điều phối (The Orchestrator Breakdown & Component Impact)*: Làm rõ bản chất "Nó là gì?" và "Mức độ ảnh hưởng ra sao?" cho từng module trong `core/brain.py` (Omniscience Pre-fetcher, Agentic Discovery Loop, Tri-Store Dispatcher, Cross-Encoder Reranker, Async Graph Ingestion, Cognitive Persona Synthesis, Metacognitive Logger).
+**Files thay đổi:** config.py, .env, docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
+---

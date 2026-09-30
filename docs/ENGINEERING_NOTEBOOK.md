@@ -152,7 +152,15 @@ $$\text{Cache Hit Rate} = \frac{\text{prompt\_cache\_hit\_tokens}}{\text{total\_
 
 ---
 
-### 3.3. Chiến Lược Dual-Engine API Phân Tách Nhiệm Vụ
+### 3.3. Thống Nhất Định Danh Mô Hình: DeepSeek V4.1 Flash (`deepseek-flash`)
+Để đảm bảo tính nhất quán và tương thích tuyệt đối, hệ thống quy chuẩn định danh mô hình như sau:
+* **Bản chất kiến trúc mô hình:** DeepSeek V4.1 Flash (dòng mô hình siêu tốc độ, hỗ trợ suy ngẫm sâu qua thẻ `<thinking>`, tối ưu hóa cho Function Calling và suy luận nhân quả thời gian thực).
+* **Định danh trên DeepSeek Official API:** Trên máy chủ chính thức `https://api.deepseek.com`, endpoint mô hình được định danh là **`deepseek-flash`** (đồng thời tương thích với alias `deepseek-chat`). 
+  > ⚠️ *Lưu ý kỹ thuật:* Nếu gửi chuỗi ký tự đầy đủ `deepseek-v4.1-flash` tới API của DeepSeek Official, máy chủ sẽ trả về lỗi `HTTP 400 Invalid Model Name`. Do đó, biến môi trường và thiết lập trong `config.py` được **thống nhất chuẩn hóa là `DEEPSEEK_MODEL="deepseek-flash"`**.
+
+---
+
+### 3.4. Chiến Lược Dual-Engine API Phân Tách Nhiệm Vụ
 Hệ thống không dồn toàn bộ tác vụ cho một nhà cung cấp mà chia thành 2 phân hệ rõ ràng:
 
 ```text
@@ -161,15 +169,137 @@ Hệ thống không dồn toàn bộ tác vụ cho một nhà cung cấp mà chi
 ├───────────────────────────────────────────┬────────────────────────────────────────────┤
 │ 🚀 DEEPSEEK OFFICIAL (api.deepseek.com)   │ ⚡ SILICONFLOW (api.siliconflow.com/v1)     │
 ├───────────────────────────────────────────┼────────────────────────────────────────────┤
-│ • Model: `deepseek-chat`                  │ • Model Embedder: `Qwen3-Embedding-8B`     │
-│ • Vai trò: Reasoning, Synthesis, NLP,     │   (4096 dimensions, ngữ nghĩa tiếng Việt   │
-│   Tool Calling, Causal Graph Extraction   │   và lập trình xuất sắc nhất phân khúc)    │
-│ • Lợi thế: Cache Hit 96.7%, siêu rẻ       │ • Model Reranker: `Qwen3-Reranker-8B`      │
-│   cho ngữ cảnh dài.                       │   (Cross-Encoder chấm điểm tương quan)     │
+│ • Model: `deepseek-flash`                 │ • Model Embedder: `Qwen3-Embedding-8B`     │
+│   (Bản chất: DeepSeek V4.1 Flash)         │   (4096 dimensions, ngữ nghĩa tiếng Việt   │
+│ • Vai trò: Reasoning, Synthesis, NLP,     │   và lập trình xuất sắc nhất phân khúc)    │
+│   Tool Calling, Causal Graph Extraction   │ • Model Reranker: `Qwen3-Reranker-8B`      │
+│ • Lợi thế: Cache Hit 96.7%, siêu rẻ       │   (Cross-Encoder chấm điểm tương quan)     │
+│   cho ngữ cảnh dài.                       │                                            │
 └───────────────────────────────────────────┴────────────────────────────────────────────┘
 ```
 
 ---
+
+### 3.5. Bản Đồ Vòng Đời Từng Prompt Trong Hệ Thống (Prompt Lifecycle Architecture)
+
+Trong hệ sinh thái Raphael Life OS, dữ liệu đi qua một chuỗi các Prompt chuyên biệt được thiết kế theo nguyên tắc phân quyền và tối ưu hóa token. Dưới đây là bảng phân rã chi tiết từng Prompt, vị trí xử lý và vai trò trong luồng dữ liệu:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                          PROMPT PROCESSING PIPELINE MAP                                          │
+├──────────────────────────┬────────────────────────┬─────────────────────────────┬────────────────────────────────┤
+│ Tên Prompt & Định Nghĩa  │ Tệp Nguồn / Vị Trí     │ Dữ Liệu Đầu Vào (Inputs)    │ Cách Xử Lý & Đầu Ra (Output)   │
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 1. `get_mini_context`    │ `core/omniscience.py`  │ User ID, SQLite tables      │ Không qua LLM. Chạy SQL nhanh  │
+│    (Nhận thức nền tức thì│ Gọi tại đầu lượt xử lý │ (`PhysicalStatus`,          │ lấy trạng thái sinh học, buff, │
+│     không tốn token)     │ trong `core/brain.py`  │  `User`, `SystemQuest`, H3) │ quest treo -> Chuỗi tóm tắt.   │
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 2. `SYSTEM_ORCHESTRATOR` │ `core/llm.py`          │ [CONTEXT] từ mini-context   │ Nạp vào Pass 1 của Brain Loop. │
+│    (Chỉ thị Tổng điều    │ Gọi trong Pass 1       │ + [MESSAGE] của Master      │ Ép DeepSeek Flash gọi Tool nếu │
+│     phối viên Agent)     │ (While Loop max 3)     │ + Ảnh nếu có (base64)       │ thiếu tin, hoặc ra lệnh STOP.  │
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 3. `TOOLS_DEF`           │ `core/llm.py`          │ Schema JSON của 8 công cụ   │ Định nghĩa hàm gọi Function    │
+│    (Định nghĩa công cụ   │ Gửi kèm yêu cầu API    │ (`search_memory_and_        │ Calling. LLM phát sinh JSON    │
+│     Function Calling)    │ trong Pass 1           │  causality`, `manage_...`)  │ chứa tên hàm và tham số gọi.   │
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 4. `ONTOLOGY_PROMPT_     │ `core/ontology_prompt` │ {TEXT_CONTENT} là đoạn chat │ Chạy độc lập (`temp=0.0`).     │
+│    TEMPLATE`             │ Gọi trong background   │ hoặc ambient audio thô      │ Ép trích xuất JSON thuần chứa  │
+│    (Bóc tách tri thức    │ `_persist_to_graph` và │ thu được từ ứng dụng        │ 3 tầng (Physical, Cognitive,   │
+│     đồ thị & Quests)     │ `ingest_text.py`       │                             │ Spatial H3) & SQLite Quests.   │
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 5. `SYSTEM_RAPHAEL`      │ `core/llm.py`          │ Ngữ cảnh đã làm giàu (RAG)  │ Nạp vào Pass 2 của Brain Loop. │
+│    (Tổng hợp Nhân cách   │ Gọi trong Pass 2       │ + Ký ức đa nguồn đã rerank  │ Sinh thẻ `<thinking>` ẩn giấu  │
+│     Đại Hiền Giả)        │ (`get_ai_response`)    │ + Câu nói của Master        │ + 1-2 câu điềm tĩnh + thanh HUD│
+├──────────────────────────┼────────────────────────┼─────────────────────────────┼────────────────────────────────┤
+│ 6. `EVALUATE_SIDE_QUEST` │ `core/quest_generator` │ Tọa độ H3 mới, lịch sử đến  │ Kích hoạt khi Master đổi ô H3. │
+│    (Đánh giá Nhiệm vụ    │ Gọi từ watcher         │ thăm từ Neo4j, thể trạng    │ Sinh nhiệm vụ phụ đời thực kèm │
+│     không gian thực địa) │ `location.py`          │ hiện tại (`Energy`, `Mood`) │ hình phạt/phần thưởng rõ ràng. │
+└──────────────────────────┴────────────────────────┴─────────────────────────────┴────────────────────────────────┘
+```
+
+#### Phân Tích Cơ Chế Xử Lý Cụ Thể Của Từng Prompt:
+1. **`get_mini_context` (Tầng Nhận Thức Tức Thì):**
+   * *Bản chất:* Là hàm Python thuần túy truy vấn trực tiếp SQLite bằng SQLAlchemy Async.
+   * *Nội dung sinh ra:* Trạng thái thể lực gần nhất (`Energy: 8/10 | Mood: 7/10 | Ngủ: 6.5h`), cấp bậc kỹ năng cao nhất, danh hiệu kích hoạt (`titles`), và các Quest đang pending.
+   * *Vai trò:* Cung cấp "nhận thức nền" tức thời cho LLM mà không tiêu tốn bất kỳ lượt gọi API hay token suy luận nào.
+2. **`SYSTEM_ORCHESTRATOR` (Pass 1 - Discovery & Action Loop):**
+   * *Bản chất:* Bản chỉ thị hành động nghiêm ngặt bằng tiếng Anh dài ~1,500 từ.
+   * *Cơ chế xử lý:* DeepSeek Flash đọc System Prompt kết hợp với ngữ cảnh nền và tin nhắn Master. LLM đóng vai trò "Trọng tài phán đoán":
+     * Nếu tin nhắn của Master đề cập đến quá khứ, con người, sự kiện chưa rõ: LLM phát ra lời gọi hàm `search_memory_and_causality(query="...")`.
+     * Nếu Master báo cáo vừa hoàn thành công việc: LLM phát ra lời gọi `complete_quest_async(...)` hoặc `update_physical_status_async(...)`.
+     * Khi đã thu thập đủ dữ liệu hoặc không cần công cụ nào nữa: LLM xuất chuỗi `TERMINATE_LOOP` để kết thúc vòng lặp Pass 1.
+3. **`ONTOLOGY_PROMPT_TEMPLATE` (Bộ Máy Chuyển Đổi Tri Thức Phi Cấu Trúc Sang Đồ Thị):**
+   * *Bản chất:* Bản quy chuẩn kiến trúc đồ thị tri thức nghiêm ngặt nhất hệ thống.
+   * *Cơ chế xử lý:* Toàn bộ văn bản hội thoại hoặc âm thanh môi trường được điền vào biến `{TEXT_CONTENT}`. Prompt ép DeepSeek Flash hoạt động ở `temperature=0.0` và tuân thủ 4 điều luật chống đồ thị mì tôm (Anti-Spaghetti Laws).
+   * *Xử lý đầu ra:* Đầu ra là một JSON duy nhất gồm 3 mảng: `nodes`, `relationships`, và `sqlite_quests`. Mã nguồn Python dùng `json.loads` bóc tách và trực tiếp đẩy vào Neo4j bằng các lệnh `MERGE` có tham số hóa.
+4. **`SYSTEM_RAPHAEL` (Pass 2 - Persona & Psychology Synthesis):**
+   * *Bản chất:* Bản định hình nhân cách Raphael Lord of Wisdom (Đại Hiền Giả).
+   * *Cơ chế xử lý:* Nhận toàn bộ ngữ cảnh đã được tinh lọc và xếp hạng bởi Reranker. Prompt chỉ đạo mô hình phân tích sâu vào 4 bước tâm lý học bên trong khối ẩn `<thinking>`, đồng thời nghiêm cấm tuyệt đối việc thể hiện sự dạy dỗ hay nói dài dòng ra bên ngoài.
+   * *Đầu ra hiển thị:* 1–2 câu thoại điềm đạm tiếng Việt kèm dòng trạng thái HUD: `⚡ 10/10 | 😐 10/10 | ❤️ 10/10 | 💎 0cr | 📍 H3:...`.
+
+---
+
+### 3.6. Mổ Xẻ Chi Tiết Từng Thành Phần Điều Phối (The Orchestrator Breakdown)
+
+Bộ điều phối trung tâm nằm tại tệp [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py) (lớp `Brain`). Đây là trái tim vận hành toàn bộ vòng đời của một thông điệp. Dưới đây là phân tích chi tiết bản chất, vai trò và mức độ ảnh hưởng của từng thành phần:
+
+```text
+                               ┌────────────────────────────────────────────────────────┐
+                               │           BỘ ĐIỀU PHỐI TRUNG TÂM (core/brain.py)       │
+                               └──────────────────────────┬─────────────────────────────┘
+                                                          │
+   ┌──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────┐
+   ▼                                                      ▼                                                      ▼
+[1. OMNISCIENCE PRE-FETCHER]               [2. AGENTIC DISCOVERY LOOP]              [3. EXECUTION & TRI-STORE DISPATCHER]
+- Truy xuất SQLite tức thì                 - Vòng lặp tự chủ (While loop)           - Thực thi song song:
+- Lấy Energy, Mood, Quests                 - Quyết định gọi công cụ gì              - Neo4j + Mem0 + SQLite FTS5
+   │                                                      │                                                      │
+   └──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────┘
+                                                          │
+   ┌──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────┐
+   ▼                                                      ▼                                                      ▼
+[4. CONTEXT SCORER & COMPRESSOR]           [5. ASYNC INGESTION WORKER]              [6. COGNITIVE SYNTHESIS ENGINE]
+- Model: Qwen3-Reranker-8B                 - Bóc tách ontology ngầm                 - Phân tích <thinking> tâm lý
+- Lọc 15 nguồn thô thành Top 5             - Cập nhật Neo4j & SQLite Quests         - Xuất lời thoại Mentor + HUD
+   │                                                      │                                                      │
+   └──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────┘
+                                                          │
+                                                          ▼
+                                            [7. METACOGNITIVE AUDIT LOGGER]
+                                            - Ghi nhận <thinking> vào SQLite
+                                            - Lưu vết phục vụ tự giải trình
+```
+
+#### 1. Omniscience Context Pre-fetcher (`core/omniscience.py`)
+* **Nó là gì:** Module trích xuất nhanh trạng thái thực tại của người dùng bằng các câu lệnh SQL tối ưu hóa trên SQLite (`PhysicalStatus`, `User`, `SystemQuest`).
+* **Ảnh hưởng thế nào:** Cung cấp "nhãn quan thời gian thực" cho AI. Nếu không có thành phần này, AI sẽ hoàn toàn mất phương hướng về thể trạng hiện tại của Master (không biết Master đang kiệt sức hay tràn trề năng lượng) và buộc phải hỏi lại Master, gây phiền toái.
+
+#### 2. Agentic Discovery Loop (Pass 1 - While Loop trong `core/brain.py`)
+* **Nó là gì:** Một vòng lặp suy luận lặp tối đa 3 lần (`max_loops = 3`) điều khiển bởi DeepSeek Flash kết hợp danh sách công cụ `TOOLS_DEF`.
+* **Ảnh hưởng thế nào:** Đây là "bộ não hành động". Nó trao cho AI quyền chủ động tự tra cứu thông tin khi thấy thiếu dữ kiện, thay vì thụ động đoán mò (hallucination). Nó đóng vai trò quyết định xem AI có cần đào bới quá khứ hay thực thi cập nhật trạng thái hay không.
+
+#### 3. Execution Engine & Tri-Store Dispatcher (`core/search.py`, `core/llm.py`)
+* **Nó là gì:** Tầng điều phối kích hoạt các hàm truy vấn dữ liệu thực tế khi LLM phát ra lời gọi Tool. Nó kích hoạt song song 3 nhánh:
+  * Cypher traversal trên Neo4j (đồ thị nhân quả và vai trò xã hội).
+  * Semantic vector search trên Mem0 + ChromaDB.
+  * Exact keyword query trên SQLite FTS5.
+* **Ảnh hưởng thế nào:** Quyết định trực tiếp đến độ sâu và tính xác thực của thông tin. Nhờ phân tán ra 3 kho, hệ thống không bao giờ bị bỏ sót thông tin dù người dùng hỏi về cảm xúc trừu tượng hay từ khóa mã lỗi kỹ thuật.
+
+#### 4. Context Scorer & Compressor (`Qwen3-Reranker-8B`)
+* **Nó là gì:** Mô hình Cross-Encoder chuyên biệt nhận 15 đoạn dữ liệu thô từ Tri-Store Dispatcher và tính toán ma trận tương quan ngữ nghĩa.
+* **Ảnh hưởng thế nào:** Bảo vệ bộ nhớ của LLM khỏi hiện tượng "Lost in the Middle" (bị loãng thông tin khi đưa quá nhiều văn bản dài). Nó nén ngữ cảnh xuống chỉ còn 5 trích dẫn tinh túy nhất, giúp Pass 2 hoạt động với tốc độ cao nhất và chi phí token thấp nhất.
+
+#### 5. Asynchronous Graph Ingestion Engine (`_persist_to_graph`)
+* **Nó là gì:** Tác vụ chạy ngầm bất đồng bộ (Asynchronous Background Task) gọi `ONTOLOGY_PROMPT_TEMPLATE` để phân tích ngữ nghĩa của cuộc hội thoại vừa diễn ra và đẩy các thực thể mới vào Neo4j.
+* **Ảnh hưởng thế nào:** Là "bộ máy ghi nhớ dài hạn". Nếu thành phần này bị tắt, hệ thống sẽ rơi vào trạng thái "mất trí nhớ sau chấn thương" (chỉ nhớ những gì đã có trong quá khứ nhưng không thể tích lũy thêm tri thức mới từ các sự kiện đang diễn ra).
+
+#### 6. Cognitive & Persona Synthesis Engine (Pass 2 - `SYSTEM_RAPHAEL`)
+* **Nó là gì:** Bộ suy luận nhận thức và phóng tác nhân cách cuối cùng.
+* **Ảnh hưởng thế nào:** Định hình toàn bộ trải nghiệm người dùng. Nó bảo vệ cái tôi của Master bằng cách giấu kín phân tích tâm lý vào `<thinking>`, đảm bảo câu trả lời luôn điềm tĩnh, ngắn gọn và cung cấp thanh HUD chính xác để Master tự nhìn nhận lại bản thân.
+
+#### 7. Metacognitive & Audit Logger (`log_message`)
+* **Nó là gì:** Tầng lưu trữ nhật ký kiểm toán và siêu nhận thức vào cơ sở dữ liệu.
+* **Ảnh hưởng thế nào:** Tạo ra khả năng "tự nhận thức về suy nghĩ của chính mình" (Metacognition). Nó cho phép hệ thống giải trình minh bạch mọi quyết định can thiệp hoặc lời khuyên trong quá khứ khi Master chất vấn.
 
 ## 4. MODULE 2: BỘ BA TRÍ NHỚ TRI-STORE HYBRID (GRAPHRAG + VECTOR + SPARSE SQL)
 
