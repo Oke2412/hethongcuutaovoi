@@ -829,3 +829,18 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   5. *Nguồn chân lý duy nhất (Single Source of Truth):* Client chỉ giữ Local Cache tạm thời; toàn bộ Neo4j, SQLite, Chroma và Metacognitive Log thuộc quyền quản trị tối cao của Backend trên PC Cổ.
 **Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 17:10] — Khởi Tạo README.md Toàn Diện & Chuẩn Bị Đẩy Lên GitHub
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** ok vậy thêm file readme rồi đẩy tất hiện tại lên github đi
+**Kết quả / Quyết định:**
+- Xử lý tệp `.gitignore`: Làm sạch bảng mã UTF-16 lỗi thời, loại bỏ việc theo dõi các tệp nhị phân nội bộ của `chroma_db/`.
+- Soạn thảo và khởi tạo tệp [README.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/README.md) chuẩn mực cho toàn bộ dự án Amazing Nobel (Raphael Life OS):
+  + Tổng quan triết lý: "Insight given is insight rejected", phong thái Mentor và giao diện HUD thời gian thực.
+  + Đồ họa luồng kiến trúc hệ thống End-to-End.
+  + Điểm nhấn kỹ thuật: DeepSeek V4.1 Flash (`deepseek-flash`) với Cache Hit 96.7%, Tri-Store Hybrid GraphRAG (Neo4j, Mem0, SQLite FTS5 với Pointer Linking), Uber H3 Resolution 9 Hexagonal Grid, Thuật toán SM-2 Spaced Repetition, và Mô hình Bất đối xứng (Tauri Edge Client vs Legacy PC Backend).
+  + Sơ đồ cây thư mục dự án và hướng dẫn khởi chạy nhanh (Docker Compose v2 & Local environment).
+  + Liên kết trực tiếp tới [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md) và [PROMPT_HISTORY.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/PROMPT_HISTORY.md).
+- Chuẩn bị commit toàn bộ thay đổi và đẩy (push) nhánh lên GitHub remote `origin`.
+**Files thay đổi:** README.md, .gitignore, PROMPT_HISTORY.md
+---
