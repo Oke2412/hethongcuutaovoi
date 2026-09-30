@@ -513,6 +513,7 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
             ],
             temperature=0.0,
             max_tokens=256,
+            extra_body={"thinking": {"type": "disabled"}}
         )
         text = response.choices[0].message.content.strip() if response.choices else ""
         return "" if text.upper().startswith("NO") else text
@@ -520,17 +521,27 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
         logger.warning("Location side quest generation failed: %s", exc)
         return ""
 
-async def get_ai_response(prompt: str, model: str = None, temperature: float = 0.0) -> str:
+async def get_ai_response(
+    prompt: str,
+    model: str = None,
+    temperature: float = 0.0,
+    max_tokens: int = 1024,
+    disable_thinking: bool = True
+) -> str:
     from config import settings
     if model is None:
         model = settings.deepseek_model
     client = _get_llm_client()
+    create_kwargs = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if disable_thinking:
+        create_kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
     try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[{'role': 'user', 'content': prompt}],
-            temperature=temperature,
-        )
+        response = await client.chat.completions.create(**create_kwargs)
         return response.choices[0].message.content
     except Exception as exc:
         logger.error(f'Error fetching AI response: {exc}')

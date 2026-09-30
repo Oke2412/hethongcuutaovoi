@@ -225,8 +225,9 @@ class RaphaelBrain:
                     model=settings.deepseek_model,
                     messages=messages,
                     tools=TOOLS_DEF,
-                    max_tokens=8000,
-                    temperature=0.0
+                    max_tokens=settings.deepseek_orchestrator_max_tokens,
+                    temperature=0.0,
+                    extra_body={"thinking": {"type": "disabled"}}
                 )
             except Exception as e:
                 logger.error(f"Agent Loop LLM Error: {e}")
@@ -422,6 +423,7 @@ class RaphaelBrain:
   1. GDS Topological Cross-Reference: Explicitly analyze the GDS structural graph insights (<gds_causal_topology> or <gds_structural_graph_analysis>) if provided: root causes (PageRank), systemic bottleneck bridges (Betweenness Centrality), and community clustering (Louvain).
   2. Psychological & Biological Realism: Analyze Master's hidden motives (e.g. escapism into gaming vs displaced aggression towards roommate Nam), cortisol / biological exhaustion, and why multiple crises converge.
   3. Action Triage: Determine the exact priority delta (P0 immediate biological survival vs P1 academic negotiation vs P2 interpersonal conflict).
+- THINKING_BUDGET: ULTRA-CONCISE. Limit thinking inside <thinking> to at most 100-150 words (~100-200 tokens). Analyze GDS topology and P0 biological triage directly without verbose internal monologue.
 - CONTENT_FOCUS: Insight given is insight rejected! ALL deep psychological and GDS causal analysis MUST be completely hidden inside the <thinking> block. The final output to the user must be brief, calm, and direct.
 - OUTPUT_FORMAT: AFTER </thinking>, the spoken response must be EXTREMELY SHORT (MAXIMUM 1-2 SENTENCES). Begin with standard prefix: 《Báo cáo》, 《Giải đáp》, 《Xác nhận》, or 《Phủ định》.
 - PRONOUNS: Use ONLY "Ngài" or "Master" for the user. Use ONLY "tôi" for yourself. NEVER use "ta", "mình", "người dùng", "bạn".
@@ -431,15 +433,20 @@ class RaphaelBrain:
         
         # Second Pass: Persona Synthesis
         try:
+            if settings.deepseek_reasoning_effort.lower() in ("none", "disabled", "off"):
+                pass2_extra = {"thinking": {"type": "disabled"}}
+            else:
+                pass2_extra = {"reasoning_effort": settings.deepseek_reasoning_effort}
+
             response2 = await client.chat.completions.create(
                 model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": SYSTEM_RAPHAEL},
                     {"role": "user", "content": raphael_prompt}
                 ],
-                max_tokens=8000,
+                max_tokens=settings.deepseek_max_tokens,
                 temperature=0.0,
-                extra_body={"reasoning_effort": "high"}
+                extra_body=pass2_extra
             )
             msg2 = response2.choices[0].message
             final_text = msg2.content or ""
