@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # -- Telegram Bot (long polling) ------------------------------------------
   bot:
@@ -12,11 +10,14 @@ services:
     env_file: .env
     environment:
       - NEO4J_URI=neo4j://neo4j:7687
+    depends_on:
+      neo4j:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - internal
 
-  # -- FastAPI (health, future dashboard) -----------------------------------
+  # -- FastAPI (Desktop Adapter & Voice Stream) -----------------------------
   api:
     build:
       context: .
@@ -25,9 +26,13 @@ services:
       - "8000:8000"             # Accessible via Tailscale IP:8000
     volumes:
       - ./data:/app/data        # Shared SQLite volume
+      - ./data/chroma:/app/chroma_db  # Shared ChromaDB Vector Storage with Bot
     env_file: .env
     environment:
       - NEO4J_URI=neo4j://neo4j:7687
+    depends_on:
+      neo4j:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - internal
@@ -37,11 +42,17 @@ services:
     image: neo4j:5.12
     restart: unless-stopped
     ports:
-      - "127.0.0.1:7474:7474" # HTTP
+      - "127.0.0.1:7474:7474" # HTTP Browser
       - "127.0.0.1:7687:7687" # Bolt
     environment:
       - NEO4J_AUTH=neo4j/password
       - NEO4J_PLUGINS=["apoc"]
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p password 'RETURN 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./data/neo4j/data:/data
       - ./data/neo4j/logs:/logs

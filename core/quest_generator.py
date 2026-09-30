@@ -50,9 +50,10 @@ async def generate_and_save_quest(user_id: int):
         from core.llm import _get_llm_client
         client = _get_llm_client()
         
+        from config import settings
         try:
             response = await client.chat.completions.create(
-                model="deepseek-ai/deepseek-v4.1-flash",
+                model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": "Output ONLY a valid JSON array. No markdown."},
                     {"role": "user", "content": prompt}

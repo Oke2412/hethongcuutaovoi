@@ -21,15 +21,19 @@ class RaphaelBrain:
             logger.warning("SILICONFLOW_API_KEY is not set. Mem0 initialization deferred.")
             return
 
+        llm_api_key = settings.deepseek_api_key or settings.siliconflow_api_key
+        llm_base_url = settings.deepseek_base_url if settings.deepseek_api_key else "https://api.siliconflow.com/v1"
+        llm_model = settings.deepseek_model if settings.deepseek_api_key else "deepseek-ai/deepseek-v4.1-flash"
+
         config = {
             "version": "v1.1",
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "deepseek-ai/deepseek-v4.1-flash",
+                    "model": llm_model,
                     "temperature": 0.0,
-                    "api_key": api_key,
-                    "openai_base_url": "https://api.siliconflow.com/v1",
+                    "api_key": llm_api_key,
+                    "openai_base_url": llm_base_url,
                     "max_tokens": 1500,
                 }
             },
@@ -37,7 +41,7 @@ class RaphaelBrain:
                 "provider": "openai",
                 "config": {
                     "model": "Qwen/Qwen3-Embedding-8B", 
-                    "api_key": api_key,
+                    "api_key": settings.siliconflow_api_key,
                     "openai_base_url": "https://api.siliconflow.com/v1"
                 },
             },
@@ -92,7 +96,7 @@ class RaphaelBrain:
                     mem.add,
                     messages=[{"role": "user", "content": text}],
                     user_id=uid,
-                    metadata={"timestamp": datetime.now().isoformat(), "source": "chat", "h3_index": h3_idx},
+                    metadata={"timestamp": datetime.now().isoformat(), "source": "chat", "h3_index": str(h3_idx or "")},
                 )
             except Exception as exc:
                 logger.warning("Mem0 add failed: %s", exc)
@@ -119,7 +123,7 @@ class RaphaelBrain:
                 extraction_prompt = f"""{ONTOLOGY_PROMPT_TEMPLATE}
 [NỘI DUNG CẦN BÓC TÁCH]
 {event_desc}"""
-                response = await get_ai_response(extraction_prompt, model="deepseek-ai/deepseek-v4.1-flash", temperature=0.0)
+                response = await get_ai_response(extraction_prompt, model=settings.deepseek_model, temperature=0.0)
                 
                 json_match = re.search(r'\{.*\}', response.replace('\n', ''), re.DOTALL)
                 if json_match:
@@ -149,11 +153,37 @@ class RaphaelBrain:
                     for node in neo4j_data.get("nodes", []):
                         label, name = node.get("label"), node.get("name")
                         if label and name:
-                            await session.run(f"MERGE (n:{label} {{name: $name}}) ON CREATE SET n.timestamp = $ts, n.h3_index = $h3", name=name, ts=datetime.now().isoformat(), h3=h3_idx)
+                            props = {k: v for k, v in node.items() if k not in ["label", "name"]}
+                            props.setdefault("timestamp", datetime.now().isoformat())
+                            props.setdefault("h3_index", h3_idx)
+                            prop_str = ", ".join([f"n.{k} = ${k}" for k in props.keys()])
+                            query = f"MERGE (n:{label} {{name: $name}})"
+                            if prop_str:
+                                query += f" SET {prop_str}"
+                            await session.run(query, name=name, **props)
                             await session.run(f"MATCH (u:User {{id: $uid}}), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", uid=uid, name=name)
                             
+                    # Support 'relationships' schema from ontology_prompt.py
+                    for rel in neo4j_data.get("relationships", []):
+                        s_label = rel.get("source_label")
+                        s_name = rel.get("source_name")
+                        t_label = rel.get("target_label")
+                        t_name = rel.get("target_name")
+                        r_type = rel.get("type", "RELATED_TO")
+                        if s_label and s_name and t_label and t_name and r_type:
+                            query = f"MATCH (a:{s_label} {{name: $s_name}}), (b:{t_label} {{name: $t_name}}) MERGE (a)-[:{r_type}]->(b)"
+                            await session.run(query, src_name=s_name, tgt_name=t_name)
+                        elif rel.get("source") and rel.get("target"):
+                            src_id, tgt_id = rel.get("source"), rel.get("target")
+                            src_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == src_id), None)
+                            tgt_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == tgt_id), None)
+                            if src_node and tgt_node:
+                                query = f"MATCH (a:{src_node['label']} {{name: $src_name}}), (b:{tgt_node['label']} {{name: $tgt_name}}) MERGE (a)-[:{r_type}]->(b)"
+                                await session.run(query, src_name=src_node['name'], tgt_name=tgt_node['name'])
+
+                    # Support legacy 'edges' schema
                     for edge in neo4j_data.get("edges", []):
-                        src_id, tgt_id, rel = edge.get("source"), edge.get("target"), edge.get("type")
+                        src_id, tgt_id, rel = edge.get("source"), edge.get("target"), edge.get("type", "RELATED_TO")
                         src_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == src_id), None)
                         tgt_node = next((n for n in neo4j_data.get("nodes", []) if n.get("id") == tgt_id), None)
                         if src_node and tgt_node:
@@ -191,7 +221,7 @@ class RaphaelBrain:
             loop_count += 1
             try:
                 response = await client.chat.completions.create(
-                    model="deepseek-ai/deepseek-v4.1-flash",
+                    model=settings.deepseek_model,
                     messages=messages,
                     tools=TOOLS_DEF,
                     max_tokens=8000,
@@ -230,10 +260,14 @@ class RaphaelBrain:
                     text_content = args.get("text_content", "")
                     if text_content:
                         import subprocess
-                        with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as tf:
+                        import uuid
+                        import os
+                        os.makedirs("scratch", exist_ok=True)
+                        temp_filename = f"scratch/temp_ingest_{uuid.uuid4().hex[:8]}.txt"
+                        with open(temp_filename, "w", encoding="utf-8") as tf:
                             tf.write(text_content)
                         # Spawn background process so it doesn't block the chat
-                        subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
+                        subprocess.Popen(["python", "scripts/ingest_text.py", temp_filename])
                         tool_result_str = "[SUCCESS] Đã khởi chạy tiến trình chạy ngầm (Background Task) để nạp dữ liệu thô vào GraphRAG. Tiến trình sẽ hoàn tất trong vài chục giây."
                     else:
                         tool_result_str = "[ERROR] Thiếu nội dung để nạp."
@@ -252,7 +286,10 @@ class RaphaelBrain:
                     if q:
                         if self.memory:
                             try:
-                                mem_res = await asyncio.to_thread(self.memory.search, query=q, user_id=user_id, limit=5)
+                                try:
+                                    mem_res = await asyncio.to_thread(self.memory.search, query=q, filters={"user_id": user_id}, limit=5)
+                                except TypeError:
+                                    mem_res = await asyncio.to_thread(self.memory.search, query=q, user_id=user_id, limit=5)
                                 if mem_res:
                                     for m in mem_res: chunks.append(f"[VECTOR]: {m.get('memory', '')}")
                             except Exception as exc:
@@ -330,7 +367,7 @@ class RaphaelBrain:
         # Second Pass: Persona Synthesis
         try:
             response2 = await client.chat.completions.create(
-                model="deepseek-ai/deepseek-v4.1-flash",
+                model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": SYSTEM_RAPHAEL},
                     {"role": "user", "content": raphael_prompt}
@@ -356,14 +393,14 @@ class RaphaelBrain:
         final_text = final_text.replace("[Raphael's Voice]", "").strip()
 
 
-        # Cắt cảnh báo Quest ma
-        quest_match = re.search(r'\[QUEST\](.*?)\|\s*Reward:(.*?)\|\s*Penalty:(.*?)\|\s*Expire:(.*?)\|\s*Proof:(.*)', final_text)
+        # Intercept and process Side Quests
+        quest_match = re.search(r'\[QUEST\](.*?)\|\s*Reward:(.*?)(?:\|\s*Penalty:(.*?))?(?:\|\s*Expire:(.*?))?(?:\|\s*Proof:(.*))?$', final_text)
         if quest_match:
             q_title = quest_match.group(1).strip()
             q_reward = quest_match.group(2).strip()
-            q_penalty = quest_match.group(3).strip()
-            q_expire_str = quest_match.group(4).strip()
-            q_proof = quest_match.group(5).strip()
+            q_penalty = (quest_match.group(3) or "Không").strip()
+            q_expire_str = (quest_match.group(4) or "60").strip()
+            q_proof = (quest_match.group(5) or "tự do").strip()
             
             exp_mins = 60
             m = re.search(r'\d+', q_expire_str)
@@ -373,7 +410,9 @@ class RaphaelBrain:
             t_q = asyncio.create_task(create_quest_async(int(user_id), q_title, "Auto-generated by Raphael", q_reward, q_penalty, expires_in_minutes=exp_mins, proof_required=q_proof))
             background_tasks.add(t_q)
             t_q.add_done_callback(background_tasks.discard)
-            final_text = re.sub(r'\[QUEST\].*', f'🔥 **NHIỆM VỤ MỚI:** {q_title} (Thưởng: {q_reward} | Phạt: {q_penalty})\n_Đã đồng bộ vào /quests_', final_text)
+            
+            penalty_display = f" | Phạt: {q_penalty}" if q_penalty and q_penalty.lower() not in ["không", "none", "no", "0"] else ""
+            final_text = re.sub(r'\[QUEST\].*', f'🔥 **NHIỆM VỤ MỚI:** {q_title} (Thưởng: {q_reward}{penalty_display})\n_Đã đồng bộ vào /quests_', final_text)
 
         # Background tasks - Injects both User's input and AI's metacognitive thought process into the 3-DB ecosystem
 

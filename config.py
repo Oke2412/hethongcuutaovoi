@@ -9,6 +9,9 @@ class Settings(BaseSettings):
 
     # LLM
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
+    deepseek_api_key: str = Field(default="", alias="DEEPSEEK_API_KEY")
+    deepseek_base_url: str = Field(default="https://api.deepseek.com", alias="DEEPSEEK_BASE_URL")
+    deepseek_model: str = Field(default="deepseek-flash", alias="DEEPSEEK_MODEL")
     siliconflow_api_key: str = Field(default="", alias="SILICONFLOW_API_KEY")
     reranker_api_url: str = Field(default="https://api.siliconflow.com/v1/rerank", alias="RERANKER_API_URL")
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")

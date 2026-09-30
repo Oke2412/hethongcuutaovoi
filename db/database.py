@@ -58,6 +58,33 @@ async def init_db() -> None:
                     VALUES (new.id, new.content, new.role);
                 END;
             """))
+
+            # Setup FTS5 for ambienttranscript
+            await conn.execute(text("""
+                CREATE VIRTUAL TABLE IF NOT EXISTS ambienttranscript_fts 
+                USING fts5(id UNINDEXED, text, speaker);
+            """))
+            await conn.execute(text("""
+                CREATE TRIGGER IF NOT EXISTS ambienttranscript_ai AFTER INSERT ON ambienttranscript
+                BEGIN
+                    INSERT INTO ambienttranscript_fts(id, text, speaker) 
+                    VALUES (new.id, new.text, new.speaker);
+                END;
+            """))
+            await conn.execute(text("""
+                CREATE TRIGGER IF NOT EXISTS ambienttranscript_ad AFTER DELETE ON ambienttranscript
+                BEGIN
+                    DELETE FROM ambienttranscript_fts WHERE id = old.id;
+                END;
+            """))
+            await conn.execute(text("""
+                CREATE TRIGGER IF NOT EXISTS ambienttranscript_au AFTER UPDATE ON ambienttranscript
+                BEGIN
+                    DELETE FROM ambienttranscript_fts WHERE id = old.id;
+                    INSERT INTO ambienttranscript_fts(id, text, speaker) 
+                    VALUES (new.id, new.text, new.speaker);
+                END;
+            """))
         except Exception as e:
             logger.warning(f"Could not setup FTS5: {e}")
             

@@ -20,25 +20,13 @@ async def gather_massive_context():
                     context_code += f"--- FILE: {filepath} ---\n{f.read()}\n"
             except: pass
             
-    brain_dir = 'C:/Users/Asus/.gemini/antigravity/brain'
-    log_files = glob.glob(os.path.join(brain_dir, '*', '.system_generated', 'logs', 'transcript_full.jsonl'))
-    
+    log_files = ['docs/tien_kiep/MASTER_TIEN_KIEP.md', 'PROMPT_HISTORY.md']
     sessions_data = []
     for idx, log_path in enumerate(log_files):
-        session_text = f"\n=== SESSION ID: {idx+1} ===\n"
         try:
             with open(log_path, 'r', encoding='utf-8') as f:
-                for line in f:
-                    try:
-                        data = json.loads(line)
-                        if data.get('type') in ['USER_INPUT', 'PLANNER_RESPONSE'] and data.get('content'):
-                            session_text += f"[{data.get('source')}]: {data.get('content')}\n"
-                            if data.get('thinking'):
-                                session_text += f"<thinking>{data.get('thinking')}</thinking>\n"
-                    except: pass
-            sessions_data.append({"id": idx+1, "text": session_text})
+                sessions_data.append({'id': idx+1, 'text': f.read()})
         except: pass
-        
     all_sessions_text = "".join([s['text'] for s in sessions_data])
     massive_context = context_code + "\n=== HỆ THỐNG LỊCH SỬ CHAT ===\n" + all_sessions_text
     return massive_context, sessions_data
@@ -97,8 +85,8 @@ Trích xuất Đồ thị 3 Tầng NHƯNG CHỈ DÀNH CHO CÁC SESSION ID: {batc
             json_match = re.search(r'\{.*\}', response.replace('\n', ''), re.DOTALL)
             if json_match:
                 parsed_data = json.loads(json_match.group(0))
-            graph_data = parsed_data.get("neo4j", parsed_data)
-                print(f"  [+] Trích xuất thành công: {len(graph_data.get('nodes', []))} nodes, {len(graph_data.get('edges', []))} edges.")
+                graph_data = parsed_data.get("neo4j", parsed_data)
+                print(f"  [+] Trix xuat thanh cong: {len(graph_data.get("nodes", []))} nodes, {len(graph_data.get("edges", []))} edges.")
                 await inject_to_neo4j(driver, graph_data)
             else:
                 print("  [!] LLM không trả về JSON hợp lệ.")

@@ -137,3 +137,15 @@ class LifeState(SQLModel, table=True):
     financial_stress: str = "none"
     notes: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AmbientTranscript(SQLModel, table=True):
+    """Lưu trữ các đoạn hội thoại/sự kiện âm thanh môi trường thu được từ Raphael Native App."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True)
+    text: str = Field(description="Nội dung hội thoại thô sau khi qua VAD và Whisper")
+    speaker: Optional[str] = Field(default="ambient", description="Nhãn người nói hoặc môi trường")
+    h3_index: Optional[str] = Field(default=None)
+    recorded_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    is_extracted: bool = Field(default=False, description="Đã trích xuất sang Neo4j hay chưa")
+    extracted_summary: Optional[str] = Field(default=None, description="Tóm tắt ngắn gọn nếu có")

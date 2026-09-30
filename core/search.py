@@ -17,7 +17,7 @@ Output ONLY the JSON array of strings, nothing else. Example: ["từ khóa 1", "
     
     try:
         response = await client.chat.completions.create(
-            model="deepseek-ai/deepseek-v4.1-flash",
+            model=settings.deepseek_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
@@ -39,8 +39,20 @@ Output ONLY the JSON array of strings, nothing else. Example: ["từ khóa 1", "
 
 
 async def sparse_search(keywords: List[str], limit: int = 5) -> List[str]:
-    """Khâu 2: Sparse Search (BM25) via SQLite FTS5."""
-    query_str = " OR ".join([f'"{k}"' for k in keywords]) # Simple OR matching
+    """Khâu 2: Sparse Search (BM25) via SQLite FTS5 with safe escaping."""
+    if not keywords:
+        return []
+    
+    escaped_terms = []
+    for k in keywords:
+        cleaned = k.replace('"', '""').strip()
+        if cleaned:
+            escaped_terms.append(f'"{cleaned}"')
+            
+    if not escaped_terms:
+        return []
+        
+    query_str = " OR ".join(escaped_terms)
     
     try:
         async with AsyncSessionLocal() as session:

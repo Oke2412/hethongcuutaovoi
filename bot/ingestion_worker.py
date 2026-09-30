@@ -5,11 +5,10 @@ import json
 from sqlalchemy import select
 from db.database import AsyncSessionLocal
 from db.models import MessageLog
-from openai import AsyncOpenAI
 from config import settings
+from core.llm import _get_llm_client
 
 logger = logging.getLogger(__name__)
-client = AsyncOpenAI(api_key=settings.siliconflow_api_key, base_url='https://api.siliconflow.com/v1')
 
 LAST_ID_FILE = "data/last_ingest.json"
 
@@ -39,8 +38,9 @@ ANSWER WITH EXACTLY ONE WORD: YES or NO. No explanations.
 Conversation:
 {buffer_text}"""
     
+    client = _get_llm_client()
     resp = await client.chat.completions.create(
-        model="deepseek-ai/deepseek-v4.1-flash",
+        model=settings.deepseek_model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0,
         max_tokens=500
@@ -51,11 +51,13 @@ Conversation:
 async def trigger_heavy_ingestion(text: str):
     import subprocess
     import os
+    import uuid
     os.makedirs("scratch", exist_ok=True)
-    with open("scratch/temp_ingest.txt", "w", encoding="utf-8") as f:
+    temp_path = f"scratch/temp_ingest_{uuid.uuid4().hex[:8]}.txt"
+    with open(temp_path, "w", encoding="utf-8") as f:
         f.write(text)
-    subprocess.Popen(["python", "scripts/ingest_text.py", "scratch/temp_ingest.txt"])
-    logger.info("Triggered heavy GraphRAG ingestion for buffer.")
+    subprocess.Popen(["python", "scripts/ingest_text.py", temp_path])
+    logger.info(f"Triggered heavy GraphRAG ingestion for buffer with file: {temp_path}")
 
 async def ingestion_loop():
     logger.info("Ingestion Worker started.")
