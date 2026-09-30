@@ -740,3 +740,24 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   5. Bóc tách Quest SQLite: Tự động trích xuất quest "Chạy thử nghiệm demo định vị SLAM ngoài thực địa trước thứ Sáu" kèm hình phạt "Đình chỉ bảo vệ đợt 1".
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 12:05] — Nâng Cấp Ontology Mối Quan Hệ Xã Hội & Kiểm Thử Định Danh Thực Thể
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** trong này không có quan hệ gì à? nếu truy xuất lại thì biết ts hùng là ai? / ok làm xong kiểm thử lại lần nữa đi
+**Kết quả / Quyết định:**
+- Giải quyết triệt để lỗ hổng định danh trong đồ thị tri thức (Node Person trôi nổi, thiếu quan hệ với Master):
+  1. Cập nhật `core/ontology_prompt.py`: Bổ sung mỏ neo `Master` (Chủ nhân hệ thống), quy định bắt buộc thuộc tính `role` và `relationship_to_master` cho tất cả Node `Person`. Bổ sung nhóm quan hệ xã hội & sở hữu vào Allowed Edges (`SUPERVISED_BY`, `MENTORED_BY`, `ROOMMATE_WITH`, `FRIEND_OF`, `COLLEAGUE_OF`, `OWNS`, `WORKS_ON`, `BORROWS`, `USES`).
+  2. Cập nhật `core/brain.py`: Nâng cấp hàm `_persist_to_graph` để lưu động toàn bộ thuộc tính (`role`, `relationship_to_master`, etc.) vào Neo4j bằng mệnh đề `SET n.{k} = ${k}` thay vì chỉ lưu `timestamp`.
+  3. Cập nhật `core/llm.py`: Mở rộng Cypher query trong `query_causal_graph` để duyệt qua các cạnh quan hệ xã hội, trích xuất `role` và `relationship_to_master` làm giàu context RAG ("Thực thể 'TS. Hùng' (Person); vai trò: Giảng viên hướng dẫn đồ án; quan hệ với Master: Thầy hướng dẫn").
+- Thực thi kiểm thử định danh độc lập (End-to-End Test với DeepSeek Official API):
+  + Trích xuất chuẩn xác 100% thuộc tính danh tính:
+    * `Master`: Vai trò 'Sinh viên làm đồ án tốt nghiệp' | Quan hệ 'self'
+    * `Nam`: Vai trò 'Bạn cùng phòng, làm đồ án AMR' | Quan hệ 'Bạn cùng phòng'
+    * `TS. Hùng`: Vai trò 'Giảng viên hướng dẫn đồ án tốt nghiệp' | Quan hệ 'Thầy hướng dẫn'
+  + Trích xuất chuẩn xác các cạnh quan hệ xã hội & sở hữu: `(Master)-[:ROOMMATE_WITH]->(Nam)`, `(Master)-[:SUPERVISED_BY]->(TS. Hùng)`, `(Nam)-[:BORROWS]->(Mỏ hàn xung)`, `(Master)-[:OWNS]->(Mỏ hàn xung)`, `(Master)-[:WORKS_ON]->(Board mạch STM32)`.
+  + Khả năng lọc nhiễu đạt 100% (0 node rác).
+- Kiểm thử hồi quy hệ thống (Regression Tests):
+  + `tests/test_graph_and_pipeline_fixes.py`: 3/3 PASS.
+  + `tests/test_desktop_adapter.py`: 7/7 PASS.
+**Files thay đổi:** core/ontology_prompt.py, core/brain.py, core/llm.py, PROMPT_HISTORY.md
+---

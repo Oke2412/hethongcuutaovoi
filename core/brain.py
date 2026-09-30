@@ -123,7 +123,7 @@ class RaphaelBrain:
                 extraction_prompt = f"""{ONTOLOGY_PROMPT_TEMPLATE}
 [NỘI DUNG CẦN BÓC TÁCH]
 {event_desc}"""
-                response = await get_ai_response(extraction_prompt, model="deepseek-ai/deepseek-v4.1-flash", temperature=0.0)
+                response = await get_ai_response(extraction_prompt, model=settings.deepseek_model, temperature=0.0)
                 
                 json_match = re.search(r'\{.*\}', response.replace('\n', ''), re.DOTALL)
                 if json_match:
@@ -153,7 +153,14 @@ class RaphaelBrain:
                     for node in neo4j_data.get("nodes", []):
                         label, name = node.get("label"), node.get("name")
                         if label and name:
-                            await session.run(f"MERGE (n:{label} {{name: $name}}) ON CREATE SET n.timestamp = $ts, n.h3_index = $h3", name=name, ts=datetime.now().isoformat(), h3=h3_idx)
+                            props = {k: v for k, v in node.items() if k not in ["label", "name"]}
+                            props.setdefault("timestamp", datetime.now().isoformat())
+                            props.setdefault("h3_index", h3_idx)
+                            prop_str = ", ".join([f"n.{k} = ${k}" for k in props.keys()])
+                            query = f"MERGE (n:{label} {{name: $name}})"
+                            if prop_str:
+                                query += f" SET {prop_str}"
+                            await session.run(query, name=name, **props)
                             await session.run(f"MATCH (u:User {{id: $uid}}), (n:{label} {{name: $name}}) MERGE (u)-[:EXPERIENCED]->(n)", uid=uid, name=name)
                             
                     # Support 'relationships' schema from ontology_prompt.py

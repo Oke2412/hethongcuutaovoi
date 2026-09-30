@@ -404,14 +404,14 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
             query = """
             MATCH (n)
             WHERE n.name IN $entities
-            OPTIONAL MATCH (cause)-[r1:CAUSES|TRIGGERS]->(n)
-            OPTIONAL MATCH (n)-[r2:CAUSES|TRIGGERS|REINFORCES|MITIGATES|LOCATED_IN|RELATED_TO]->(effect)
-            RETURN n.name AS entity, labels(n)[0] AS entity_type,
-                   cause.name AS cause, labels(cause)[0] AS cause_type, type(r1) AS cause_rel,
-                   effect.name AS effect, labels(effect)[0] AS effect_type, type(r2) AS effect_rel,
+            OPTIONAL MATCH (src)-[r1:CAUSES|TRIGGERS|SUPERVISED_BY|MENTORED_BY|ROOMMATE_WITH|FRIEND_OF|COLLEAGUE_OF|OWNS|WORKS_ON|BORROWS|USES]->(n)
+            OPTIONAL MATCH (n)-[r2:CAUSES|TRIGGERS|REINFORCES|MITIGATES|LOCATED_IN|RELATED_TO|SUPERVISED_BY|MENTORED_BY|ROOMMATE_WITH|FRIEND_OF|COLLEAGUE_OF|OWNS|WORKS_ON|BORROWS|USES]->(tgt)
+            RETURN n.name AS entity, labels(n)[0] AS entity_type, n.role AS role, n.relationship_to_master AS relation_to_master,
+                   src.name AS src, labels(src)[0] AS src_type, type(r1) AS in_rel,
+                   tgt.name AS tgt, labels(tgt)[0] AS tgt_type, type(r2) AS out_rel,
                    n.timestamp AS time
             ORDER BY n.timestamp DESC
-            LIMIT 8
+            LIMIT 10
             """
             result = await session.run(query, uid=int(user_id), entities=entities)
             records = await result.data()
@@ -422,17 +422,23 @@ async def query_causal_graph(user_id: int, entities: list[str]) -> str:
             for rec in records:
                 ent = rec.get("entity", "")
                 ent_type = rec.get("entity_type", "Khái niệm")
-                cause = rec.get("cause")
-                cause_rel = rec.get("cause_rel")
-                effect = rec.get("effect")
-                effect_rel = rec.get("effect_rel")
+                role = rec.get("role")
+                relation = rec.get("relation_to_master")
+                src = rec.get("src")
+                in_rel = rec.get("in_rel")
+                tgt = rec.get("tgt")
+                out_rel = rec.get("out_rel")
                 t = rec.get("time", "")
 
                 parts = [f"Thực thể '{ent}' ({ent_type})"]
-                if cause:
-                    parts.append(f"do '{cause}' {cause_rel or 'gây ra'}")
-                if effect:
-                    parts.append(f"dẫn đến '{effect}' ({effect_rel or 'hệ quả'})")
+                if role:
+                    parts.append(f"vai trò: {role}")
+                if relation:
+                    parts.append(f"quan hệ với Master: {relation}")
+                if src:
+                    parts.append(f"nhận liên kết từ '{src}' ({in_rel or 'liên quan'})")
+                if tgt:
+                    parts.append(f"hướng liên kết tới '{tgt}' ({out_rel or 'hệ quả'})")
                 if t:
                     parts.append(f"thời điểm {t}")
                 lines.append("; ".join(parts))
