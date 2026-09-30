@@ -27,6 +27,41 @@ class GDSService:
     """
 
     @staticmethod
+    async def _ensure_graph_projected(session, graph_name: str) -> bool:
+        """
+        Ensures in-memory GDS graph projection exists for high-performance algorithm streaming.
+        """
+        try:
+            check = await session.run(
+                "CALL gds.graph.exists($gname) YIELD exists RETURN exists",
+                gname=graph_name,
+            )
+            row = await check.single()
+            if row and row["exists"]:
+                return True
+
+            # Project full graph with undirected orientation for Louvain & Betweenness compatibility
+            await session.run(
+                """
+                CALL gds.graph.project(
+                    $gname,
+                    '*',
+                    {
+                        ALL: {
+                            type: '*',
+                            orientation: 'UNDIRECTED'
+                        }
+                    }
+                )
+                """,
+                gname=graph_name,
+            )
+            return True
+        except Exception as exc:
+            logger.debug("GDS graph projection error (will fallback to Cypher): %s", exc)
+            return False
+
+    @staticmethod
     async def get_global_pagerank(user_id: int, limit: int = 5) -> List[Dict[str, Any]]:
         """
         Function 1: 'Cái gì quan trọng nhất?'
@@ -38,48 +73,18 @@ class GDSService:
 
         try:
             async with driver.session() as session:
-                # 1. Try GDS PageRank on projected graph if available
                 graph_name = f"user_graph_{user_id}"
-                gds_check = await session.run(
-                    "SHOW PROCEDURES YIELD name WHERE name = 'gds.pageRank.stream' RETURN count(name) AS count"
-                )
-                gds_row = await gds_check.single()
-                has_gds = gds_row and gds_row["count"] > 0
+                projected = await GDSService._ensure_graph_projected(session, graph_name)
 
-                if has_gds:
+                if projected:
                     try:
-                        # Ensure in-memory graph projection exists
-                        await session.run(
-                            """
-                            CALL gds.graph.exists($gname) YIELD exists
-                            WITH exists WHERE exists
-                            CALL gds.graph.drop($gname, false) YIELD graphName
-                            RETURN graphName
-                            """,
-                            gname=graph_name,
-                        )
-                        await session.run(
-                            """
-                            CALL gds.graph.project(
-                                $gname,
-                                '*',
-                                {
-                                    ALL: {
-                                        type: '*',
-                                        orientation: 'NATURAL'
-                                    }
-                                }
-                            )
-                            """,
-                            gname=graph_name,
-                        )
                         result = await session.run(
                             """
                             CALL gds.pageRank.stream($gname)
                             YIELD nodeId, score
                             WITH gds.util.asNode(nodeId) AS n, score
-                            WHERE n.user_id = $uid OR labels(n)[0] = 'Person'
-                            RETURN n.name AS name, labels(n)[0] AS type, score
+                            WHERE n.name IS NOT NULL AND (n.user_id = $uid OR labels(n)[0] = 'Person')
+                            RETURN n.name AS name, labels(n)[0] AS type, round(score, 3) AS score
                             ORDER BY score DESC
                             LIMIT $limit
                             """,
@@ -91,9 +96,9 @@ class GDSService:
                         if records:
                             return records
                     except Exception as gds_err:
-                        logger.debug("GDS native PageRank fallback triggered: %s", gds_err)
+                        logger.debug("GDS PageRank execution fallback triggered: %s", gds_err)
 
-                # 2. Resilient Native Cypher Fallback (Weighted Degree Centrality approximation)
+                # Resilient Native Cypher Fallback (Weighted Degree Centrality approximation)
                 fallback_query = """
                 MATCH (n)
                 WHERE n.user_id = $uid OR labels(n)[0] = 'Person'
@@ -128,6 +133,33 @@ class GDSService:
         try:
             async with driver.session() as session:
                 graph_name = f"user_graph_{user_id}"
+                projected = await GDSService._ensure_graph_projected(session, graph_name)
+
+                if projected:
+                    try:
+                        ppr_res = await session.run(
+                            """
+                            MATCH (s {name: $source})
+                            WITH id(s) AS sourceId
+                            CALL gds.pageRank.stream($gname, {sourceNodes: [sourceId]})
+                            YIELD nodeId, score
+                            WITH gds.util.asNode(nodeId) AS n, score
+                            WHERE n.name IS NOT NULL AND n.name <> $source AND (n.user_id = $uid OR labels(n)[0] = 'Person')
+                            RETURN n.name AS name, labels(n)[0] AS type, round(score, 3) AS score
+                            ORDER BY score DESC
+                            LIMIT $limit
+                            """,
+                            gname=graph_name,
+                            source=source_node,
+                            uid=user_id,
+                            limit=limit,
+                        )
+                        records = await ppr_res.data()
+                        if records:
+                            return records
+                    except Exception as gds_err:
+                        logger.debug("GDS Personalized PageRank fallback triggered: %s", gds_err)
+
                 # Fallback to multi-hop causal traversal with exponential decay if GDS offline
                 query = """
                 MATCH (s {name: $source})
@@ -149,7 +181,7 @@ class GDSService:
     async def detect_causal_communities(user_id: int, limit: int = 4) -> Dict[str, List[str]]:
         """
         Function 3: 'Có cụm nào đang tách ra?'
-        Community detection grouping tightly coupled causal nodes into themes.
+        Community detection grouping tightly coupled causal nodes into themes via Louvain.
         """
         driver = get_neo4j_driver()
         if not driver:
@@ -157,7 +189,38 @@ class GDSService:
 
         try:
             async with driver.session() as session:
-                # Group by connected component or neighbor overlap in native cypher
+                graph_name = f"user_graph_{user_id}"
+                projected = await GDSService._ensure_graph_projected(session, graph_name)
+
+                if projected:
+                    try:
+                        louvain_res = await session.run(
+                            """
+                            CALL gds.louvain.stream($gname)
+                            YIELD nodeId, communityId
+                            WITH gds.util.asNode(nodeId) AS n, communityId
+                            WHERE n.name IS NOT NULL AND (n.user_id = $uid OR labels(n)[0] = 'Person')
+                            WITH communityId, collect(n.name) AS members
+                            WHERE size(members) > 1
+                            RETURN communityId, members
+                            ORDER BY size(members) DESC
+                            LIMIT $limit
+                            """,
+                            gname=graph_name,
+                            uid=user_id,
+                            limit=limit,
+                        )
+                        records = await louvain_res.data()
+                        if records:
+                            communities = {}
+                            for idx, r in enumerate(records, 1):
+                                cluster_label = f"Cụm {idx} (Cộng đồng {r['communityId']})"
+                                communities[cluster_label] = r["members"][:5]
+                            return communities
+                    except Exception as gds_err:
+                        logger.debug("GDS Louvain fallback triggered: %s", gds_err)
+
+                # Fallback to connected component approximation in native cypher
                 query = """
                 MATCH (n)
                 WHERE n.user_id = $uid OR labels(n)[0] = 'Person'
@@ -190,6 +253,31 @@ class GDSService:
 
         try:
             async with driver.session() as session:
+                graph_name = f"user_graph_{user_id}"
+                projected = await GDSService._ensure_graph_projected(session, graph_name)
+
+                if projected:
+                    try:
+                        bw_res = await session.run(
+                            """
+                            CALL gds.betweenness.stream($gname)
+                            YIELD nodeId, score
+                            WITH gds.util.asNode(nodeId) AS n, score
+                            WHERE n.name IS NOT NULL AND (n.user_id = $uid OR labels(n)[0] = 'Person') AND score > 0
+                            RETURN n.name AS name, labels(n)[0] AS type, round(score, 2) AS score
+                            ORDER BY score DESC
+                            LIMIT $limit
+                            """,
+                            gname=graph_name,
+                            uid=user_id,
+                            limit=limit,
+                        )
+                        records = await bw_res.data()
+                        if records:
+                            return records
+                    except Exception as gds_err:
+                        logger.debug("GDS Betweenness fallback triggered: %s", gds_err)
+
                 # Betweenness approximation: nodes that bridge incoming causes and outgoing effects
                 query = """
                 MATCH (in_node)-[r1]->(n)-[r2]->(out_node)

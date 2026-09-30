@@ -878,3 +878,26 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Bổ sung Chương 4.6 ("Neo4j Graph Data Science (GDS) & Trực Giác Cấu Trúc Nhân Quả") vào tài liệu kỹ thuật [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md).
 **Files thay đổi:** docker-compose.yml, core/gds_service.py, core/llm.py, core/brain.py, tests/test_gds_service.py, docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 18:55] — Khởi Động Docker Neo4j GDS 2.6.9 & Thực Nghiệm Toàn Diện 5 Thuật Toán Cho Linear (RAP-8)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** gds.louvain.stream cái này có áp dụng không? bắt đầu khởi động docker lên và làm bài test kiểm thử gds đi làm nào tiêu dưới 50k token là được, test gì thì giữ lại để tôi ghi vào linear.
+**Kết quả / Quyết định:**
+- Trả lời về `gds.louvain.stream`: Có áp dụng. Đây là thuật toán gom cụm cộng đồng nhân quả (Causal Community Detection), giúp tự động nhận diện các "ốc đảo" thói quen hoặc cụm áp lực tách biệt (ví dụ: Cụm đồ án học vụ vs Cụm né tránh giải trí).
+- Nâng cấp [core/gds_service.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/gds_service.py):
+  + Tích hợp trực tiếp thủ tục `CALL gds.louvain.stream($gname)` với projection `UNDIRECTED`.
+  + Tích hợp `CALL gds.betweenness.stream($gname)` và `CALL gds.pageRank.stream($gname, {sourceNodes: ...})`.
+  + Cơ chế `_ensure_graph_projected` tự động quản lý in-memory projection trong Neo4j.
+- Khởi động Neo4j container bằng Docker Compose: Kích hoạt GDS Version 2.6.9 với đầy đủ 409 procedures.
+- Xây dựng và thực thi kịch bản kiểm thử [scripts/verify_gds_benchmark.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/scripts/verify_gds_benchmark.py):
+  1. Global PageRank: `Master` (1.656), `Đồ án STM32` (1.083), `Game Valorant` (1.060).
+  2. Personalized PageRank từ "Board STM32 bị nổ": Tác động trực tiếp lan tỏa đến `Đồ án STM32` (0.15) $\rightarrow$ `Áp lực tốt nghiệp` (0.14) $\rightarrow$ `Mệt mỏi kiệt sức` (0.079).
+  3. Louvain Community Detection: Phân tách rõ nét các cộng đồng liên kết.
+  4. Betweenness Centrality: `Master` (14.5), `Đồ án STM32` (9.0), `Game Valorant` (9.0) là các cầu nối xung yếu.
+  5. Shortest Causal Path: Truy vết `TS. Hùng -> Master -> Game Valorant -> Thư giãn né tránh`.
+- Thực nghiệm điều phối DeepSeek Flash với thẻ `<gds_structural_graph_analysis>`:
+  + Đo đạc Token: **978 tokens** (hoàn toàn nằm dưới hạn mức 50,000 tokens của Master).
+  + Mô hình nắm bắt chính xác cơ chế tâm lý né tránh (avoidance coping) và đưa ra lời khuyên Mentor đâm trúng huyệt đạo.
+- Xuất bản báo cáo chuẩn Markdown [docs/GDS_BENCHMARK_LINEAR_REPORT.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/GDS_BENCHMARK_LINEAR_REPORT.md) sẵn sàng để Master copy dán vào Linear.
+**Files thay đổi:** core/gds_service.py, scripts/verify_gds_benchmark.py, docs/GDS_BENCHMARK_LINEAR_REPORT.md, PROMPT_HISTORY.md
+---
