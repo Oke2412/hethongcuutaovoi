@@ -42,7 +42,7 @@ def test_docker_stack():
     }
     
     t0 = time.perf_counter()
-    r = requests.post(f"{API_URL}/api/chat", json=payload, timeout=60)
+    r = requests.post(f"{API_URL}/api/chat", json=payload, timeout=180)
     latency = (time.perf_counter() - t0) * 1000
 
     print(f"Status: {r.status_code}, Latency: {latency:.1f}ms")

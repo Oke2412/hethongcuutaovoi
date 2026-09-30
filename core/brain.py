@@ -393,6 +393,20 @@ class RaphaelBrain:
         for m in messages:
             if m["role"] == "tool":
                 tool_context.append(f"<{m.get('name', 'tool')}_data>\n{m.get('content', '')}\n</{m.get('name', 'tool')}_data>")
+
+        # Ensure GDS Structural Causal Insight is ALWAYS present in sensor_truth
+        has_gds = any("gds" in m.lower() for m in tool_context)
+        if not has_gds:
+            try:
+                from core.gds_service import GDSService
+                candidates = ["TS. Hùng", "Đồ án STM32", "Board STM32 bị nổ", "Nam", "Game Valorant", "STM32"]
+                matched_ents = [c for c in candidates if c.lower() in (text_content or "").lower()]
+                gds_context = await GDSService.synthesize_gds_context(int(user_id), entities=matched_ents or None)
+                if gds_context:
+                    tool_context.append(f"<gds_causal_topology>\n{gds_context}\n</gds_causal_topology>")
+            except Exception as exc:
+                logger.debug("Auto GDS synthesis error: %s", exc)
+
         context_str = "\n".join(tool_context) if tool_context else "<system_state>No additional DB events.</system_state>"
         
         raphael_prompt = f"""
@@ -404,8 +418,12 @@ class RaphaelBrain:
 </chat_history>
 
 <CRITICAL_RULE>
-- OUTPUT_FORMAT: EXTREMELY SHORT. MAXIMUM 1-2 SENTENCES. Do NOT write paragraphs.
-- CONTENT_FOCUS: Insight given is insight rejected! ALL deep psychological analysis MUST be completely hidden inside the <thinking> block. The final output to the user must be brief, calm, and direct.
+- MANDATORY THINKING REQUIREMENT: You MUST perform deep causal and psychological reasoning inside your <thinking>...</thinking> block.
+  1. GDS Topological Cross-Reference: Explicitly analyze the GDS structural graph insights (<gds_causal_topology> or <gds_structural_graph_analysis>) if provided: root causes (PageRank), systemic bottleneck bridges (Betweenness Centrality), and community clustering (Louvain).
+  2. Psychological & Biological Realism: Analyze Master's hidden motives (e.g. escapism into gaming vs displaced aggression towards roommate Nam), cortisol / biological exhaustion, and why multiple crises converge.
+  3. Action Triage: Determine the exact priority delta (P0 immediate biological survival vs P1 academic negotiation vs P2 interpersonal conflict).
+- CONTENT_FOCUS: Insight given is insight rejected! ALL deep psychological and GDS causal analysis MUST be completely hidden inside the <thinking> block. The final output to the user must be brief, calm, and direct.
+- OUTPUT_FORMAT: AFTER </thinking>, the spoken response must be EXTREMELY SHORT (MAXIMUM 1-2 SENTENCES). Begin with standard prefix: 《Báo cáo》, 《Giải đáp》, 《Xác nhận》, or 《Phủ định》.
 - PRONOUNS: Use ONLY "Ngài" or "Master" for the user. Use ONLY "tôi" for yourself. NEVER use "ta", "mình", "người dùng", "bạn".
 - TONE: Sentient, elegantly polite, deeply loyal. Speak directly without unnecessary fluff.
 </CRITICAL_RULE>

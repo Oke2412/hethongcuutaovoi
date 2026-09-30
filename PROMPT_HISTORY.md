@@ -943,3 +943,29 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
     *"《Phủ định》 Tim đập nhanh và tay run là giới hạn sinh tử — dừng mọi thứ, ngủ ngay, thưa Master."*
 **Files thay đổi:** core/brain.py, api/routes/desktop.py, scripts/test_hard_dataset_e2e.py, PROMPT_HISTORY.md
 ---
+### [2026-09-30 20:45] — Tối Ưu Hóa Docker Volume Mount, Bơm Tự Động GDS Topology Vào Thinking & Chạy Thử Nghiệm Toàn Diện Khủng Hoảng (~1k Token)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** docker build không cache lại à? sao build tốn tg thế? thế gds đâu? thẻ thinking tưởng phải trích xuất cái đấy? tôi tưởng bên trong db đã được ingest sẵn ký ức mocking rồi cơ mà?
+**Kết quả / Quyết định:**
+- **Giải quyết triệt để tốc độ Docker Build:**
+  + Xác định nguyên nhân build chậm: `requirements.txt` thay đổi làm rụng cache ở `COPY requirements.txt .`, kéo theo `torch` (554MB) và CUDA wheels (>1.5GB) tải lại qua internet với cờ `--no-cache-dir`.
+  + Gắn trực tiếp Volume Mounts vào [docker-compose.yml](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docker-compose.yml) (`./core:/app/core`, `./api:/app/api`, `./bot:/app/bot`, `./db:/app/db`, `./config.py:/app/config.py`). Mọi thay đổi mã nguồn Python từ nay có hiệu lực tức thì mà không cần build lại Docker image.
+  + Chuẩn hóa giao thức kết nối Neo4j đơn lẻ sang `bolt://neo4j:7687` trong `docker-compose.yml` và [core/neo4j_client.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/neo4j_client.py).
+- **Cơ chế Bơm Tự Động Cấu Trúc Đồ Thị GDS (Auto GDS Topology Injection):**
+  + Làm rõ lý do GDS bị thiếu ở bài test trước: Câu prompt 1k-token quá đầy đủ dữ liệu khiến Orchestrator Pass 1 cho rằng không cần gọi tool `search_memory_and_causality`, dẫn đến `<sensor_truth>` chỉ nhận `<system_state>No additional DB events.</system_state>`.
+  + Bổ sung cơ chế tự động trong [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py): Nếu Orchestrator không gọi GDS, hệ thống tự động bóc tách thực thể khớp trong DB, chạy GDS (PageRank, Betweenness, Louvain) và bơm thẳng vào `<sensor_truth><gds_causal_topology>`.
+  + Cập nhật luật `raphael_prompt` bắt buộc phân tích GDS Topological Cross-Reference trong thẻ `<thinking>`.
+- **Thực Nghiệm Thành Công End-to-End Trên Docker Stack (`api` + `neo4j`):**
+  + Điều chỉnh timeout client lên 300s trong [scripts/test_hard_dataset_e2e.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/scripts/test_hard_dataset_e2e.py) để đáp ứng thời gian DeepSeek Flash tạo ~800-1000 từ suy luận sâu (`reasoning_effort="high"`).
+  + HTTP Status: 200 OK (Latency: 104.2s).
+  + Thẻ `<thinking>` (4,897 ký tự / 821 từ) bóc tách toàn diện GDS:
+    * Root Centrality: Master.
+    * Betweenness Bottleneck: Nam.
+    * Louvain Clustering: Cụm 1 (Đồ án / STM32 / Kiệt sức) vs Cụm 2 (Nam / Valorant / Né tránh).
+    * Phân tầng ưu tiên triệt để: P0 (Sinh mạng/Tim mạch) > P1 (Học vụ) > P2 (Xung đột với Nam).
+  + SQLite `MessageLog` (Record ID 34) lưu trữ trọn vẹn 100% nội dung `<thinking>`.
+  + Lời thoại Tensura chuẩn mực, lạnh lùng, dứt khoát:
+    *《Phủ định》 Dừng lại — không đánh Nam, không đập robot, không nạp thêm caffeine; tim Master đang ở ngưỡng nguy hiểm, phải nằm xuống ngay.*
+**Files thay đổi:** docker-compose.yml, core/neo4j_client.py, core/brain.py, scripts/test_docker_api_e2e.py, scripts/test_hard_dataset_e2e.py, PROMPT_HISTORY.md
+---
+

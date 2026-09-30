@@ -52,7 +52,7 @@ def run_hard_test():
     }
 
     t0 = time.perf_counter()
-    resp = requests.post(f"{API_URL}/api/chat", json=payload, timeout=120)
+    resp = requests.post(f"{API_URL}/api/chat", json=payload, timeout=300)
     latency = (time.perf_counter() - t0) * 1000
 
     print(f"✓ HTTP Status: {resp.status_code} (Latency: {latency:.1f}ms / {latency/1000:.2f}s)")

@@ -7,9 +7,13 @@ services:
     volumes:
       - ./data:/app/data        # Persist SQLite DB
       - ./data/chroma:/app/chroma_db  # Persist ChromaDB Vector Storage
+      - ./core:/app/core
+      - ./bot:/app/bot
+      - ./db:/app/db
+      - ./config.py:/app/config.py
     env_file: .env
     environment:
-      - NEO4J_URI=neo4j://neo4j:7687
+      - NEO4J_URI=bolt://neo4j:7687
     depends_on:
       neo4j:
         condition: service_healthy
@@ -27,9 +31,13 @@ services:
     volumes:
       - ./data:/app/data        # Shared SQLite volume
       - ./data/chroma:/app/chroma_db  # Shared ChromaDB Vector Storage with Bot
+      - ./core:/app/core
+      - ./api:/app/api
+      - ./db:/app/db
+      - ./config.py:/app/config.py
     env_file: .env
     environment:
-      - NEO4J_URI=neo4j://neo4j:7687
+      - NEO4J_URI=bolt://neo4j:7687
     depends_on:
       neo4j:
         condition: service_healthy

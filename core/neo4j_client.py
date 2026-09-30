@@ -10,7 +10,7 @@ def get_neo4j_driver():
     if _driver is None:
         try:
             _driver = AsyncGraphDatabase.driver(
-                getattr(settings, "neo4j_uri", "neo4j://neo4j:7687"),
+                getattr(settings, "neo4j_uri", "bolt://neo4j:7687"),
                 auth=(
                     getattr(settings, "neo4j_user", "neo4j"),
                     getattr(settings, "neo4j_password", "password"),
