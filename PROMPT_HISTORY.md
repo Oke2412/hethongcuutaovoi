@@ -816,3 +816,16 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   2. *Chương 3.6: Mổ xẻ 7 thành phần của Bộ điều phối (The Orchestrator Breakdown & Component Impact)*: Làm rõ bản chất "Nó là gì?" và "Mức độ ảnh hưởng ra sao?" cho từng module trong `core/brain.py` (Omniscience Pre-fetcher, Agentic Discovery Loop, Tri-Store Dispatcher, Cross-Encoder Reranker, Async Graph Ingestion, Cognitive Persona Synthesis, Metacognitive Logger).
 **Files thay đổi:** config.py, .env, docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 15:47] — Phân Định Ranh Giới Bất Đối Xứng: Tauri Frontend vs PC Cổ Backend
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** Concern Matrix: Frontend (Tauri) vs Backend (PC cổ) (Audio capture, VAD, ASR Whisper, TTS/RVC, UI rendering, MCP Server host vs Client, LLM reasoning, Storage, Crisis detection vs UI response, Confirmation enforcement vs UI, Source of truth)
+**Kết quả / Quyết định:**
+- Ghi nhận và tích hợp toàn diện bảng ma trận phân chia trách nhiệm bất đối xứng (Concern Matrix) vào [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md) tại Chương 2.2 và 2.3:
+  1. *Giải phóng tài nguyên phần cứng cho PC Cổ:* Đẩy toàn bộ pipeline âm thanh thời gian thực (Audio Capture, Silero-VAD, Whisper.cpp ASR, TTS/RVC) ra Edge (Tauri Client), giúp PC cổ giữ mức tải CPU < 15% và 0% VRAM GPU cho audio.
+  2. *Tiết kiệm 99% băng thông mạng:* Xử lý giọng nói thành văn bản tại chỗ, chỉ gửi chuỗi JSON phiên âm siêu nhẹ qua Tailscale VPN (`POST /api/ambient/transcript`), không truyền luồng PCM thô.
+  3. *Mô hình đảo ngược giao thức MCP (Inverted Model Context Protocol):* Tauri Client đóng vai trò **MCP Server Host** (phơi ra các tool khóa màn hình, đọc cửa sổ active, mở app, hạ độ sáng), còn Backend đóng vai trò **MCP Client** (DeepSeek Flash trong `core/brain.py` gọi tool trên máy Master).
+  4. *Mô hình bảo mật Zero-Trust Client & Confirmation 2 Lớp:* Confirmation UI hiển thị trên Tauri, nhưng Confirmation Enforcement nằm 100% tại Backend (chặn đứng mọi hành động phá hoại nếu thiếu chữ ký số). Crisis Detection (Rule) chạy trên Backend, kích hoạt Crisis Response (UI) trên Tauri.
+  5. *Nguồn chân lý duy nhất (Single Source of Truth):* Client chỉ giữ Local Cache tạm thời; toàn bộ Neo4j, SQLite, Chroma và Metacognitive Log thuộc quyền quản trị tối cao của Backend trên PC Cổ.
+**Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
+---

@@ -110,6 +110,66 @@ Thuật toán phân rã Byte-Pair Encoding (BPE) của các mô hình ngôn ng�
 
 ---
 
+### 2.2. Phân Định Ranh Giới Bất Đối Xứng: Frontend (Tauri) vs Backend (PC Cổ)
+
+Một trong những quyết định kiến trúc mang tính sống còn của dự án Amazing Nobel là việc **phân chia trách nhiệm bất đối xứng (Asymmetric Division of Concerns)** giữa máy khách người dùng (**Tauri Frontend**) và máy chủ nội bộ (**Backend trên PC Cổ**).
+
+Sự phân định này giải quyết triệt để bài toán tài nguyên phần cứng eo hẹp của chiếc máy chủ cũ (PC cổ), tối ưu hóa băng thông mạng qua Tailscale VPN, đồng thời thiết lập ranh giới bảo mật nghiêm ngặt thông qua giao thức **Model Context Protocol (MCP)** đảo ngược:
+
+#### BẢNG MA TRẬN PHÂN ĐỊNH TRÁCH NHIỆM (CONCERN MATRIX)
+
+| Mối Quan Tâm Kỹ Thuật (Concern) | Frontend (Tauri Client) | Backend (PC Cổ / Home Server) | Rationale & Cơ Chế Kỹ Thuật |
+| :--- | :---: | :---: | :--- |
+| **Thu âm môi trường (Audio Capture)** | ✅ | ❌ | Thu trực tiếp từ micro phần cứng thiết bị của Master qua Rust audio bindings (cpal). |
+| **Tiền xử lý âm thanh (VAD / Denoise / Diarization)** | ✅ | ❌ | Chạy Silero-VAD và bộ lọc nhiễu ngay tại Edge, nhận diện phân đoạn người nói (Diarization). |
+| **Nhận dạng giọng nói (ASR - Whisper)** | ✅ | ❌ | Sử dụng `whisper.cpp` / ONNX lượng tử hóa chạy trên CPU/GPU của Client. Giải phóng 100% tài nguyên tính toán cho PC cổ. |
+| **Tổng hợp giọng nói (TTS / RVC)** | ✅ | ❌ | Phát giọng nói phản hồi trực tiếp trên máy Master (Edge-TTS / RVC voice conversion). |
+| **Hiển thị hội thoại (Chat UI Rendering)** | ✅ | ❌ | Giao diện đồ họa native siêu nhẹ, mượt mà viết bằng Tauri (Rust + Webview). |
+| **Hiển thị giao diện động (A2UI Rendering)** | ✅ | ❌ | Kết xuất các thành phần UI động (Agent-to-UI widgets, biểu mẫu tương tác) do Agent chỉ định. |
+| **Hiển thị thanh chỉ số (HUD Display)** | ✅ | ❌ | Render thanh HUD thời gian thực (`⚡E | 😐M | ❤️H | 💎Cr | 📍H3`) cố định trên màn hình. |
+| **Máy chủ công cụ (MCP Server Host)** | ✅ | ❌ | **Mô hình đảo ngược:** Tauri đóng vai trò máy chủ MCP, phơi ra các API điều khiển desktop cục bộ. |
+| **Bộ gọi công cụ (MCP Client)** | ❌ | ✅ | **Backend đóng vai trò MCP Client:** Agentic Brain gọi các tool trên máy Master thông qua MCP. |
+| **Điều khiển máy tính (Desktop Control)** | ✅ *(via MCP)*| ❌ | Thực thi các tác vụ: Khóa màn hình, đọc tiêu đề cửa sổ active, mở ứng dụng theo lệnh từ Backend. |
+| **Lập luận trí tuệ (LLM Reasoning)** | ❌ | ✅ | Gọi DeepSeek V4.1 Flash (`deepseek-flash`) với khả năng Context Caching 96.7%. |
+| **Bóc tách đồ thị tri thức (NER, Graph)** | ❌ | ✅ | Xử lý Ontology 3 tầng và trích xuất thực thể/quan hệ ngầm bất đồng bộ. |
+| **Lưu trữ dữ liệu (SQLite, Neo4j, Chroma)** | ❌ | ✅ | Quản trị bộ ba trí nhớ Tri-Store tập trung, đảm bảo tính toàn vẹn dữ liệu. |
+| **Biểu diễn vector & Xếp hạng (Embedding / Rerank)** | ❌ | ✅ | Quản lý kết nối tới SiliconFlow (`Qwen3-Embedding-8B` & `Qwen3-Reranker-8B`). |
+| **Tiến trình chạy ngầm (Background Jobs)** | ❌ | ✅ | APScheduler quản lý vòng lặp SM-2, đồng bộ tọa độ H3 và kiểm tra deadline nhiệm vụ. |
+| **Phát hiện khủng hoảng (Crisis Detection - Rule)**| ❌ | ✅ | Động cơ luật (Rule Engine) giám sát nhịp tim, sụt giảm năng lượng, vi phạm cam kết học thuật. |
+| **Phản hồi khủng hoảng (Crisis Response - UI)** | ✅ | ❌ | Bật cửa sổ cảnh báo khẩn cấp, phát âm thanh báo động hoặc khóa màn hình bắt Master nghỉ ngơi. |
+| **Giao diện xác nhận (Confirmation UI)** | ✅ | ❌ | Hiển thị hộp thoại Modal/Popup hỏi ý kiến Master trước khi thực hiện hành động nhạy cảm. |
+| **Ràng buộc thực thi (Confirmation Enforcement)** | ❌ | ✅ | **Zero-Trust Client:** Backend từ chối commit giao dịch nguy hiểm nếu chưa có token xác thực ký số từ Master. |
+| **Nhật ký kiểm toán (Audit Log)** | ⚠️ *Local Cache* | ✅ *Primary* | Frontend lưu cache tạm để hoạt động offline; Backend là nhật ký kiểm toán bất biến chính thức. |
+| **Nguồn chân lý duy nhất (Source of Truth)** | ❌ | ✅ | Mọi trạng thái thể chất, quan hệ đồ thị và điểm thưởng/phạt chỉ có giá trị khi nằm trong Backend. |
+
+---
+
+### 2.3. Năm Trụ Cột Đột Phá Của Mô Hình Phân Chia Bất Đối Xứng
+
+#### 1. Bài Toán Giải Phóng Toàn Diện Tài Nguyên Cho "PC Cổ"
+* Chiếc máy tính cũ đóng vai trò Home Server không có card đồ họa GPU rời mạnh mẽ (hoặc VRAM rất hạn chế). Nếu bắt PC cổ phải gánh thêm mô hình Whisper nhận diện giọng nói liên tục và TTS sinh giọng nói, máy chủ sẽ lập tức bị quá nhiệt, đơ giật hoặc sập nguồn do cạn kiệt RAM.
+* Việc đẩy toàn bộ pipeline âm thanh (VAD, Denoise, Whisper ASR, RVC) sang **Tauri Client** (vốn chạy trên laptop hoặc máy trạm làm việc của Master có phần cứng hiện đại) giúp PC cổ đạt mức tải CPU dưới 15%, dành toàn bộ tài nguyên cho cơ sở dữ liệu Neo4j, SQLite và Docker containers.
+
+#### 2. Tiết Kiệm 99% Băng Thông Mạng (Zero-Bloat Transmission)
+* Nếu truyền luồng âm thanh PCM thô liên tục qua Tailscale VPN, lưu lượng mạng sẽ tiêu tốn từ **10 MB đến 50 MB mỗi phút**, gây nghẽn mạng và độ trễ cao.
+* Nhờ Whisper chạy cục bộ trên Tauri, client chỉ gửi chuỗi văn bản JSON phiên âm siêu nhẹ (`POST /api/ambient/transcript`, kích thước vài trăm bytes). Băng thông mạng giảm 99%, hoạt động ổn định mượt mà ngay cả khi kết nối qua 4G di động.
+
+#### 3. Mô Hình Đảo Ngược Giao Thức Model Context Protocol (Inverted MCP Architecture)
+* Trong mô hình AI truyền thống, server đóng vai trò MCP Server cung cấp công cụ cho client. Nhưng ở Raphael Life OS, kiến trúc được **đảo ngược hoàn toàn**:
+  * **Frontend (Tauri) đóng vai trò MCP Server Host:** Lắng nghe trên một kênh giao tiếp an toàn (IPC / WebSocket nội bộ qua Tailscale), phơi ra các công cụ của hệ điều hành máy khách (`desktop_lock_screen`, `desktop_read_active_window`, `desktop_show_modal`).
+  * **Backend (PC Cổ) đóng vai trò MCP Client:** Khi DeepSeek Flash suy luận ra hành vi trốn tránh (ví dụ: Master đang chơi game lúc 2:00 sáng thay vì làm đồ án), Backend phát lời gọi Tool MCP tới Tauri Client để tự động bật thông báo cảnh báo và hạ độ sáng màn hình.
+
+#### 4. Kiến Trúc Bảo Mật Zero-Trust & Ràng Buộc Xác Nhận 2 Lớp (Confirmation Enforcement)
+* Để ngăn chặn AI tự ý đưa ra các quyết định phá hoại (ví dụ: tự ý hủy môn học, xóa dữ liệu code, hoặc gửi email mạo danh):
+  * **Confirmation UI:** Render trực tiếp trên Tauri dưới dạng hộp thoại xác nhận bắt buộc (Confirmation Dialog).
+  * **Confirmation Enforcement:** Nằm hoàn toàn ở **Backend**. Backend duy trì một máy trạng thái (FSM) và mã Token dùng một lần (Nonce). Dù Frontend có bị can thiệp mã nguồn, Backend kiên quyết **từ chối thực thi** nếu không nhận được chữ ký xác nhận hợp lệ từ Master.
+
+#### 5. Ranh Giới Nguồn Chân Lý Duy Nhất (Single Source of Truth)
+* Mọi dữ liệu tại Client chỉ là dữ liệu tạm thời (Ephemeral / Cache). 
+* Nếu máy tính cá nhân bị hỏng, mất cắp hoặc cài lại hệ điều hành, toàn bộ "linh hồn" và ký ức của Raphael Life OS vẫn nguyên vẹn 100% trên PC Cổ (Neo4j Causal Graph, SQLite FTS5 Transcripts, Mem0 Vector Profiles). Chỉ cần cài lại Tauri và kết nối Tailscale, chòm sao tri thức sẽ tự động đồng bộ trở lại.
+
+---
+
 ## 3. MODULE 1: BỘ NÃO SUY LUẬN & CHIẾN LƯỢC DUAL-ENGINE LLM
 
 ### 3.1. Hành Trình Tiến Hóa Của Mô Hình Lập Luận
