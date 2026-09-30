@@ -780,3 +780,23 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   10. Lộ trình tương lai: Dream cycle graph compaction, Wearable audio streaming và On-device edge fallback.
 **Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 15:35] — Nâng Cấp Toàn Diện Toàn Bộ Engineering Notebook Lên Chuẩn Bách Khoa Kỹ Thuật
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** vẫn chưa đủ chi tiết, thêm nữa đi để bản thân tôi có thể nhìn lại và đánh giá
+**Kết quả / Quyết định:**
+- Mở rộng và nâng cấp triệt để tài liệu [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md) lên 664 dòng (60KB) với chiều sâu kỹ thuật tối đa:
+  1. Bổ sung các công thức toán học thực chứng:
+     * Thuật toán SM-2 Spaced Repetition (Easiness Factor $EF$, khoảng cách ngày nhắc $I(n)$, so sánh với hiệu ứng tâm lý What-the-hell Effect của Streaks).
+     * Hình học không gian Uber H3 Resolution 9 (tính chất đẳng hướng tâm-đối-tâm của hình lục giác đều, loại bỏ méo mó không gian so với Geohash/lưới vuông).
+     * Cơ chế Cross-Encoder Reranker Qwen3 vs Bi-Encoder Cosine similarity.
+     * Toán học Context Caching của DeepSeek Multi-Head Latent Attention (MLA) với bảng dữ liệu đo đạc thực tế 12 lượt liên tiếp (Cache Hit Rate 96.7%).
+  2. Bổ sung trích đoạn mã nguồn thực thi & DDL cơ sở dữ liệu:
+     * Mã Cypher nạp động Node/Relationship và truy vấn duyệt đồ thị 2-hop có lọc quan hệ xã hội.
+     * DDL tạo bảng ảo SQLite FTS5 `ambienttranscript_fts` với tokenizer `trigram` và các triggers đồng bộ tức thì.
+  3. Bổ sung 6 bản ghi quyết định kiến trúc chính thức (ADR-01 đến ADR-06) chuẩn format doanh nghiệp.
+  4. Bổ sung 4 báo cáo hậu nghiệm sự cố thực chiến (Post-Mortems / Traumatic Memories): Lỗ hổng ChromaDB volume, Race condition khởi động Neo4j JVM, Bẫy bảng mã Windows CP1252/BOM, và bùng nổ token BPE tiếng Việt.
+  5. Bổ sung chi tiết Case Study thực nghiệm bóc tách Stress-Test TS. Hùng & Nam (25 Nodes, 25 Edges, 0 node rác, 1 SystemQuest).
+  6. Bổ sung Bảng điểm tự đánh giá kiến trúc (Scorecard), danh mục nợ kỹ thuật (Technical Debts) và sơ đồ lộ trình phát triển 3 quý tới (Dream Cycle, Wearables, Edge Fallback).
+**Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
+---
