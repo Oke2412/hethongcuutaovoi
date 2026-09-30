@@ -901,3 +901,20 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Xuất bản báo cáo chuẩn Markdown [docs/GDS_BENCHMARK_LINEAR_REPORT.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/GDS_BENCHMARK_LINEAR_REPORT.md) sẵn sàng để Master copy dán vào Linear.
 **Files thay đổi:** core/gds_service.py, scripts/verify_gds_benchmark.py, docs/GDS_BENCHMARK_LINEAR_REPORT.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 19:20] — Khởi Động & Kiểm Thử Toàn Diện Stack Docker (API + Bot + Neo4j GDS)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** đang gọi thẳng bên api chứ không bật containter của bot với api lên test à?
+**Kết quả / Quyết định:**
+- Bổ sung `openai>=1.0.0` vào [requirements.txt](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/requirements.txt) để đảm bảo quá trình build image Docker độc lập không phụ thuộc transitive dependency.
+- Khởi dựng toàn bộ Docker Compose stack gồm cả 3 containers đồng thời:
+  1. `amazing-nobel-neo4j-1`: Neo4j 5.12 với GDS 2.6.9 (Healthy, 409 procedures).
+  2. `amazing-nobel-api-1`: FastAPI Desktop Adapter trên cổng 8000.
+  3. `amazing-nobel-bot-1`: Telegram Bot long-polling kết nối webhook rỗng và scheduler.
+- Xây dựng bài kiểm thử tích hợp End-to-End [scripts/test_docker_api_e2e.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/scripts/test_docker_api_e2e.py) gọi qua mạng nội bộ Docker:
+  + `GET http://localhost:8000/health`: 200 OK.
+  + `GET http://localhost:8000/api/chat`: 200 OK.
+  + `POST http://localhost:8000/api/chat`: 200 OK. Gửi prompt kiểm thử, Container API tự kết nối Container Neo4j qua mạng bridge `neo4j://neo4j:7687`, chạy bóc tách đồ thị, gọi thủ tục GDS PageRank/Betweenness và DeepSeek Flash, trả về phản hồi chuẩn xác cho Desktop App.
+- Vá lỗi xử lý an toàn kiểu chuỗi của Mem0 search result trong [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py).
+**Files thay đổi:** requirements.txt, core/brain.py, scripts/test_docker_api_e2e.py, PROMPT_HISTORY.md
+---

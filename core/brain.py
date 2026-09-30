@@ -298,7 +298,9 @@ class RaphaelBrain:
                                 except TypeError:
                                     mem_res = await asyncio.to_thread(self.memory.search, query=q, user_id=user_id, limit=5)
                                 if mem_res:
-                                    for m in mem_res: chunks.append(f"[VECTOR]: {m.get('memory', '')}")
+                                    for m in mem_res:
+                                        m_text = m.get("memory", str(m)) if isinstance(m, dict) else str(m)
+                                        chunks.append(f"[VECTOR]: {m_text}")
                             except Exception as exc:
                                 logger.warning("Mem0 search error: %s", exc)
                         
