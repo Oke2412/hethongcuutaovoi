@@ -761,3 +761,22 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   + `tests/test_desktop_adapter.py`: 7/7 PASS.
 **Files thay đổi:** core/ontology_prompt.py, core/brain.py, core/llm.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 15:20] — Biên Soạn Toàn Tập Engineering Notebook & Architectural Decision Records
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** ok có cái tôi muốn làm là 1 file md, ghi lại như kiểu engineering notebook toàn bộ cái system này sau 1 thời gian làm việc cực dài và trong đó so sánh và có lý do tại sao tôi lại chọn kiến trúc đấy, cực chi tiết và chia theo từng module
+**Kết quả / Quyết định:**
+- Tạo nhánh làm việc: `feature/system-engineering-notebook`.
+- Soạn thảo và hoàn thiện tài liệu kỹ thuật chuyên sâu [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md) với 10 chương bao quát toàn bộ vòng đời và kiến trúc hệ thống:
+  1. Triết lý thiết kế cốt lõi: Giải nghĩa nguyên lý tâm lý học "Insight given is insight rejected", 100% Agentic NLP thay thế menu cứng.
+  2. Sơ đồ kiến trúc tổng thể High-Level Topology: Phân định ranh giới giữa Desktop Front (3D/TTS) và Backend Engine (Neo4j, Mem0, SQLite, Core Brain).
+  3. Module LLM & Dual-Engine Strategy: Hành trình từ Gemini/Groq sang SiliconFlow rồi chuyển hẳn sang DeepSeek Official (`deepseek-chat`). Báo cáo benchmark Context Caching 96.7% giúp tiết kiệm 87% chi phí và giảm một nửa latency.
+  4. Module Tri-Store Hybrid Memory: Phân tích 3 lỗ hổng của Pure Vector RAG, cấu trúc 3 tầng Neo4j Causal Graph, vai trò của Mem0 + ChromaDB, giải pháp Pointer Linking với SQLite FTS5 (0 token), và Cross-Encoder Reranker Qwen3. So sánh trực quan với LangGraph và Microsoft GraphRAG.
+  5. Module Định vị không gian số học Uber H3: Giải quyết triệt để bài toán nhiễu GPS Jitter bằng cách lượng tử hóa không gian thành các ô lục giác Resolution 9 và cơ chế Hex Transition Watcher.
+  6. Module Động cơ tâm lý học: Cơ chế khối suy ngẫm ẩn `<thinking>`, Intent Engineering ($\Delta = 	ext{Ideal} - 	ext{Current}$), và tính năng Metacognition (trí nhớ tự nhận thức).
+  7. Module Giao diện & Đa nền tảng: Telegram Long Polling qua Tailscale và Desktop 3D Adapter mỏng.
+  8. Module DevOps & Traumatic Memories: Tổng hợp 4 bài học xương máu (Volume ChromaDB sync, Neo4j race condition, Windows CP1252/BOM vs Python UTF-8, và luật token optimization 100% English).
+  9. Ma trận so sánh quyết định kỹ thuật (Trade-off Matrix): Đối chiếu chi tiết công nghệ chọn vs phương án bị loại bỏ.
+  10. Lộ trình tương lai: Dream cycle graph compaction, Wearable audio streaming và On-device edge fallback.
+**Files thay đổi:** docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
+---
