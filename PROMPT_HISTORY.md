@@ -726,3 +726,17 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   + Tiết kiệm chi phí: Giảm ~87% chi phí input token thực tế trên DeepSeek Official API.
 **Files thay đổi:** PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 11:40] — Thực Thi Causal Extraction Stress-Test Siêu Hóc Búa Trên DeepSeek Official
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** @Quote: "Lọc nhiễu: Tuyệt đối không sinh Node cho \"trời mưa tầm tã sấm chớp\", \"phong thủy\", \"sọt rác\"." chính ra cái này cũng được đấy chứ
+**Kết quả / Quyết định:**
+- Chạy thực nghiệm bóc tách đồ thị nhân quả trên văn bản đa tầng phức tạp (phi tuyến tính thời gian, bẫy ngụy biện tâm lý, đa danh xưng và nhiễu thời tiết).
+- Đánh giá kết quả từ DeepSeek Official (`deepseek-chat`):
+  1. Lọc nhiễu (Noise Immunity): ĐẠT 100% — Loại bỏ hoàn toàn các yếu tố rác ("trời mưa sấm chớp", "phong thủy").
+  2. Bóc tách thực thể (Entity Resolution): Chuẩn xác, gom trọn `Person: Nam`, `Person: TS. Hùng`, `Object: Board mạch STM32`, `Object: Mỏ hàn xung`.
+  3. Bóc tách tầng nhận thức & tâm lý: Trích xuất hoàn hảo 9 nodes nhận thức gồm `Emotion` (Tức giận, Lo lắng, Tội lỗi, Tim đập nhanh), `CoreBelief` ("Mình đã nỗ lực hết sức, do linh kiện rác"), `Intention` ("Viết lại kiến trúc firmware từ C sang Rust"), và `Desire` ("Không để ông Hùng coi thường").
+  4. Vòng lặp nhân quả: Tái hiện đầy đủ 22 cạnh logic từ biến cố ban đầu, áp lực mail thầy, cơ chế ngụy biện thức đêm cày Rust đến tai nạn nổ board lần 2 và tâm lý sợ bị coi thường.
+  5. Bóc tách Quest SQLite: Tự động trích xuất quest "Chạy thử nghiệm demo định vị SLAM ngoài thực địa trước thứ Sáu" kèm hình phạt "Đình chỉ bảo vệ đợt 1".
+**Files thay đổi:** PROMPT_HISTORY.md
+---
