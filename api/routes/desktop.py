@@ -79,11 +79,16 @@ async def chat_endpoint(request: ChatRequest) -> Any:
     # 2. Resolve target user ID
     uid_str = request.user_id or str(settings.allowed_user_id or 8763843475)
 
+    thinking_text = ""
     try:
-        # 3. Process via Raphael Core Brain
-        response_text, keyboard = await brain.process_input(
-            user_id=uid_str, text_content=query_text
+        # 3. Process via Raphael Core Brain with Metacognition
+        res = await brain.process_input(
+            user_id=uid_str, text_content=query_text, return_thinking=True
         )
+        if len(res) == 3:
+            response_text, keyboard, thinking_text = res
+        else:
+            response_text, keyboard = res
     except Exception as exc:
         logger.error(f"Error executing brain.process_input: {exc}", exc_info=True)
         response_text = "《Báo cáo》 Hệ thống máy chủ gặp sự cố khi suy luận."
@@ -129,12 +134,13 @@ async def chat_endpoint(request: ChatRequest) -> Any:
             },
         )
 
-    # 6. Standard JSON Response
+    # 6. Standard JSON Response with Metacognition Thinking field
     return JSONResponse(
         {
             "status": "ok",
             "text": spoken_text,
             "response": spoken_text,
+            "thinking": thinking_text,
             "hud": hud_part.strip(),
             "full_response": response_text,
             "has_keyboard": keyboard is not None,

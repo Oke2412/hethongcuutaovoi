@@ -918,3 +918,28 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Vá lỗi xử lý an toàn kiểu chuỗi của Mem0 search result trong [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py).
 **Files thay đổi:** requirements.txt, core/brain.py, scripts/test_docker_api_e2e.py, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 20:05] — Kiểm Thử Bộ Dữ Liệu Khủng Hoảng Lớn (~1,000 Tokens) Với DeepSeek High Reasoning & Bóc Tách Thinking Toàn Diện
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** tôi tưởng system đã làm việc này bằng các routing rồi? nếu trích xuất đồ thị và trả lời cần thiết phải suy luận. không cần chuyển và chạy lại test lần nữa đi nhưng cho bộ dữ liệu to và khó lên, tầm 1k token
+**Kết quả / Quyết định:**
+- Giữ nguyên thiết lập `reasoning_effort: "high"` theo đúng triết lý sâu xa của Raphael Life OS: Cần suy luận nhân quả và phân tích tâm lý sâu ở mức tối đa.
+- Nâng cấp [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py):
+  + Trích xuất trực tiếp `getattr(msg2, "reasoning_content", None)` từ DeepSeek API.
+  + Đóng gói dòng suy ngẫm vào `unstripped_text` với định dạng `<thinking>...</thinking>` trước khi lưu vào SQLite `MessageLog`, nạp đồ thị Neo4j và Mem0.
+  + Mở rộng `process_input(..., return_thinking=True)` để trả về cả 3 thành phần: `(response_text, keyboard, reasoning_text)`.
+- Nâng cấp [api/routes/desktop.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/api/routes/desktop.py): Bổ sung chính thức trường `"thinking"` vào payload JSON phản hồi của endpoint `POST /api/chat`.
+- Build và khởi động lại container `amazing-nobel-api-1` trong Docker.
+- Xây dựng kịch bản kiểm thử đa tầng quy mô lớn [scripts/test_hard_dataset_e2e.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/scripts/test_hard_dataset_e2e.py) (~1,000 tokens) mô phỏng khủng hoảng toàn diện:
+  1. Phần cứng: Chập MOSFET nguồn 24V nổ IC gate driver DRV8302 và chết STM32/CAN-bus của robot AMR trước 48h.
+  2. Học vụ: TS. Hùng gửi mail dọa hoãn tốt nghiệp.
+  3. Thể trạng: Thức trắng 38h, uống 4 bò húc + 3 cà phê đặc, tim đập nhanh tức ngực, run tay.
+  4. Xã hội & Tâm lý né tránh: Bạn cùng phòng Nam mở tiệc nhậu ồn ào và làm mất board dự phòng; Master muốn đấm nhau hoặc bỏ trốn chơi Valorant.
+- Kết quả thực nghiệm End-to-End qua Docker:
+  + DeepSeek Flash (Reasoning High) phân tích sâu sắc: Nhận diện đây là tình huống khẩn cấp y tế (nguy cơ loạn nhịp tim do ngộ độc caffeine + thiếu ngủ cấp) vượt lên trên mọi deadline; việc deadline bị trễ là điều tất yếu về mặt vật lý (linh kiện mất 3 ngày), do đó việc cố thức tiếp là tự hủy diệt vô nghĩa.
+  + Thẻ `thinking` được bóc tách và trả về nguyên vẹn trong payload API.
+  + Bản ghi trong SQLite `MessageLog` (Record ID 28) đã lưu trữ trọn vẹn 100% nội dung `<thinking>` phục vụ Metacognition.
+  + Giọng nói phát ngôn của Raphael đạt đỉnh cao chuẩn mực Tensura:
+    *"《Phủ định》 Tim đập nhanh và tay run là giới hạn sinh tử — dừng mọi thứ, ngủ ngay, thưa Master."*
+**Files thay đổi:** core/brain.py, api/routes/desktop.py, scripts/test_hard_dataset_e2e.py, PROMPT_HISTORY.md
+---

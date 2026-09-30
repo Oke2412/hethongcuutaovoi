@@ -59,7 +59,8 @@ class RaphaelBrain:
         text_content: str = None,
         image_bytes: bytes = None,
         audio_bytes: bytes = None,
-    ) -> tuple[str, Any]:
+        return_thinking: bool = False,
+    ) -> Any:
         from core.omniscience import get_mini_context, log_message
         from core.llm import _get_llm_client, TOOLS_DEF, SYSTEM_ORCHESTRATOR, SYSTEM_RAPHAEL, query_causal_graph
         from core.llm_tools import (
@@ -422,16 +423,27 @@ class RaphaelBrain:
                 temperature=0.0,
                 extra_body={"reasoning_effort": "high"}
             )
-            final_text = response2.choices[0].message.content or ""
+            msg2 = response2.choices[0].message
+            final_text = msg2.content or ""
+            reasoning_text = getattr(msg2, "reasoning_content", None) or ""
+
+            # Check if thinking was enclosed in <thinking> inside final_text
+            thinking_match = re.search(r'<thinking>(.*?)</thinking>', final_text, flags=re.DOTALL)
+            if thinking_match:
+                if not reasoning_text:
+                    reasoning_text = thinking_match.group(1).strip()
+                final_text = re.sub(r'<thinking>.*?</thinking>', '', final_text, flags=re.DOTALL).strip()
         except Exception as e:
             logger.error(f"Persona LLM Error: {e}")
             final_text = "[Lỗi hệ thống] API DeepSeek gặp sự cố khi tổng hợp."
+            reasoning_text = ""
 
-        # Cache the thinking block to DB so the assistant can remember its rationale
-        unstripped_text = final_text
-        # Strip hidden thinking block from final text before returning to user
-        final_text = re.sub(r'<thinking>.*?</thinking>', '', final_text, flags=re.DOTALL).strip()
-        
+        # Build unstripped_text containing thinking for Metacognition (SQLite, Mem0, Neo4j)
+        if reasoning_text:
+            unstripped_text = f"<thinking>\n{reasoning_text}\n</thinking>\n{final_text}"
+        else:
+            unstripped_text = final_text
+
         # Background task to log the assistant's FULL response (with thinking) to SQLite
         t0 = asyncio.create_task(log_message(int(user_id), "assistant", unstripped_text))
         background_tasks.add(t0)
@@ -473,7 +485,10 @@ class RaphaelBrain:
         t2.add_done_callback(background_tasks.discard)
 
         hud_line, keyboard = await build_hud(int(user_id))
-        return f"{final_text}\n\n{hud_line}", keyboard
+        full_res = f"{final_text}\n\n{hud_line}"
+        if return_thinking:
+            return full_res, keyboard, reasoning_text
+        return full_res, keyboard
 
 
 brain = RaphaelBrain()
