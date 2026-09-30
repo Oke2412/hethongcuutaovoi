@@ -281,6 +281,13 @@ class RaphaelBrain:
                     if ents:
                         graph_res = await query_causal_graph(int(user_id), ents)
                         if graph_res: chunks.append(f"[GRAPH]: {graph_res}")
+                        try:
+                            from core.gds_service import GDSService
+                            gds_ctx = await GDSService.synthesize_gds_context(int(user_id), ents)
+                            if gds_ctx:
+                                chunks.append(f"[GDS STRUCTURAL INSIGHT]: {gds_ctx}")
+                        except Exception as exc:
+                            logger.debug("GDS synthesis in search error: %s", exc)
                     
                     # 2. Vector
                     if q:
@@ -300,10 +307,47 @@ class RaphaelBrain:
                         for s in sparse_res: chunks.append(f"[KEYWORD]: {s}")
                     
                     if chunks:
-                        reranked = await rerank_chunks(q, chunks, top_k=5)
-                        tool_result_str = "\n".join(reranked)
+                        reranked = await rerank_chunks(q, chunks, top_k=8)
+                        try:
+                            from core.gds_service import rerank_chunks_with_pagerank
+                            struct_reranked = await rerank_chunks_with_pagerank(int(user_id), reranked, top_k=5)
+                            tool_result_str = "\n".join(struct_reranked)
+                        except Exception:
+                            tool_result_str = "\n".join(reranked[:5])
                     else:
                         tool_result_str = "No specific memories found."
+
+                elif func_name == "analyze_graph_data_science":
+                    try:
+                        from core.gds_service import GDSService
+                        algo = args.get("algorithm", "pagerank")
+                        src = args.get("source_node", "")
+                        tgt = args.get("target_node", "")
+                        
+                        if algo == "pagerank":
+                            nodes = await GDSService.get_global_pagerank(int(user_id), limit=5)
+                            lines = [f"- '{n['name']}' ({n['type']}): Centrality Score {n['score']}" for n in nodes]
+                            tool_result_str = "[GDS PAGERANK (Root Causal Centrality)]:\n" + ("\n".join(lines) if lines else "No central nodes found.")
+                        elif algo == "personalized_pagerank":
+                            ripple = await GDSService.get_personalized_pagerank(int(user_id), src, limit=5)
+                            lines = [f"- '{r['name']}' ({r['type']}): Ripple Impact {r['score']}" for r in ripple]
+                            tool_result_str = f"[GDS PERSONALIZED PAGERANK (Ripple from '{src}')]:\n" + ("\n".join(lines) if lines else f"No ripple effect detected from '{src}'.")
+                        elif algo == "betweenness":
+                            bns = await GDSService.get_critical_bottlenecks(int(user_id), limit=5)
+                            lines = [f"- '{b['name']}' ({b['type']}): Bottleneck Score {b['score']}" for b in bns]
+                            tool_result_str = "[GDS BETWEENNESS (Systemic Bottlenecks & Vulnerabilities)]:\n" + ("\n".join(lines) if lines else "No bottlenecks found.")
+                        elif algo == "louvain":
+                            comms = await GDSService.detect_causal_communities(int(user_id), limit=4)
+                            lines = [f"- {cluster}: {', '.join(members)}" for cluster, members in comms.items()]
+                            tool_result_str = "[GDS LOUVAIN (Causal Communities)]:\n" + ("\n".join(lines) if lines else "No distinct clusters detected.")
+                        elif algo == "shortest_path":
+                            path = await GDSService.find_causal_shortest_path(int(user_id), src, tgt)
+                            tool_result_str = f"[GDS CAUSAL PATH ('{src}' -> '{tgt}')]:\n" + (" -> ".join(path) if path else f"No direct path found between '{src}' and '{tgt}'.")
+                        else:
+                            tool_result_str = f"Algorithm '{algo}' not supported."
+                    except Exception as e:
+                        logger.warning("GDS tool error: %s", e)
+                        tool_result_str = f"[GDS ERROR]: {e}"
                 
                 # Other Database Tools
                 

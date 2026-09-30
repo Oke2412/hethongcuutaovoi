@@ -855,3 +855,26 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Đẩy commit mới lên GitHub nhánh `feature/system-engineering-notebook`.
 **Files thay đổi:** README.md, PROMPT_HISTORY.md
 ---
+
+### [2026-09-30 18:30] — Hiện Thực Hóa Linear Issue RAP-8: Cài Đặt GDS Plugin & Tích Hợp 5 Hàm Cấu Trúc Đồ Thị Nhân Quả
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** Work on Linear issue RAP-7: GDS (Graph Data Science) là gì / Sub-issue RAP-8: Cài GDS plugin. Dùng 5 function. Để DeepSeek diễn giải. Không học toán. Pipeline: Vector search -> top 50 -> Reranker -> top 10 (lọc ngữ nghĩa) -> PageRank -> xếp lại (xếp cấu trúc) -> DeepSeek synthesize.
+**Kết quả / Quyết định:**
+- Tạo và làm việc trên nhánh git chuyên biệt: `feature/rap-8-install-gds-plugin`.
+- Cập nhật [docker-compose.yml](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docker-compose.yml): Kích hoạt plugin Neo4j `graph-data-science` cùng `apoc`, khai báo thủ tục mở `NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*`.
+- Xây dựng module dịch vụ [core/gds_service.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/gds_service.py) bao bọc 5 hàm cốt lõi theo đúng tôn chỉ "Để DeepSeek diễn giải, không học toán":
+  1. `get_global_pagerank`: Xác định trọng tâm nhân quả toàn cục ("Cái gì quan trọng nhất?").
+  2. `get_personalized_pagerank`: Dự báo hiệu ứng lan tỏa domino từ các node nguồn ("Từ chuyện này, cái gì bị ảnh hưởng?").
+  3. `detect_causal_communities`: Phát hiện cụm xung đột tâm lý qua thuật toán Louvain ("Có cụm nào đang tách ra?").
+  4. `get_critical_bottlenecks`: Phát hiện các điểm nghẽn xung yếu qua Betweenness Centrality ("Node nào là mắt xích yếu?").
+  5. `find_causal_shortest_path`: Lần vết chuỗi liên kết nhân quả ngắn nhất giữa các sự kiện.
+  6. `synthesize_gds_context`: Tự động biên dịch các chỉ số topo đồ thị thành thẻ định tính tự nhiên `<gds_structural_graph_analysis>` cho LLM.
+  7. `rerank_chunks_with_pagerank`: Tái sắp xếp kết quả ngữ nghĩa dựa trên độ trung tâm cấu trúc đồ thị ($S_{\text{final}} = S_{\text{rerank}} + 0.25 \times \min(1.0, S_{\text{pagerank}})$).
+  8. Thiết kế cơ chế Zero-Crash Resilient Fallback: Tự động chuyển về native Cypher (degree centrality/BFS) hoặc trả cấu trúc an toàn khi GDS plugin hoặc Neo4j offline.
+- Tích hợp vào Não Bộ [core/brain.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/brain.py) & [core/llm.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/core/llm.py):
+  + Đăng ký tool mới `analyze_graph_data_science` vào danh mục `TOOLS_DEF`.
+  + Tự động kích hoạt GDS synthesis và structural re-ranking trong `search_memory_and_causality`.
+- Xây dựng bộ unit tests toàn diện [tests/test_gds_service.py](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/tests/test_gds_service.py) kiểm thử cả 5 hàm thuật toán, cơ chế re-ranking và khả năng dự phòng khi database offline. Kiểm thử toàn bộ hệ thống: 13/13 tests PASS.
+- Bổ sung Chương 4.6 ("Neo4j Graph Data Science (GDS) & Trực Giác Cấu Trúc Nhân Quả") vào tài liệu kỹ thuật [docs/ENGINEERING_NOTEBOOK.md](file:///c:/Users/Asus/Documents/antigravity/amazing-nobel/docs/ENGINEERING_NOTEBOOK.md).
+**Files thay đổi:** docker-compose.yml, core/gds_service.py, core/llm.py, core/brain.py, tests/test_gds_service.py, docs/ENGINEERING_NOTEBOOK.md, PROMPT_HISTORY.md
+---

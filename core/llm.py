@@ -141,6 +141,32 @@ TOOLS_DEF = [
     {
         "type": "function",
         "function": {
+            "name": "analyze_graph_data_science",
+            "description": "Run Neo4j Graph Data Science (GDS) algorithms: 'pagerank' (most influential root cause), 'personalized_pagerank' (ripple effect from an event), 'louvain' (causal clusters), 'betweenness' (bottlenecks/vulnerabilities), 'shortest_path' (direct causal path). CALL THIS TOOL when performing deep causal analysis, tracking systemic chain reactions, or locating root vulnerabilities.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "algorithm": {
+                        "type": "string",
+                        "enum": ["pagerank", "personalized_pagerank", "louvain", "betweenness", "shortest_path"],
+                        "description": "GDS algorithm to run"
+                    },
+                    "source_node": {
+                        "type": "string",
+                        "description": "Source entity for personalized PageRank or Shortest Path"
+                    },
+                    "target_node": {
+                        "type": "string",
+                        "description": "Destination entity for Shortest Path"
+                    }
+                },
+                "required": ["algorithm"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "calculate_distance",
             "description": "Calculate distance in meters between 2 GPS coordinates.",
             "parameters": {
