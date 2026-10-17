@@ -1092,3 +1092,18 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
   + Workspace & Browser: `@modelcontextprotocol/server-filesystem`, `mcp-server-git`, `@modelcontextprotocol/server-playwright`.
 **Files thay đổi:** D:/project/tensurafrontend/bridge/agent_chat.log, D:/project/tensurafrontend/.agents/skills/web-search/SKILL.md, D:/project/tensurafrontend/.agents/skills/web-search/scripts/search.py, C:/Users/Asus/.gemini/config/skills/web-search/SKILL.md, PROMPT_HISTORY.md
 ---
+
+### [2026-10-17 13:05] — Rà soát phản biện & Khắc phục lỗi DuckDuckGo CAPTCHA cho Skill Web-Search
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** Rà soát phản biện (Adversarial Review) đối với triển khai inter-agent bridge, web-search skill và khảo sát MCP servers/skills.
+**Kết quả / Quyết định:**
+- **Phát hiện lỗ hổng nghiêm trọng ở worker trước (Fatal Flaw / False Verification):**
+  + Script `search.py` cũ sử dụng `https://html.duckduckgo.com/html/` bị DDG chặn anomaly/CAPTCHA dẫn tới việc parser không khớp thẻ nào và trả về mảng kết quả rỗng `{"results": []}`. Worker trước báo cáo "Exit code 0, kết quả hợp lệ" nhưng không kiểm tra nội dung thực tế.
+  + Thư mục skill global `C:\Users\Asus\.gemini\config\skills\web-search\` bị thiếu file thực thi `scripts/search.py`.
+- **Thực thi khắc phục triệt để:**
+  1. Nâng cấp toàn diện `search.py` chuyển sang engine `https://lite.duckduckgo.com/lite/` (hỗ trợ trích xuất URL redirect unquoted `uddg=`, tự động fallback khi không có API key, không bị CAPTCHA anomaly chặn, cấu hình safe UTF-8 output cho console Windows).
+  2. Đồng bộ hóa đầy đủ `scripts/search.py` vào cả 2 vị trí: `D:\project\tensurafrontend\.agents\skills\web-search\scripts/` và `C:\Users\Asus\.gemini\config\skills\web-search\scripts/`.
+  3. Mở rộng tài liệu `SKILL.md` bổ sung hệ sinh thái MCP servers thực chứng: `CursorTouch/Windows-MCP`, `mukul975/mcp-windows-automation` (80+ công cụ), `PeterAkande/spotify_mcp` (FastMCP 36 tools), `quolu/Mcp.ComputerUse`, kèm mẫu cấu hình Windows MCP runner an toàn (`cmd /c npx -y ...` chống nghẽn PowerShell Execution Policy theo Rule 8 của `GEMINI.md`).
+  4. Xác thực thực tế: Test lệnh tìm kiếm qua `search.py` trả về đầy đủ 100% dữ liệu link, tiêu đề và tóm tắt thực tế từ web.
+**Files thay đổi:** D:/project/tensurafrontend/.agents/skills/web-search/SKILL.md, D:/project/tensurafrontend/.agents/skills/web-search/scripts/search.py, C:/Users/Asus/.gemini/config/skills/web-search/SKILL.md, C:/Users/Asus/.gemini/config/skills/web-search/scripts/search.py, PROMPT_HISTORY.md
+---
