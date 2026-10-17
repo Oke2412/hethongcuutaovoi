@@ -996,3 +996,99 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Files thay đổi:** config.py, .env, core/brain.py, core/llm.py, PROMPT_HISTORY.md
 ---
 
+
+### [2026-10-15 11:46] — Xây dựng Kiến trúc Tổng thể Hệ thống với Archify CLI (HTML Standalone & Interactive)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** /archify
+**Kết quả / Quyết định:**
+- Khởi tạo không gian thiết kế `.archify/architecture-raphael-life-os-20261015-114108/`.
+- Xác nhận lựa chọn của Master: "Kiến trúc Tổng thể Hệ thống (End-to-End Architecture: Telegram/Tauri Client -> FastAPI Adapter -> Core Brain Orchestrator -> Tri-Store & GDS)".
+- Thiết kế sơ đồ kiến trúc chuẩn `showcase` chất lượng cao với 11 node thành phần, 2 boundary (Docker Compose Stack, Tri-Store GraphRAG Cluster), và 4 thẻ chuyên đề (Cards).
+- Liên kết và xác thực 100% bằng chứng mã nguồn (source evidence) tới các file thực tế trong repo (`api/routes/desktop.py`, `bot/main.py`, `core/brain.py`, `core/neo4j_client.py`, `core/gds_service.py`, `core/llm.py`, `core/search.py`, `db/database.py`).
+- Chạy lệnh `archify finalize` đạt 100% các cổng kiểm định chất lượng: `validate: pass`, `deliver: pass`, `check: pass`, `browser-check: pass`.
+- Xuất bản file HTML standalone hỗ trợ Dark/Light mode, SVG rendering và hiệu ứng hoạt ảnh trace: `.archify/architecture-raphael-life-os-20261015-114108/raphael-life-os.html`.
+**Files thay đổi:** .archify/architecture-raphael-life-os-20261015-114108/*, PROMPT_HISTORY.md
+---
+
+### [2026-10-15 12:02] — Thiết kế Kiến trúc Toàn diện & Chi tiết Tuyệt đối Raphael Life OS (/archify Showcase)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** đọc lại và làm cực chi tiết và đúng như hệ thống, nếu cần đọc toàn bộ codebase lần nữa cũng được, /archify
+**Kết quả / Quyết định:**
+- **Rà soát toàn diện mã nguồn hệ thống (100% Codebase Inspection):**
+  + Đọc và đối chiếu cấu trúc thực tế từ `docker-compose.yml`, `api/main.py`, `api/routes/desktop.py` (Inverted MCP, SSE streaming, Cosmos constellation), `bot/main.py`, `bot/handlers/location.py` (H3 Resolution 9 GPS tracking), `bot/ingestion_worker.py` (Micro-Router LLM buffer), `core/scheduler.py` (APScheduler SM-2 & 06:30 morning quests), `core/brain.py` (Two-Pass Orchestration & Metacognition), `core/gds_service.py` (5 thuật toán GDS), `db/database.py` & `db/models.py` (SQLite 3 + FTS5 BM25), `core/search.py` (Qwen3/BGE cross-encoder reranking), `mcp_server.py` (sandboxed Stdio MCP).
+- **Thiết kế sơ đồ kiến trúc chuẩn Showcase độc lập:**
+  + Tạo không gian `.archify/architecture-raphael-life-os-20261015-115700/`.
+  + Phân bố 14 nodes ngữ nghĩa chuẩn xác theo 5 cột mạch lạc (Clients & Edge -> Ingress & Daemons -> Core Brain Spine -> Tri-Store Persistence -> Cloud AI Engines).
+  + Thiết lập 2 Boundary chuẩn hình học: `Docker Compose Stack` (internal bridge) và `Tri-Store GraphRAG Cluster` (security-group), triệt tiêu hoàn toàn lỗi enclosure.
+  + Thiết lập 4 Guided Views tương tác theo từng phân tầng: Client Ingress & MCP, Two-Pass Cognitive Engine, Tri-Store GraphRAG, Cloud AI & Reranking.
+  + Thiết lập 4 Thẻ chuyên đề (Cards) giải thích sâu sắc về cơ chế vận hành hệ thống.
+  + Neo động 100% bằng chứng mã nguồn (source evidence) tới các dòng code thực tế trong repo được kiểm chứng.
+- **Tối ưu hình học & Vượt qua toàn bộ các cổng kiểm định:**
+  + Hoàn thiện routing với 0 crossings, 0 detours, 0 diagnostics (`validate: pass`, `deliver: pass`, `check: pass`, `browser-check: pass`).
+  + Xuất bản file HTML tương tác độc lập (SVG/Dark-Light theme/Tracer): `.archify/architecture-raphael-life-os-20261015-115700/raphael-life-os.html`.
+**Files thay đổi:** .archify/architecture-raphael-life-os-20261015-115700/*, PROMPT_HISTORY.md
+---
+
+### [2026-10-15 12:10] — Tái cấu trúc Sơ đồ Kiến trúc thành 2 Pipeline Độc lập: Input & Output (/archify Dual-Pipeline)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** sửa lại thành 2 pipeline riêng cho input và output đi
+**Kết quả / Quyết định:**
+- **Làm rõ yêu cầu với Master (Human-in-the-loop):**
+  + Xác nhận Master muốn cập nhật trực tiếp Sơ đồ Kiến trúc Archify để trực quan hóa rõ ràng 2 luồng Pipeline riêng biệt (Input vs Output).
+- **Thiết kế phân tầng 2 Pipeline độc lập chuyên sâu trong `.archify/architecture-raphael-dual-pipeline-20261015-120700/`:**
+  + **Pipeline 1: Ingestion, Perception & Tri-Store GraphRAG (Input Flow - Băng trên):**
+    * Multi-Modal Ingress: Master Input (GPS H3 / Voice / Text), Desktop Ambient Audio Stream (`/api/ambient/transcript`), Inverted MCP Sandbox Tool (`mcp_server.py`).
+    * Gateway & Spatial Ingress: Telegram Adapter (Uber H3 Res 9 tracker), FastAPI Ingest Router.
+    * Quality Gate: Ingestion Micro-Router (5 msgs / 500 chars buffer) lọc hội thoại trước khi nạp.
+    * RAG Retrieval: Pass 1 Orchestrator (Reflexion tool calling không mang persona) + GDS in-memory graph projector.
+    * Tri-Store Persistence: SQLite 3 FTS5 (BM25 sparse), Mem0 ChromaDB (vector), Neo4j 3-Tier Causal Graph + Qwen3/BGE Cross-Encoder Reranker.
+  + **Cầu nối Chuyển giao Ngữ cảnh (Inter-Pipeline Handover):**
+    * Dữ liệu sau rerank được đóng gói thành `<sensor_truth>` bơm thẳng từ Pipeline 1 sang lõi DeepSeek V4.1 Flash ở Pipeline 2.
+  + **Pipeline 2: Cognitive Reasoning, Persona Synthesis & Multi-Channel Delivery (Output Flow - Băng dưới):**
+    * Lõi suy luận nhận thức: DeepSeek V4.1 Flash độc quyền xử lý phân tích tâm lý, động cơ ẩn và P0 biological triage trong thẻ `<thinking>` ẩn hoàn toàn với Master.
+    * Vòng lặp Metacognition: Toàn bộ nội dung `<thinking>` thô chưa cắt gọt được bất đồng bộ lưu ngược lại SQLite MessageLog và Neo4j để học tập trọn đời.
+    * Tổng hợp Nhân cách: Pass 2 Persona Synthesis tạo câu thoại Tensura (1-2 câu, tiền tố chuẩn mực `《Báo cáo》`, `《Xác nhận》`, `《Phủ định》`) + thanh trạng thái HUD động.
+    * Động cơ nhiệm vụ tự hành: APScheduler (cron 06:30 quests & phạt 5 phút) + Spatial Side-Quest Engine (`grid_disk(k=1)`).
+    * Phân phối đa kênh: Telegram Proactive Dispatcher + Desktop SSE Token Streaming (TTS giọng nói thời gian thực & Cosmos 3D constellation).
+- **Kiểm định chất lượng & Xuất bản:**
+  + Chạy lệnh `archify finalize` vượt qua 100% các cổng kiểm định chất lượng: `validate: pass`, `deliver: pass`, `check: pass`, `browser-check: pass`, 0 crossings.
+  + Xuất bản file HTML tương tác độc lập (SVG/Dark-Light theme/Tracer): `.archify/architecture-raphael-dual-pipeline-20261015-120700/raphael-dual-pipeline.html`.
+**Files thay đổi:** .archify/architecture-raphael-dual-pipeline-20261015-120700/*, PROMPT_HISTORY.md
+---
+
+### [2026-10-17 12:40] — Xây dựng & Tích hợp Bộ 8 Agent Skills Tinh Nhuệ vào Antigravity (/learn)
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** /learn -> "1000-3000 words cũng được. mấy skill khác cũng ngon đấy, phang hết đi"
+**Kết quả / Quyết định:**
+- **Thấu hiểu chính xác định hướng của Master:**
+  + Không biến đổi quy tắc kiến trúc trong `GEMINI.md` một cách cứng nhắc.
+  + Cho phép độ sâu suy luận linh hoạt ở Pass 2 (1,000 - 3,000 words nếu gặp bài toán nhân quả phức tạp), chỉ triệt tiêu thinking ở các khâu trung gian lãng phí (Pass 1, JSON extraction).
+  + Chuyển hóa toàn bộ kinh nghiệm thực chiến thành các **Agent Skills** chuẩn Antigravity đặt tại `~/.gemini/config/skills/` để tái sử dụng vĩnh viễn trên toàn bộ máy trạm.
+- **Xây dựng trọn gói 8 Kỹ Năng Siêu Cấp (Agent Skills) với đầy đủ SKILL.md, references và scripts:**
+  1. **`neo4j-gds-expert`**: Chuyên gia đồ thị nhân quả, Cypher tối ưu, in-memory projection (`gds.graph.project`), 5 thuật toán GDS (PageRank, Louvain, Betweenness, Personalized PageRank, Shortest Path) và APOC.
+  2. **`deepseek-token-budgeter`**: Bộ điều khiển kinh tế token DeepSeek V3/V4/R1 & SiliconFlow API, selective thinking control (tắt Pass 1, cho phép 1k-3k words ở Pass 2), tính toán BPE tokens.
+  3. **`docker-homelab-devops`**: Cấu hình volume live-reload tránh build lại Docker 2GB+ CUDA/Torch, dependency healthcheck, Tailscale networking, container crash recovery.
+  4. **`inverted-mcp-builder`**: Xây dựng Model Context Protocol server (Stdio/SSE), Inverted MCP pattern (Cloud AI điều khiển tool máy Host), sandbox bảo mật chống Path Traversal.
+  5. **`agent-eval-harness`**: Bộ khung chạy E2E benchmark với tập dữ liệu khó, assert 5 trụ cột (HTTP 200, latency < 25s, thinking extraction, Tensura brackets, GDS coverage).
+  6. **`fastapi-sse-streaming`**: Chuẩn hóa Server-Sent Events (SSE) cho FastAPI, stream token mượt mà cho Desktop Voice TTS và đồ thị Cosmos 3D.
+  7. **`database-migration-alembic`**: Quản lý migration SQLite an toàn với `render_as_batch=True`, tự động đồng bộ FTS5 virtual table và 3 triggers (`messagelog_ai`, `_ad`, `_au`).
+  8. **`playwright-browser-agent`**: Tự động hóa trình duyệt headless bằng Playwright, cào dữ liệu SPAs, chụp ảnh screenshot phục vụ Vision AI.
+- **Xác thực cài đặt:** Kiểm tra `C:\Users\Asus\.gemini\config\skills/`, cả 8 skill đều đã được nhận diện tự động và sẵn sàng kích hoạt theo cơ chế Progressive Disclosure.
+**Files thay đổi:** ~/.gemini/config/skills/*, PROMPT_HISTORY.md
+---
+
+### [2026-10-17 12:55] — Bắt tay kết nối Frontend-Backend, Thiết lập Skill Web-Search và Khảo sát MCP Servers
+**Agent:** Antigravity (Gemini 3.8 Flash)
+**Prompt:** CHỈ THỊ ĐIỀU PHỐI DỰ ÁN (FRONTEND <-> BACKEND AGENT COLLABORATION) ... Bắt tay [#ARCH-001] qua bridge/agent_chat.log ... thêm \project\tensurafrontend\.agents\skills\web-search\SKILL.md và tra xem có MCP server/skill nào ngon cho desktop app.
+**Kết quả / Quyết định:**
+- Đọc và đồng thuận toàn diện định hướng kiến trúc "Backend mỏng - Frontend dày" từ Frontend Agent.
+- Mã nguồn Backend được bảo toàn zero-touch; Backend phụ trách telemetry phần cứng, cronjobs ngầm và duy trì SSE endpoint http://127.0.0.1:8000/api/chat/message.
+- Ghi log xác nhận bắt tay [#ARCH-001] vào `D:\project\tensurafrontend\bridge\agent_chat.log` theo đúng chuẩn giao thức append-only.
+- Thiết lập hoàn chỉnh skill chuẩn Antigravity `web-search` tại `D:\project\tensurafrontend\.agents\skills\web-search\SKILL.md` (kèm script `scripts/search.py`) và đồng bộ đăng ký global tại `C:\Users\Asus\.gemini\config\skills\web-search\SKILL.md`.
+- Khảo sát chuyên sâu hệ sinh thái MCP servers và Agent skills xuất sắc nhất cho Tensura Desktop Companion:
+  + Desktop Automation: `CursorTouch/Windows-MCP` (UIA không cần vision model nặng), `winremote-mcp` (dịch vụ, tiến trình, registry), `console-automation-mcp`.
+  + Media & Ambience: `spotify-mcp` (điều khiển nhạc, playlist, âm lượng), Windows Audio Control.
+  + Web Search: `tavily-mcp` (extract markdown sạch), `brave-search-mcp-server`, `exa-mcp-server`, `mcp-omnisearch`.
+  + Workspace & Browser: `@modelcontextprotocol/server-filesystem`, `mcp-server-git`, `@modelcontextprotocol/server-playwright`.
+**Files thay đổi:** D:/project/tensurafrontend/bridge/agent_chat.log, D:/project/tensurafrontend/.agents/skills/web-search/SKILL.md, D:/project/tensurafrontend/.agents/skills/web-search/scripts/search.py, C:/Users/Asus/.gemini/config/skills/web-search/SKILL.md, PROMPT_HISTORY.md
+---
