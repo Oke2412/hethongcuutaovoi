@@ -141,6 +141,32 @@ TOOLS_DEF = [
     {
         "type": "function",
         "function": {
+            "name": "analyze_graph_data_science",
+            "description": "Run Neo4j Graph Data Science (GDS) algorithms: 'pagerank' (most influential root cause), 'personalized_pagerank' (ripple effect from an event), 'louvain' (causal clusters), 'betweenness' (bottlenecks/vulnerabilities), 'shortest_path' (direct causal path). CALL THIS TOOL when performing deep causal analysis, tracking systemic chain reactions, or locating root vulnerabilities.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "algorithm": {
+                        "type": "string",
+                        "enum": ["pagerank", "personalized_pagerank", "louvain", "betweenness", "shortest_path"],
+                        "description": "GDS algorithm to run"
+                    },
+                    "source_node": {
+                        "type": "string",
+                        "description": "Source entity for personalized PageRank or Shortest Path"
+                    },
+                    "target_node": {
+                        "type": "string",
+                        "description": "Destination entity for Shortest Path"
+                    }
+                },
+                "required": ["algorithm"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "calculate_distance",
             "description": "Calculate distance in meters between 2 GPS coordinates.",
             "parameters": {
@@ -392,6 +418,28 @@ TOOLS_DEF = [
     }
 ]
 
+# ---------------------------------------------------------------------------
+# Tool classification: state-write vs information-read
+# ---------------------------------------------------------------------------
+# Write tools never feed information back into the answer — in the profiled run
+# (docs/LATENCY_BREAKDOWN_22S.md §3) they returned 6 tokens after 0.1 ms of work.
+# The orchestrator still *thinks* about them (deciding what to record about
+# Master is part of reasoning); this set only lets the brain notice that a turn
+# asked for nothing but writes, so the writes can run concurrently with Pass 2.
+WRITE_TOOLS: frozenset[str] = frozenset(
+    {
+        "ingest_knowledge",
+        "cancel_quest",
+        "complete_quest",
+        "create_quest",
+        "manage_user_status",
+        "update_physical_status",
+        "manage_project",
+        "manage_capability",
+        "manage_credits",
+    }
+)
+
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
     """Query Neo4j for causal paths related to current entities and format as natural language."""
     from core.neo4j_client import get_neo4j_driver
@@ -487,6 +535,7 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
             ],
             temperature=0.0,
             max_tokens=256,
+            extra_body={"thinking": {"type": "disabled"}}
         )
         text = response.choices[0].message.content.strip() if response.choices else ""
         return "" if text.upper().startswith("NO") else text
@@ -494,17 +543,27 @@ async def evaluate_location_side_quest(user_id: int, hex_id: str, past_events: l
         logger.warning("Location side quest generation failed: %s", exc)
         return ""
 
-async def get_ai_response(prompt: str, model: str = None, temperature: float = 0.0) -> str:
+async def get_ai_response(
+    prompt: str,
+    model: str = None,
+    temperature: float = 0.0,
+    max_tokens: int = 1024,
+    disable_thinking: bool = True
+) -> str:
     from config import settings
     if model is None:
         model = settings.deepseek_model
     client = _get_llm_client()
+    create_kwargs = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if disable_thinking:
+        create_kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
     try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[{'role': 'user', 'content': prompt}],
-            temperature=temperature,
-        )
+        response = await client.chat.completions.create(**create_kwargs)
         return response.choices[0].message.content
     except Exception as exc:
         logger.error(f'Error fetching AI response: {exc}')

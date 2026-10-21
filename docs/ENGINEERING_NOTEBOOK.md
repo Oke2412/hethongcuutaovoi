@@ -492,6 +492,64 @@ Toàn bộ 15 ứng viên này được chuyển qua mô hình **Cross-Encoder `
 
 ---
 
+### 4.6. Neo4j Graph Data Science (GDS) & Trực Giác Cấu Trúc Nhân Quả (RAP-7 / RAP-8)
+
+#### A. Triết Lý "Giác Quan Thứ 6": Không Học Toán, Để DeepSeek Diễn Giải
+Trong các hệ thống RAG truyền thống, mô hình chỉ tìm kiếm dữ liệu dựa trên **tính tương quan ngữ nghĩa (Semantic Relevance)** thông qua Vector Embedding và Cross-Encoder Reranker. Tuy nhiên, với một "Life OS" mang chiều sâu tâm lý và nguyên nhân - kết quả như Raphael:
+* **Reranker (Qwen3):** Trả lời câu hỏi *"Đoạn thông tin này có liên quan ngữ nghĩa tới câu hỏi không?"* (Góc nhìn cục bộ).
+* **Graph Data Science (GDS PageRank / Betweenness):** Trả lời câu hỏi *"Thực thể này có đóng vai trò mắt xích nhân quả sống còn trong toàn bộ mạng lưới cuộc đời của Master không?"* (Góc nhìn cấu trúc toàn cục).
+
+> **Nhận định cốt lõi:** Bỏ qua cấu trúc đồ thị, Raphael chỉ là một chatbot tra cứu DB thông thường mang tính thụ động (*reactive*). Tích hợp GDS biến Raphael thành một thực thể có khả năng chủ động dự đoán (*proactive*), phát hiện trước các chuỗi phản ứng dây chuyền tiêu cực trước khi chúng bùng phát.
+
+Hệ thống tuân thủ nghiêm ngặt tôn chỉ thiết kế của Linear Issue RAP-7: **"Dùng 5 function. Để DeepSeek diễn giải. Không học toán."** Master và Agent không cần giải các ma trận kỳ dị hay tính tích phân d-separation; toàn bộ điểm số hình học tô-pô được chuyển hóa thành các phân tích định tính tự nhiên trong khối `<gds_structural_graph_analysis>` để DeepSeek V4.1 Flash tiếp nhận trực tiếp vào dòng suy ngẫm `<thinking>`.
+
+#### B. Cấu Hình Hạ Tầng Docker Compose (RAP-8)
+Để kích hoạt thư viện Graph Data Science trong môi trường Dockerized Neo4j 5.x mà không tiêu tốn quá 1.5GB RAM trên máy tính cá nhân, `docker-compose.yml` được cấu hình mở rộng:
+```yaml
+environment:
+  - NEO4J_AUTH=neo4j/raphael_secret_2026
+  - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+  - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*
+  - NEO4J_dbms_security_procedures_allowlist=apoc.*,gds.*
+  - NEO4J_server_memory_heap_initial__size=512m
+  - NEO4J_server_memory_heap_max__size=1536m
+```
+Khi container khởi động, entrypoint tự động tải thư viện `neo4j-graph-data-science.jar` tương thích và cấp quyền thực thi các thủ tục cấp cao cho phiên người dùng.
+
+#### C. Bảng 5 Thủ Tục GDS Cốt Lõi & Ý Nghĩa Ứng Dụng
+Hệ thống trừu tượng hóa 5 hàm thuật toán đồ thị trong `core/gds_service.py`:
+
+| STT | Thủ tục GDS | Tên Diễn Giải Tự Nhiên | Bản Chất Kỹ Thuật | Ứng Dụng Cho Raphael Life OS |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | `gds.pageRank.stream` | *"Cái gì quan trọng nhất?"* | Global Centrality | Xác định các nguyên nhân gốc rễ (Root Causes) và niềm tin cốt lõi (Core Beliefs) có tầm ảnh hưởng chi phối toàn bộ mạng lưới cuộc đời. |
+| **2** | `gds.pageRank.stream` `+ sourceNodes` | *"Từ chuyện này, cái gì bị ảnh hưởng?"* | Personalized Ripple Effect | Dự báo hiệu ứng domino khi một sự kiện cụ thể xuất hiện (ví dụ: cãi nhau với bạn gái $\rightarrow$ mất ngủ $\rightarrow$ hoãn deadline dự án). |
+| **3** | `gds.louvain.stream` | *"Có cụm nào đang tách ra?"* | Community Detection | Gom cụm các xung đột tâm lý, nhận diện các tiểu văn hóa hoặc các nhóm thói quen sinh hoạt đang hình thành cục bộ. |
+| **4** | `gds.betweenness.stream` | *"Node nào là mắt xích yếu?"* | Bridge / Bottleneck Node | Tìm ra các điểm nghẽn xung yếu (nếu giải quyết được một thói quen hoặc con người này thì toàn bộ áp lực của các nhánh khác sẽ được giải tỏa). |
+| **5** | `gds.shortestPath.dijkstra` / BFS | *"Đường đi nhân quả ngắn nhất?"* | Shortest Causal Chain | Truy vết từng bước kích hoạt trực tiếp từ sự kiện vừa diễn ra quay ngược về nguồn cơn chấn thương hoặc cam kết trong quá khứ. |
+
+#### D. Chu Trình Kết Hợp: Reranker Ngữ Nghĩa $\rightarrow$ Tái Sắp Xếp Cấu Trúc (PageRank Rescoring)
+Luồng tích hợp dữ liệu vào `core/brain.py` vận hành theo quy trình 4 giai đoạn chuẩn mực:
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        STRUCTURAL RAG PIPELINE (RAP-7 / RAP-8)                         │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Multi-Store Fetch   : Thu thập 15 ứng viên (Top 5 Graph, Top 5 Mem0, Top 5 FTS5).   │
+│ 2. Semantic Filtering  : Cross-Encoder Qwen3-Reranker-8B lọc ra Top 5 chunks ngữ nghĩa.│
+│ 3. Structural Re-score : GDSService đối chiếu điểm PageRank của các thực thể trong     │
+│                          từng chunk, điều chỉnh trọng số:                              │
+│                          S_final = S_rerank + 0.25 * min(1.0, Score_PageRank)          │
+│ 4. Cognitive Synthesis : Đẩy Top chunks đã tái sắp xếp cùng thẻ định tính             │
+│                          <gds_structural_graph_analysis> vào Prompt của DeepSeek Flash.│
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### E. Kiến Trúc Dự Phòng Ngoại Tuyến (Resilient Fallback Design)
+`core/gds_service.py` được thiết kế theo nguyên tắc *Zero-Crash Resilience*:
+* Khi Neo4j chưa khởi chạy plugin GDS hoặc khi bộ nhớ chưa tạo đồ thị chiếu (Graph Projection), hệ thống tự động fallback về các câu lệnh Cypher truyền thống (đếm bậc liên kết bậc 1, duyệt BFS 3-hop).
+* Nếu cơ sở dữ liệu đồ thị hoàn toàn ngoại tuyến, service trả về cấu trúc rỗng an toàn, đảm bảo các chức năng hội thoại và phản hồi của Raphael không bao giờ bị nghẽn hay phát sinh ngoại lệ 500.
+
+---
+
 ## 5. MODULE 3: ĐỊNH VỊ KHÔNG GIAN SỐ HỌC (SPATIAL INTELLIGENCE - UBER H3)
 
 ### 5.1. Tại Sao Tọa Độ GPS Thuần (Lat, Lon) Thất Bại?
