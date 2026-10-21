@@ -1352,3 +1352,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** every deleted path was checked for inbound references first - the eight scripts referenced only each other and the archive, `genesis_ingest.py` was the only reader of `docs/tien_kiep/`, and `archify` had zero hits in any code, config or doc. `compressed_genesis_context.md` was NOT part of this request and stays. Four scripts now point at the deleted directory or at dead Windows paths (`extract_delta_for_deepseek.py`, `extract_strict_delta.py`, `smart_filter.py`, `debug_api.py`) plus `search_history.py`/`check_source.py`; they were left in place because the Master did not list them. All deletions remain recoverable from `1e0e721`.
 
 **Next steps:** decide on the five orphaned text-munging scripts above (they can no longer run), and consider whether `compressed_genesis_context.md` (2.3 MB) is next.
+
+### [2026-10-21 19:14] — Review and delete the six orphaned transcript-munging scripts
+
+**Scope:** `scripts/` (branch `chore/delete-dead-munging-scripts`).
+
+**Context & objectives:** Master asked to judge the six leftovers and delete whatever cannot be reused; his own verdict was that they are worthless.
+
+**Actions & changes:** read all six in full and deleted every one - `check_source.py` (14 L), `search_history.py` (21 L), `debug_api.py` (41 L), `extract_delta_for_deepseek.py` (44 L), `smart_filter.py` (47 L), `extract_strict_delta.py` (65 L); 232 lines gone, `scripts/` now holds 10 files. Graph: 1,251 -> 1,244 nodes, 2,007 -> 1,983 edges, communities unchanged at 104.
+
+**Decisions & findings:** all six were single-use scrapers of the Antigravity transcript format (`C:/Users/Asus/.gemini/antigravity/brain/<session>/.system_generated/logs/transcript_full.jsonl`) writing into the archive directory deleted in `7d5ba1d` - no arguments, no functions worth keeping, no imports from the repo, and three of them (`extract_delta_for_deepseek`, `smart_filter`, `extract_strict_delta`) are copy-paste variants of the same 40-line transform differing only in the tool-call filter and a workspace sniff. Shared defects: hardcoded Windows absolute paths, bare `except: pass` hiding every failure, magic slices (`[-4:-1]`, `[-15:]`), no `__main__` guard in four files so importing them runs the scrape, and `debug_api.py` duplicated the client call already in `core/llm.py` while loading a 3.5 MB prompt slice from a deleted file. Nothing was reusable. The remaining ten scripts all carry `__main__` guards and real integrations, so they stay; `ingest_text.py` is the one with a latent risk - it interpolates LLM-supplied labels and relationship types into Cypher via f-strings, which is injection-prone if ever fed untrusted text.
+
+**Next steps:** harden `ingest_text.py` (allow-list labels/rel types, or parameterise the MERGE pattern) before anyone reuses it as a seeding tool; `compressed_genesis_context.md` (2.3 MB) is now the last unreferenced large artifact.
