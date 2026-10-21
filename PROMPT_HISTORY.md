@@ -1292,3 +1292,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** the harness already compacts on its own (`compaction-basic` consumes post-step pressure), so the rule keys off both the 100k mark and the post-compaction moment; the point is to reload rules + architecture after compaction instead of trusting a truncated transcript.
 
 **Next steps:** unchanged - merge `docs/agents-rules-restructure`, then rebuild the graph.
+
+### [2026-10-21 17:44] — Merge both branches into main and push
+
+**Scope:** git integration of `feature/graphify-global-skill` and `docs/agents-rules-restructure`.
+
+**Context & objectives:** user approved merging the restructure after review.
+
+**Actions & changes:** `git checkout main`; merged `feature/graphify-global-skill` as `2400cb8` (removes the 5.8 MB vendored graphify package, 233 files) and `docs/agents-rules-restructure` as `621f150` (AGENTS.md rewrite, `docs/ARCHITECTURE.md`, 100k compaction rule, SSE cross-ref fix). Pushed `6819ad1..621f150` to `origin/main`; worktree clean, no open branches ahead.
+
+**Decisions & findings:** the docs branch was cut from the graphify branch, so merging it necessarily carried the package deletion with it; both lines were merged explicitly rather than fast-forwarded to keep the history readable. `git fetch`/`push` hit a read-only credential-store lock inside the workspace sandbox and needed a wider-permission retry - worth remembering for future network git operations on this host.
+
+**Next steps:** `graphify-out/graph.json` is now two commits behind (built at `6819ad1`); run `graphify update .` to realign the MCP graph with `main`.
