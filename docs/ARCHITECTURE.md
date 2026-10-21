@@ -3,7 +3,7 @@
 > System facts only. Process rules live in [AGENTS.md](../AGENTS.md).
 > **Sync rule (AGENTS.md Rule 6):** any merge that changes modules, data stores, model/endpoint config, or runtime flow must update this file in the same PR.
 
-Last verified: 2026-10-21 · code graph rebuilt at `b35b053` (1,244 nodes / 1,983 edges); no runtime component was removed since — only the `docs/tien_kiep/` history archive, its eight generator scripts, `.archify/` and the unregistered `mcp_server.py`.
+Last verified: 2026-10-21 · code graph rebuilt at `b3d48e7` (1,253 nodes / 2,004 edges); no runtime component was removed since — only the `docs/tien_kiep/` history archive, its eight generator scripts, `.archify/` and the unregistered `mcp_server.py`.
 
 ## 1. Topology
 

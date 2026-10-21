@@ -43,6 +43,8 @@ This file, all rules, system prompts, tool schemas and LLM logic are written in 
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the single source of system facts. **Every merge** that changes modules, data stores, model/endpoint config or runtime flow updates it in the same branch. On conflict: ARCHITECTURE.md wins on facts, this file wins on process.
 
+The same merge refreshes the code graph: `graphify update . --force`, then `python scripts/graph_doctor.py` to prove 0 stale nodes. AST only — 0 tokens, ~2 s. Protocol in [docs/SKILLS_AND_MCP.md](docs/SKILLS_AND_MCP.md).
+
 ---
 
 ## Skills & MCP
