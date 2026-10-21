@@ -25,14 +25,21 @@ All eight live in `.dsh/skills/<name>/SKILL.md`; `graphify` is global (`~/.agent
 
 Nothing else is registered. The old `raphael-fs` server (`mcp_server.py`) was removed — the harness filesystem tools replaced it.
 
-## Keeping the graph usable
+## Refreshing the graph after a merge
+
+`graphify update` is local AST extraction — **no LLM call, 0 API tokens**, ~2 s on this repo. So it runs on every merge, not occasionally:
 
 ```bash
-graphify update .          # re-extract changed files, no LLM, refreshes graph.json
-graphify query "..."       # BFS over the graph
-graphify path "A" "B"      # shortest path between two nodes
+graphify update . --force      # re-extract, prune nodes of deleted files
+python scripts/graph_doctor.py # verify: 0 stale files, 0 dangling edges (exit 1 if not)
+graphify query "..."           # BFS over the graph
+graphify path "A" "B"          # shortest path between two nodes
 ```
 
-`graph.json` is gitignored — a rebuildable artifact. Rebuild after cloning or after merging work that touches `core/`, `api/`, `db/`, `bot/`, or this catalog, otherwise the MCP answers describe an older tree.
+`--force` is required after deletions: the shrink guard otherwise refuses to write a graph with fewer nodes than the previous build. `graph_doctor.py` re-checks the result against the working tree, because an interrupted run can leave nodes pointing at files that no longer exist.
+
+**Token cost:** `update`, and `cluster-only --no-label`, are free — community names come from the hub node, not from a model. Only two commands spend tokens, and neither belongs in the merge loop: `graphify label` (LLM naming of communities) and `graphify extract --mode deep` (semantic edges for docs, papers, images). Run them only when the `Community N` placeholders are unreadable.
+
+`graph.json` is gitignored — a rebuildable artifact. Rebuild after cloning or after any merge touching `core/`, `api/`, `db/`, `bot/`, `scripts/` or this catalog, otherwise the MCP answers describe an older tree.
 
 Schema, stores and runtime config: [ARCHITECTURE.md](ARCHITECTURE.md).
