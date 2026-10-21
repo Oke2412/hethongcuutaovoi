@@ -1,3 +1,0 @@
-Name: Dịch chunk_4.json sang tiếng Việt với tone Hán Việt/Anime Isekai
-TS: 2026-09-07T23:59:57+07:00
-H3: 

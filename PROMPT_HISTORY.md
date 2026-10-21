@@ -1316,3 +1316,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** the previous merge was documentation-only, so Rule 6 did not require an architecture edit - the architecture file was itself created in that merge; only its verified-stamp changed now. `graphify update` prints `1013x missing required field 'source_file'` from the AST extractor; edges are still written and the graph returns results, so it was surfaced rather than treated as fatal. Graph artifacts stay tracked except `graph.json`, which `.gitignore` keeps local.
 
 **Next steps:** decide whether `scratch/` should be excluded from the graph again (would need an explicit exclude list, since `update` does not read one); drop the merged branches.
+
+### [2026-10-21 18:20] — Delete unused files, rebuild the graph, tighten .gitignore
+
+**Scope:** repository hygiene (branch `chore/cleanup-unused-files`).
+
+**Context & objectives:** remove files nothing in the codebase references.
+
+**Actions & changes:** deleted 42 files / ~31k lines - `scratch/` (32 one-off audit, refactor and benchmark dumps), `llm_backup.py` (35 KB stale copy of `core/llm.py`), `fix.py`, `fix_tools.py`, `scratch_check.py`, `check_neo.py`, `test_genai.py`, `test_imports.py`, `context.txt` (UTF-16 dump), `neo4j_test.txt`, `api.md.md` (scraped Gemini page, 0 refs). `.gitignore` now ignores `scratch/` wholesale instead of only `scratch/temp_ingest_*.txt`. Rebuilt the graph with `graphify update . --force` (shrink guard): 1,740 -> 1,648 nodes, 2,753 -> 2,563 edges, 150 -> 148 communities.
+
+**Decisions & findings:** `scratch/` had to be checked before deleting, because `core/brain.py`, `bot/ingestion_worker.py` and `tests/test_graph_and_pipeline_fixes.py` write `scratch/temp_ingest_*.txt` there - all three call `os.makedirs("scratch", exist_ok=True)`, so removing the tracked directory is safe and the ignore rule now covers the regenerated files. Kept on purpose: `docs/tien_kiep/` (read by `scripts/genesis_ingest.py`), `compressed_genesis_context.md` (2.3 MB, zero code references - a knowledge dump, not junk), and the zero-reference operational scripts (`init_neo4j.py`, `wipe_*.py`, `chunked_chronicles.py`, `generate_all_chronicles.py`, `stream_chronicles.py`, `smart_filter.py`, `search_history.py`, `debug_api.py`, `check_source.py`, `extract_*_delta.py`, `perfect_6turn_extraction.py`, `run_multi_turn_extraction.py`, `test_genesis.py`) because they are manual runbooks, not dead code.
+
+**Next steps:** decide on `compressed_genesis_context.md` (2.3 MB) and whether to prune the zero-reference scripts; several `scripts/*.py` still hardcode the old Windows path `C:/Users/Asus/Documents/antigravity/amazing-nobel/...`, which makes them non-runnable on this host.

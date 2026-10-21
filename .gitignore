@@ -44,4 +44,7 @@ chroma_db/
 # Graphify / tooling churn
 graphify-out/cache/
 graphify-out/.graphify_*
-scratch/temp_ingest_*.txt
+
+# Runtime scratch space: core/brain.py, bot/ingestion_worker.py and the tests
+# create it with makedirs() before writing temp_ingest_*.txt
+scratch/
