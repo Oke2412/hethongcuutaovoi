@@ -1304,3 +1304,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** the docs branch was cut from the graphify branch, so merging it necessarily carried the package deletion with it; both lines were merged explicitly rather than fast-forwarded to keep the history readable. `git fetch`/`push` hit a read-only credential-store lock inside the workspace sandbox and needed a wider-permission retry - worth remembering for future network git operations on this host.
 
 **Next steps:** `graphify-out/graph.json` is now two commits behind (built at `6819ad1`); run `graphify update .` to realign the MCP graph with `main`.
+
+### [2026-10-21 18:02] — Refresh code graph, split skills/MCP catalog out of AGENTS.md
+
+**Scope:** graph artifact refresh plus rules-file split (branch `docs/split-skills-mcp`).
+
+**Context & objectives:** user asked for `graphify update`, asked why the architecture doc was not mentioned during the merge, and asked to move the skills and MCP blocks into their own file so the agent can find the right skill per task instead of reading a 30-row table.
+
+**Actions & changes:** ran `graphify update .` - AST only, 33/33 uncached code files re-extracted, graph now `c2671cc` / 1,740 nodes / 2,753 edges / 150 communities (was 818/1,827/47; `scratch/` scripts are now included because the incremental path does not inherit the original build's exclusion list). Added `docs/SKILLS_AND_MCP.md` (skill routing table with triggers, MCP status, graph rebuild commands). AGENTS.md 5,738 -> 3,572 bytes by replacing both tables with a pointer plus the always-on skill. Updated the `Last verified` stamp in `docs/ARCHITECTURE.md`.
+
+**Decisions & findings:** the previous merge was documentation-only, so Rule 6 did not require an architecture edit - the architecture file was itself created in that merge; only its verified-stamp changed now. `graphify update` prints `1013x missing required field 'source_file'` from the AST extractor; edges are still written and the graph returns results, so it was surfaced rather than treated as fatal. Graph artifacts stay tracked except `graph.json`, which `.gitignore` keeps local.
+
+**Next steps:** decide whether `scratch/` should be excluded from the graph again (would need an explicit exclude list, since `update` does not read one); drop the merged branches.
