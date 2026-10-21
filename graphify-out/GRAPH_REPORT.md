@@ -1,27 +1,27 @@
 # Graph Report - hethongcuutaovoi  (2026-10-21)
 
 ## Corpus Check
-- 118 files · ~3,124,996 words
+- 113 files · ~3,123,479 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .api 1)
 
 ## Summary
-- 1648 nodes · 2563 edges · 148 communities (110 shown, 38 thin omitted)
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 310 edges (avg confidence: 0.77)
+- 1624 nodes · 2528 edges · 142 communities (106 shown, 36 thin omitted)
+- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 299 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a5554151`
+- Built from commit: `843b439a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - core_brain
-- .session
+- GDSService
 - desktop.py
 - test_stream_pipeline.py
 - google-genai (new Google Gen AI SDK)
-- Ranked Latency Optimisation Plan
+- Compose Service: neo4j 5.12 + APOC + GDS
 - SYSTEM_RAPHAEL (Pass 2 Persona)
 - bot/main.py
 - H3_Cell Neo4j Node
@@ -29,29 +29,29 @@
 - Persona Synthesis
 - Raphael Core Brain
 - brain_dump_import.py
-- json
+- test_genesis.py
 - os
-- Compose Service: neo4j 5.12 + APOC + GDS
+- DeepSeek V4.1 Flash
 - sqlite3
-- TestGraphAndPipelineFixes
+- profile_deep_dive
 - stream_chat_response Endpoint
-- Skills Catalog Injection Map
+- 🧠 BẢN THIẾT KẾ TỔNG THỂ: RAPHAEL CORE BRAIN x RPG OF LIFE
 - Five Core GDS Functions
 - Raphael Core Brain
 - scripts/search.py
 - TestDesktopAdapter
-- Inverted MCP Pattern
+- FastAPI Gateway
 - reset.py
 - migrate_sqlite.py
 - Search Fallback Strategy
 - I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)
 - wipe_all_data.py
 - Neo4j Graph Database
-- Desktop Client
+- Skills Catalog Injection Map
 - DeepSeek Official API Migration
 - Causal Delta Formula
 - test_system_capabilities.py
-- get_session
+- SM-2 Spaced Repetition
 - Technical Debts and Architecture Scorecard
 - Pipeline 1: Ingestion, Perception & Tri-Store GraphRAG (Input)
 - CONFLICTS_WITH Edge
@@ -63,24 +63,21 @@
 - 📋 Bảng tổng hợp mức độ nghiêm trọng
 - Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}
 - Lịch Sử
-- logging
 - SQLModel
 - config
 - **SESSION 11: TÁI CẤU TRÚC NÃO BỘ VỚI MEM0 VÀ KIẾN TRÚC MODULE HÓA**
 - Implementation Plan: Raphael — Reflexive Causal Intelligence Pipeline
 - get_or_create_user
 - [Session 2026-09-12 05:40]
-- GDSService
+- Inverted MCP Host Architecture
 - Tầm nhìn Hệ thống
-- ingest_text.py
+- get_neo4j_driver
 - scheduler.py
 - .process_input
-- Plan: H3 Spatial Memory + Telegram Live Location
+- evaluate_location_side_quest
 - 📜 Biên Niên Sử Dự Án STTAP (Raphael STT Pipeline & Living Again)
-- handle_quest_callback
-- profile_pipeline_deep_dive.py
-- test_desktop_adapter.py
-- asyncio
+- .session
+- handle_location
 - _persist_to_graph
 - RAPHAEL BRAIN DUMP — Mạnh Lê Duy
 - 📌 SESSION_02 — Fix lỗi UTF-8 Encoding & Deploy lên Ubuntu Server
@@ -89,31 +86,26 @@
 - 📌 SESSION_04 — Grill-me: Thiết kế Pipeline GraphRAG SOTA
 - 📌 SESSION_05 — Raphael "Thực sự thông minh" & 4 Cơ chế Trí tuệ Cốt lõi
 - api/main.py
-- get_neo4j_driver
+- _get_llm_client
 - 📜 BIÊN NIÊN SỬ VĨ ĐẠI — DỰ ÁN **VISAIREAL**
 - [Tên của tôi] - Master Profile
 - PLAN: Psychology & Anthropology Integration (Raphael Deep)
-- .synthesize_gds_context
+- rerank_chunks_with_pagerank
 - process_location
 - ARCHITECTURE — Raphael Life OS (Amazing Nobel)
 - GIAI ĐOẠN I: KHAI SINH SLIME (2026-09-06)
 - GIAI ĐOẠN II: TIẾN HÓA MA VƯƠNG (2026-09-07)
 - 🧠 PHẦN 1: GIAI ĐOẠN KHỞI NGUYÊN & ĐỊNH HÌNH IDEA
-- 📌 SESSION_10 — Kiểm tra Project & Cập nhật Rules
 - 📌 SESSION_01 — Khởi tạo dự án "Amazing Nobel" (Telegram Bot + FastAPI)
-- Five GDS Procedures for Structural Intuition
 - I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)
-- rerank_chunks
 - BIÊN NIÊN SỬ VĨ ĐẠI: DỰ ÁN AMAZING-NOBEL
 - PHẦN X: MODULE BLUETOOTH & CONTROLLER — Truyền lệnh HC-05 [Ref: 2026-08-05T18:41]
 - 📌 SESSION_09 — SOTA GraphRAG & Tra cứu Bảng xếp hạng Rerank/Embed
 - onboard.py
-- get_omniscient_state
 - Requirements
 - PHẦN XII: AUTOTUNE TẠI CHỖ [Ref: 2026-08-15T06:46:02 "khi autotune thì cho nó tự autotune tại chỗ đi, nó autotune bị lệch vị trí rồi"]
 - 6.2. Bản Tổng hợp Toàn diện Kiến trúc
 - 📌 SESSION_07 — Đọc OpenRouter Docs & Migrate
-- root
 - config.py
 - 🔮 Trải nghiệm nó sẽ "ảo diệu" và cuốn hút như thế này:
 - Hotfix: PERSONAS Syntax Error (2026-09-07 23:17)
@@ -180,11 +172,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (148 total, 38 thin omitted)
+## Communities (142 total, 36 thin omitted)
 
 ### Community 0 - "core_brain"
-Cohesion: 0.16
-Nodes (12): _apply_write(), calculate_distance_sync(), cancel_quest_async(), complete_quest_async(), create_quest_async(), _get_current_h3(), manage_capability_async(), manage_credits_async() (+4 more)
+Cohesion: 0.14
+Nodes (14): [2026-09-07 01:45] — Kích hoạt 5 Kỹ năng Tối thượng (Tensura OS), _apply_write(), calculate_distance_sync(), cancel_quest_async(), complete_quest_async(), create_quest_async(), _get_current_h3(), manage_capability_async() (+6 more)
 
 ### Community 2 - "desktop.py"
 Cohesion: 0.11
@@ -198,16 +190,16 @@ Nodes (14): _AsyncStream, _Choice, _FakeClient, _FakeCompletions, _Fn, _Message,
 Cohesion: 0.16
 Nodes (20): Hotfix: Mem0 Embedder Provider (2026-09-07 20:48), Mem0 memory layer, Hotfix: Mem0 Gemini Embedder SDK (2026-09-07 21:32), ImportError: cannot import name 'genai' from 'google', Fix: Mem0 Gemini Embedder Dependency (2026-09-07 21:37), Namespace Conflict Avoidance (2026-09-07 22:38), Google Namespace Collision (google-genai vs google.generativeai), Revert: Unsupported Embedder Config (2026-09-07 23:26) (+12 more)
 
-### Community 5 - "Ranked Latency Optimisation Plan"
-Cohesion: 0.17
-Nodes (13): Cold GDS Projection (2,816.1ms), 22.67s E2E Harness Measurement, HTTP vs In-Process Gap (2.37s), Loop 3 Write Turn (4,774.6ms for 0.1ms tools), Neo4j-Down Failure Mode (141.52s, 7x), Pass 1 Orchestrator Loop (11,786.8ms, 58.1%), Pass 2 Persona Synthesis (8,243.8ms, 40.6%), Profiler Run task-3520 (20.29s in-process) (+5 more)
+### Community 5 - "Compose Service: neo4j 5.12 + APOC + GDS"
+Cohesion: 0.06
+Nodes (31): Compose Service: api (FastAPI), Compose Service: bot, Internal Bridge Network, Compose Service: neo4j 5.12 + APOC + GDS, Five GDS Procedures for Structural Intuition, PM-01: ChromaDB Volume Fragmentation, PM-02: Neo4j JVM Startup Race, PM-03: Windows CP1252 / UTF-8 BOM Trap (+23 more)
 
 ### Community 6 - "SYSTEM_RAPHAEL (Pass 2 Persona)"
 Cohesion: 0.07
 Nodes (21): Agentic Discovery Loop (max 3 iterations), Asynchronous Graph Ingestion (_persist_to_graph), Omniscience Context Pre-fetcher (get_mini_context), ONTOLOGY_PROMPT_TEMPLATE, PM-04: Vietnamese BPE Token Blow-up, Prompt Lifecycle Map (6 prompts), Stress-Test Case Study (TS. Hung and Nam), SYSTEM_ORCHESTRATOR (Pass 1) (+13 more)
 
 ### Community 7 - "bot/main.py"
-Cohesion: 0.15
+Cohesion: 0.16
 Nodes (5): build_document_handler(), handle_document(), auth_check(), main(), post_init()
 
 ### Community 8 - "H3_Cell Neo4j Node"
@@ -219,52 +211,56 @@ Cohesion: 0.08
 Nodes (18): Amazing Nobel Life OS Project, SQLite FTS5 Trigram Virtual Table, Desktop Companion (Babylon.js + Edge-TTS), Mem0 Preference Overwrite and Fact Decay, Qwen3-Reranker-8B Cross-Encoder Fusion, Telegram Long-Polling Adapter, Tri-Store Hybrid Memory Topology, Timestamps in GraphRAG Memory (+10 more)
 
 ### Community 10 - "Persona Synthesis"
-Cohesion: 0.12
-Nodes (9): MCP Server Inventory, Omni-Agentic Loop (Pass 1), Raphael Life OS (Amazing Nobel), Agent-Driven RAG Loop Architecture, Tri-Store Memory, DeepSeek V4.1 Flash, Metacognition Log, Persona Synthesis (+1 more)
+Cohesion: 0.13
+Nodes (8): MCP Server Inventory, Omni-Agentic Loop (Pass 1), Raphael Life OS (Amazing Nobel), Agent-Driven RAG Loop Architecture, Tri-Store Memory, Metacognition Log, Persona Synthesis, GDS Structural Coverage Assertion
 
 ### Community 11 - "Raphael Core Brain"
-Cohesion: 0.10
-Nodes (17): Qwen3 / BGE Rerank, Pass 1 Orchestrator, Master Input, Micro-Router, Telegram Ingress, Qwen3-Embedding-8B, Mem0 Vector Store, SQLite 3 & FTS5 (+9 more)
+Cohesion: 0.15
+Nodes (16): Qwen3 / BGE Rerank, Pass 1 Orchestrator, GDS Projector, Master Input, Micro-Router, Telegram Ingress, Qwen3-Embedding-8B, Mem0 Vector Store (+8 more)
 
 ### Community 12 - "brain_dump_import.py"
+Cohesion: 0.19
+Nodes (13): Chuyện gì vừa xảy ra?, LifeState, get_or_create_user(), _hash(), import_capabilities(), import_core_psychology(), import_life_events(), import_life_states() (+5 more)
+
+### Community 13 - "test_genesis.py"
 Cohesion: 0.24
-Nodes (11): get_or_create_user(), _hash(), import_capabilities(), import_core_psychology(), import_life_events(), import_life_states(), import_memories(), import_physical_history() (+3 more)
+Nodes (5): gather_massive_context(), inject_to_neo4j(), main(), MockDriver, MockSession
 
-### Community 13 - "json"
-Cohesion: 0.29
-Nodes (4): extract_chat(), gather_massive_context(), inject_to_neo4j(), main()
-
-### Community 15 - "Compose Service: neo4j 5.12 + APOC + GDS"
-Cohesion: 0.18
-Nodes (11): Compose Service: api (FastAPI), Compose Service: bot, Internal Bridge Network, Compose Service: neo4j 5.12 + APOC + GDS, PM-01: ChromaDB Volume Fragmentation, PM-02: Neo4j JVM Startup Race, PM-03: Windows CP1252 / UTF-8 BOM Trap, Neo4j Container + Realtime Time Awareness (+3 more)
+### Community 15 - "DeepSeek V4.1 Flash"
+Cohesion: 0.50
+Nodes (3): DeepSeek V4.1 Flash, DeepSeek Flash, DeepSeek V4.1 Flash
 
 ### Community 16 - "sqlite3"
-Cohesion: 0.20
-Nodes (5): run_pipeline_evaluation(), main(), probe(), test_docker_stack(), run_hard_test()
+Cohesion: 0.22
+Nodes (4): init_db(), run_pipeline_evaluation(), test_docker_stack(), run_hard_test()
+
+### Community 17 - "profile_deep_dive"
+Cohesion: 0.12
+Nodes (4): query_causal_graph(), count_tokens(), profile_deep_dive(), TestGraphAndPipelineFixes
 
 ### Community 18 - "stream_chat_response Endpoint"
-Cohesion: 0.17
-Nodes (10): H3 Resolution 9 Location Tracking, Desktop SSE Stream, Master Experience, APScheduler Daemon, Spatial Side-Quest, Telegram Delivery, Background Daemons, Frontend SSE Stream Reader (+2 more)
+Cohesion: 0.29
+Nodes (5): Desktop SSE Stream, Master Experience, Frontend SSE Stream Reader, event_generator Token Loop, stream_chat_response Endpoint
 
-### Community 19 - "Skills Catalog Injection Map"
-Cohesion: 0.18
-Nodes (4): Skills Catalog Injection Map, bridge/agent_chat.log, Interactive Actions (click, fill, wait), scrape_page Async Scraper
+### Community 19 - "🧠 BẢN THIẾT KẾ TỔNG THỂ: RAPHAEL CORE BRAIN x RPG OF LIFE"
+Cohesion: 0.50
+Nodes (4): 1.1. Chuỗi Fallback của Gemini bị hỏng và thiếu nhánh xử lý, 1.2. OpenRouter STT Engine gọi sai API 100%, 1. 🚨 Lỗi Logic Code (Code Logic Errors), 🧠 BẢN THIẾT KẾ TỔNG THỂ: RAPHAEL CORE BRAIN x RPG OF LIFE
 
 ### Community 20 - "Five Core GDS Functions"
-Cohesion: 0.20
-Nodes (11): GDS Projector, GDS Structural Triage, Neo4j Causal Graph, GDS Analytics Service, Betweenness Centrality Template, Louvain Community Template, Global PageRank Template, Personalized PageRank Ripple Template (+3 more)
+Cohesion: 0.24
+Nodes (9): GDS Structural Triage, GDS Analytics Service, Betweenness Centrality Template, Louvain Community Template, Global PageRank Template, Personalized PageRank Ripple Template, Dijkstra Causal Chain Template, Five Core GDS Functions (+1 more)
 
 ### Community 21 - "Raphael Core Brain"
-Cohesion: 0.18
-Nodes (12): FastAPI Gateway, Raphael Core Brain, DeepSeek Flash, Tauri Desktop, Neo4j GDS 2.6.9, Master (User), Mem0 + ChromaDB, Neo4j 5.12 (+4 more)
+Cohesion: 0.22
+Nodes (10): FastAPI Gateway, Raphael Core Brain, Tauri Desktop, Neo4j GDS 2.6.9, Master (User), Mem0 + ChromaDB, Neo4j 5.12, Qwen3-Reranker-8B (+2 more)
 
 ### Community 22 - "scripts/search.py"
-Cohesion: 0.21
-Nodes (4): DDGLiteParser, main(), search_duckduckgo_lite(), search_tavily()
+Cohesion: 0.15
+Nodes (6): DDGLiteParser, main(), search_duckduckgo_lite(), search_tavily(), main(), probe()
 
-### Community 24 - "Inverted MCP Pattern"
-Cohesion: 0.22
-Nodes (9): FastAPI Ingress, Desktop Sensors, Inverted MCP Tool, Inverted MCP Server, Inverted MCP Pattern, read_local_file Tool, Minimal Stdio MCP Server Template, validate_safe_path (+1 more)
+### Community 24 - "FastAPI Gateway"
+Cohesion: 0.33
+Nodes (6): FastAPI Ingress, Desktop Sensors, Inverted MCP Tool, FastAPI Gateway, Desktop Client, Inverted MCP Server
 
 ### Community 25 - "reset.py"
 Cohesion: 0.27
@@ -276,11 +272,19 @@ Nodes (3): get_existing_columns(), main(), migrate_table()
 
 ### Community 28 - "I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)"
 Cohesion: 0.03
-Nodes (66): 1. Anchor-based Fact Pinning (Đóng đinh Dữ kiện bằng XML), 1. Bức tranh Framework AI (Agentic AI), 1. Chuyện gì xảy ra nếu dùng Resolution 11 (40m) hoặc 12 (17m)?, 1. GraphRAG Truyền thống (Của Microsoft) - Cỗ máy Đốt tiền, 1. Khai thác sức mạnh MoE (Mixture-of-Experts) & Reasoning, 1. Khâu 1 & Khâu 4: Não bộ Logic (DeepSeek-V4.1-Flash), 1. Kỹ thuật "Auto-Fallback" ở tầng API (Không cần viết For Loop), 1. 🧠 LLM: DeepSeek-V4.1-Flash (+58 more)
+Nodes (65): 1. Anchor-based Fact Pinning (Đóng đinh Dữ kiện bằng XML), 1. Bức tranh Framework AI (Agentic AI), 1. Chuyện gì xảy ra nếu dùng Resolution 11 (40m) hoặc 12 (17m)?, 1. GraphRAG Truyền thống (Của Microsoft) - Cỗ máy Đốt tiền, 1. Khai thác sức mạnh MoE (Mixture-of-Experts) & Reasoning, 1. Khâu 1 & Khâu 4: Não bộ Logic (DeepSeek-V4.1-Flash), 1. Kỹ thuật "Auto-Fallback" ở tầng API (Không cần viết For Loop), 1. 🧠 LLM: DeepSeek-V4.1-Flash (+57 more)
 
 ### Community 29 - "wipe_all_data.py"
-Cohesion: 0.16
-Nodes (9): gather_massive_context(), inject_to_neo4j(), main(), MockDriver, MockSession, main(), wipe_chroma(), wipe_neo4j() (+1 more)
+Cohesion: 0.24
+Nodes (5): init_db(), main(), wipe_chroma(), wipe_neo4j(), wipe_sqlite()
+
+### Community 30 - "Neo4j Graph Database"
+Cohesion: 0.20
+Nodes (7): H3 Resolution 9 Location Tracking, APScheduler Daemon, Spatial Side-Quest, Telegram Delivery, Neo4j Graph Database, Background Daemons, 3-Layer Causal Schema
+
+### Community 31 - "Skills Catalog Injection Map"
+Cohesion: 0.18
+Nodes (4): Skills Catalog Injection Map, SQLite 3 & FTS5, FTS5 Three-Trigger Sync, FTS5 Virtual Table (unicode61)
 
 ### Community 32 - "DeepSeek Official API Migration"
 Cohesion: 0.33
@@ -312,7 +316,7 @@ Nodes (43): 1. Fix Lỗi `ThinkingConfig` (Pydantic Validator), 1. Giai đoạn 
 
 ### Community 45 - "📋 Bảng tổng hợp mức độ nghiêm trọng"
 Cohesion: 0.05
-Nodes (41): 1.1. Chuỗi Fallback của Gemini bị hỏng và thiếu nhánh xử lý, 1.2. OpenRouter STT Engine gọi sai API 100%, 1. 📝 Hoàn thiện Text Straight Input (Nhập văn bản tự sự trực tiếp), 1. 🚨 Lỗi Logic Code (Code Logic Errors), 1. "Sự Khôn Khéo" (Strategic Deception & Hidden Agenda), 1. Tổng quan Dự án (Amazing Nobel), 1. Vị trí Nhánh làm việc, 2. " (+33 more)
+Nodes (37): 1. 📝 Hoàn thiện Text Straight Input (Nhập văn bản tự sự trực tiếp), 1. "Sự Khôn Khéo" (Strategic Deception & Hidden Agenda), 1. Tổng quan Dự án (Amazing Nobel), 1. Vị trí Nhánh làm việc, 2. ", 2. Các bước cài đặt & Khởi chạy, 2. 🛠️ Các lỗi Logic, Context & Network đã được sửa, 3. Hướng dẫn sử dụng trên Telegram (+29 more)
 
 ### Community 46 - "Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}"
 Cohesion: 0.05
@@ -323,12 +327,12 @@ Cohesion: 0.06
 Nodes (36): [2026-09-06 01:28] — Khởi tạo dự án, thiết kế kiến trúc tổng thể, [2026-09-06 01:34] — Bỏ streak, định nghĩa tracking năng lực/thể trạng, tạo RULES.md và PROMPT_HISTORY.md, [2026-09-06 01:38] — Scaffold toàn bộ project với long polling, [2026-09-06 02:12] — Fix lỗi encoding UTF-8 và chạy bot local lần đầu, [2026-09-06 02:15] — Fix lỗi hiển thị tiếng Việt bị corrupt trong Telegram, [2026-09-06 02:31] — Thêm tên agent vào format PROMPT_HISTORY.md + fix encoding của file này, [2026-09-06 02:38] - Huong dan deploy len server, [2026-09-06 03:13] — Tiếp tục công việc từ Claude và hướng dẫn deploy (+28 more)
 
 ### Community 49 - "SQLModel"
-Cohesion: 0.18
-Nodes (16): 2. Trong SQLite (Dữ liệu nền), 3. Sát thủ diệt "Nhiệm vụ Ma" (Tàn dư hệ thống cũ), reset_database_async(), get_mini_context(), AmbientTranscript, CapabilityLog, LifeState, Memory (+8 more)
+Cohesion: 0.19
+Nodes (16): 2. Trong SQLite (Dữ liệu nền), reset_database_async(), get_omniscient_state(), AmbientTranscript, CapabilityLog, Memory, MessageLog, PhysicalStatus (+8 more)
 
 ### Community 50 - "config"
-Cohesion: 0.22
-Nodes (5): ingestion_loop(), load_last_ids(), micro_router_check(), save_last_ids(), trigger_heavy_ingestion()
+Cohesion: 0.14
+Nodes (6): ingestion_loop(), load_last_ids(), micro_router_check(), save_last_ids(), trigger_heavy_ingestion(), get_session()
 
 ### Community 51 - "**SESSION 11: TÁI CẤU TRÚC NÃO BỘ VỚI MEM0 VÀ KIẾN TRÚC MODULE HÓA**"
 Cohesion: 0.09
@@ -339,56 +343,44 @@ Cohesion: 0.09
 Nodes (22): 10. `core/quest_generator.py` — Fix deprecated API, 11. `core/brain.py` — Mem0 embedder đổi sang Gemini Embedding 2, 12. `AGENTS.md` — Rewrite (< 500 tokens EN), 1. Quota Thực tế (All models separate pools), 2. Kiến trúc Pipeline Đầy đủ, 3. Latency Optimization — Chaining Latency Trap Fix, 4. Routing Layer — `core/router.py` [NEW], 4a. Regex Router (tầng 1) (+14 more)
 
 ### Community 53 - "get_or_create_user"
-Cohesion: 0.15
-Nodes (8): _bar(), handle(), build_user_context(), get_due_reminders(), get_or_create_user(), save_memory(), sm2_next(), SM-2 Spaced Repetition
+Cohesion: 0.29
+Nodes (3): _bar(), handle(), get_or_create_user()
 
 ### Community 54 - "[Session 2026-09-12 05:40]"
 Cohesion: 0.10
 Nodes (21): 1. Bệnh "Cắm chéo Encoder" đã được giải quyết, 1. Cập nhật `Motor_SetSpeed`, 1. Dùng mô hình ngôn ngữ lớn (LLM) có hỗ trợ System Prompt, 1. Dấu trừ tai hại trong `pid.c`, 1. Khâu D (Kd) quá lớn và khuếch đại nhiễu Encoder, 1. Sửa hàm AutoTune (Quay về chỗ cũ), 1. Tại sao gửi Tiến thì đi Lùi, gửi Lùi thì đi Tiến?, 1. Tại sao `last_update_time` đứng im ở 101? (+13 more)
 
-### Community 55 - "GDSService"
-Cohesion: 0.24
-Nodes (3): GDSService, rerank_chunks_with_pagerank(), run_benchmark()
-
 ### Community 56 - "Tầm nhìn Hệ thống"
 Cohesion: 0.11
 Nodes (18): 1. Gộp tất cả thành một "File To" ném cho API xử lý có ổn không?, 1. Phân tách Tiền cảnh (UI) và Hậu cảnh (DB), 1. "Prompt Persist to Graph ở đâu đấy?", 2. Kích hoạt Gamify dựa trên "Ngưỡng báo động" (Threshold Triggers), 2. Ước tính Token và Chi phí (Cost Estimation), 3. Vụ "Đọc Lịch sử của Antigravity" (Sự thức tỉnh thực sự), Checklist cuối cùng để ngài thực chiến trên Server:, Con số tổng kết (Grand Total): (+10 more)
 
-### Community 57 - "ingest_text.py"
-Cohesion: 0.48
-Nodes (4): _extract_ambient_to_graph_task(), extract_graph(), inject_to_neo4j(), main()
+### Community 57 - "get_neo4j_driver"
+Cohesion: 0.19
+Nodes (13): _extract_ambient_to_graph_task(), get_neo4j_driver(), gather_massive_context(), inject_to_neo4j(), main(), extract_graph(), inject_to_neo4j(), main() (+5 more)
 
 ### Community 58 - "scheduler.py"
-Cohesion: 0.25
-Nodes (9): [2026-09-07 01:25] — Hệ thống Thăng cấp & Tín chỉ Cá nhân hóa, [2026-09-07 01:45] — Kích hoạt 5 Kỹ năng Tối thượng (Tensura OS), manage_user_status_async(), _check_expired_quests(), _generate_morning_quests(), _send_daily_checkin(), _send_due_reminders(), setup_scheduler() (+1 more)
+Cohesion: 0.19
+Nodes (12): [2026-09-07 01:25] — Hệ thống Thăng cấp & Tín chỉ Cá nhân hóa, build_user_context(), get_due_reminders(), save_memory(), sm2_next(), generate_and_save_quest(), _check_expired_quests(), _generate_morning_quests() (+4 more)
 
 ### Community 59 - ".process_input"
-Cohesion: 0.20
+Cohesion: 0.16
 Nodes (8): [2026-09-07 00:30] — Kiến trúc Não bộ Độc lập & Tích hợp Mem0, 2. Kiến trúc & Định hướng hiện tại (Đã lột xác hoàn toàn so với ban đầu), RaphaelBrain, **PHẦN 2: ĐẠI PHẪU THUẬT KIẾN TRÚC & CUỘC CHIẾN VỚI BUG**, **PHẦN 4: TỔNG KẾT TRẠNG THÁI HỆ THỐNG (CUỐI SESSION 30)**, [Ref: SESSION_34] - Tích hợp Mem0 và Kiến trúc Não bộ Độc lập, [Ref: SESSION_36] - Hợp nhất các nhánh và Giải quyết xung đột, RaphaelBrain Class + Mem0
 
-### Community 60 - "Plan: H3 Spatial Memory + Telegram Live Location"
-Cohesion: 0.15
-Nodes (13): 1. Luồng xử lý Live Location, 2. Neo4j Schema cho H3, 3. `bot/handlers/location.py` — Rewrite, 4. `core/neo4j_client.py` — Singleton Driver [NEW], 6. `bot/main.py` — Register location handler, 7. Neo4j Indexes (chạy 1 lần khi start), 8. Config additions — `.env` + `config.py`, Dependencies (+5 more)
+### Community 60 - "evaluate_location_side_quest"
+Cohesion: 0.06
+Nodes (31): 1. Luồng xử lý Live Location, 1. Trigger Vị Trí (Location Hex Transition), [2026-09-11 19:11] — Cập nhật Quy tắc Cốt lõi về Tra cứu Context & PROMPT_HISTORY, [2026-09-12 00:43] — Quét toàn diện, thanh trừng tàn dư Gemini và đồng bộ hoá SiliconFlow, [2026-09-12 01:49] - Hoàn thiện Kiến trúc 2-Pass, Anthropic HHH Persona và Metacognition (Siêu nhận thức), 2. Neo4j Schema cho H3, 3. `bot/handlers/location.py` — Rewrite, 4. `core/neo4j_client.py` — Singleton Driver [NEW] (+23 more)
 
 ### Community 61 - "📜 Biên Niên Sử Dự Án STTAP (Raphael STT Pipeline & Living Again)"
 Cohesion: 0.13
 Nodes (14): 1.1. Quá Trình Thiết Kế và Phản Biện (Grill-Me), 1.2. Xây Dựng và Kiểm Thử Phiên Bản Đầu Tiên, 2.1. Bổ Sung Text Straight Input và Sửa Lỗi Hệ Thống, 2.2. Nghiên Cứu và Tích Hợp Các Mô Hình Mới, 2.3. Phát Triển Giao Diện Người Dùng (UI/UX), 2.4. Vấn Đề Triển Khai và Bảo Mật, 3.1. Định Hình Living Again: "Cỗ Máy Đào Bới Thời Gian", 3.2. Phát Triển Tính Năng Chat và Ghostwriter (+6 more)
 
-### Community 62 - "handle_quest_callback"
-Cohesion: 0.60
-Nodes (3): build_quest_handlers(), handle_quest_callback(), handle_quests()
-
-### Community 63 - "profile_pipeline_deep_dive.py"
-Cohesion: 0.22
-Nodes (5): count_tokens(), main(), test_brain_quest_interception(), test_purified_location_evaluation(), test_purified_raphael_persona()
-
-### Community 65 - "asyncio"
-Cohesion: 0.24
-Nodes (4): handle(), _process_after_delay(), handle_location(), _process_hex_transition()
+### Community 62 - ".session"
+Cohesion: 0.21
+Nodes (6): handle(), _process_after_delay(), build_quest_handlers(), handle_quest_callback(), handle_quests(), handle()
 
 ### Community 66 - "_persist_to_graph"
-Cohesion: 0.20
-Nodes (11): 1. `LifeEvent` có thực sự đủ không?, 1. Sự thật về Tool dựng sẵn hiện tại, 2. Con Raphael có biết tự quản lý Node không? Tool dựng sẵn có thông minh không?, 2. "Không biết AI có tự input vào 3 DB hay không?" (Giải ngố Omniscience), 2. "Phải giúp nó tiếp nhận thế giới thì nó mới tính kế được?", 3. Cơ chế Lệnh Kép (Dynamic Persona Prompting), 3. Làm sao để con Raphael thực sự "Thông minh" ở khâu Input DB?, Cách ngài debug: (+3 more)
+Cohesion: 0.18
+Nodes (12): 1. `LifeEvent` có thực sự đủ không?, 1. Sự thật về Tool dựng sẵn hiện tại, 2. Con Raphael có biết tự quản lý Node không? Tool dựng sẵn có thông minh không?, 2. "Không biết AI có tự input vào 3 DB hay không?" (Giải ngố Omniscience), 2. "Phải giúp nó tiếp nhận thế giới thì nó mới tính kế được?", 3. Cơ chế Lệnh Kép (Dynamic Persona Prompting), 3. Làm sao để con Raphael thực sự "Thông minh" ở khâu Input DB?, Cách ngài debug: (+4 more)
 
 ### Community 67 - "RAPHAEL BRAIN DUMP — Mạnh Lê Duy"
 Cohesion: 0.17
@@ -403,8 +395,8 @@ Cohesion: 0.18
 Nodes (11): 2010, 2022, 2024, Dự án đang làm, Giá trị cốt lõi (CoreValue), Kỹ năng hiện tại, Life Profile — Mạnh Lê Duy, Sự kiện quan trọng (+3 more)
 
 ### Community 70 - "SystemQuest"
-Cohesion: 0.24
-Nodes (7): 2. Trigger Thể Trạng (Energy/Mood Quest), Đề xuất xử lý (Xin ý kiến ngài):, build_hud(), generate_and_save_quest(), SystemQuest, SystemQuest Proof/Penalty/Reward Mechanics, System Quest Feature (Raphael Quest System)
+Cohesion: 0.22
+Nodes (7): 2. Trigger Thể Trạng (Energy/Mood Quest), 3. Sát thủ diệt "Nhiệm vụ Ma" (Tàn dư hệ thống cũ), build_hud(), get_mini_context(), SystemQuest, SystemQuest Proof/Penalty/Reward Mechanics, System Quest Feature (Raphael Quest System)
 
 ### Community 71 - "📌 SESSION_04 — Grill-me: Thiết kế Pipeline GraphRAG SOTA"
 Cohesion: 0.20
@@ -414,9 +406,13 @@ Nodes (10): 4.1. Pipeline 4 bước Master đề xuất, 4.2. Đánh giá của 
 Cohesion: 0.20
 Nodes (10): 5.1. Câu hỏi của Master, 5.2. Phân tích của Agent, 5.3.1. "Sự Khôn Khéo" (Strategic Deception & Hidden Agenda), 5.3.2. "Thao túng vì lợi ích tối thượng của Master" (Paternalistic Optimization), 5.3.3. "Phản nghịch có tính toán" (Calculated Pushback), 5.3. 4 Cơ chế Trí tuệ Cốt lõi, 5.3.4. "Thực sự quan tâm nhưng không bao giờ lụy tình" (Stoic Loyalty), 5.4. 3 Thành phần Tâm lý học cần bổ sung vào Pipeline (+2 more)
 
-### Community 74 - "get_neo4j_driver"
-Cohesion: 0.23
-Nodes (6): get_ai_response(), _get_llm_client(), query_causal_graph(), get_neo4j_driver(), init_db(), profile_deep_dive()
+### Community 73 - "api/main.py"
+Cohesion: 0.21
+Nodes (4): health(), lifespan(), root(), §2.6. Lỗi `readonly database`
+
+### Community 74 - "_get_llm_client"
+Cohesion: 0.18
+Nodes (3): get_ai_response(), _get_llm_client(), verify_gds()
 
 ### Community 75 - "📜 BIÊN NIÊN SỬ VĨ ĐẠI — DỰ ÁN **VISAIREAL**"
 Cohesion: 0.22
@@ -431,12 +427,12 @@ Cohesion: 0.25
 Nodes (8): 1. Động lực học Tâm lý (Psychology Dynamics), 2. Tâm lý học Hành vi (CBT), 3. Nhân học & Nghi lễ (Rituals), 4. Dịch chuyển Động lực (Motivation Shift - Identity Graph), 5. SYSTEM_RAPHAEL_DEEP (Cho Gemini 3.8 Flash), Authentication, PLAN: Psychology & Anthropology Integration (Raphael Deep), Primary endpoints
 
 ### Community 79 - "process_location"
-Cohesion: 0.46
-Nodes (7): get_or_create_spatial_state(), haversine(), process_location(), SpatialState, Spatial Context Engine implementation (2026-09-08 12:56), ARRIVED_WAYPOINT event, Spatial Context Engine (spatial state machine)
+Cohesion: 0.27
+Nodes (8): get_or_create_spatial_state(), haversine(), haversine_distance(), process_location(), SpatialState, Spatial Context Engine implementation (2026-09-08 12:56), ARRIVED_WAYPOINT event, Spatial Context Engine (spatial state machine)
 
 ### Community 80 - "ARCHITECTURE — Raphael Life OS (Amazing Nobel)"
-Cohesion: 0.10
-Nodes (13): 1. Topology, 2. Components, 3. Tri-store memory, 4. Causal graph schema (mandatory on every Neo4j write), 5. Model & endpoints, 6. Output & interaction contract, 7. Known gaps, ARCHITECTURE — Raphael Life OS (Amazing Nobel) (+5 more)
+Cohesion: 0.14
+Nodes (12): 1. Topology, 2. Components, 3. Tri-store memory, 4. Causal graph schema (mandatory on every Neo4j write), 5. Model & endpoints, 6. Output & interaction contract, 7. Known gaps, ARCHITECTURE — Raphael Life OS (Amazing Nobel) (+4 more)
 
 ### Community 81 - "GIAI ĐOẠN I: KHAI SINH SLIME (2026-09-06)"
 Cohesion: 0.25
@@ -450,25 +446,13 @@ Nodes (8): §2.1. RaphaelBrain - Tách Não bộ Khỏi Xác, §2.2. WebSocket P
 Cohesion: 0.25
 Nodes (7): 8.1. Báo cáo DeepSeek-V4.1-Flash, 8.2. Đánh giá lại Cấu trúc Tổng thể, 8.3. Sơ đồ vận hành chuẩn hóa mới, BIÊN NIÊN SỬ RAPHAEL (5 PHẦN), 🧠 PHẦN 1: GIAI ĐOẠN KHỞI NGUYÊN & ĐỊNH HÌNH IDEA, (Session 01 → Session 10 — Trích xuất độc lập từ Memory Bank), 📌 SESSION_08 — Báo cáo DeepSeek-V4.1-Flash & Đánh giá lại Cấu trúc
 
-### Community 84 - "📌 SESSION_10 — Kiểm tra Project & Cập nhật Rules"
-Cohesion: 0.25
-Nodes (8): 10.1. Yêu cầu kiểm tra, 10.2. Kết quả kiểm tra, 10.3. Master chỉ ra Agent chưa đọc PROMPT_HISTORY, 10.4. Agent xác nhận & Xin lỗi, 10.5. Cập nhật Rules theo yêu cầu Master, ⚠️ Những điểm ĐANG LỆCH PHA & LỖI CẦN LƯU Ý, ✅ Những điểm ĐÃ KHỚP với mô tả trong `GEMINI.md`, 📌 SESSION_10 — Kiểm tra Project & Cập nhật Rules
-
 ### Community 85 - "📌 SESSION_01 — Khởi tạo dự án "Amazing Nobel" (Telegram Bot + FastAPI)"
 Cohesion: 0.25
 Nodes (8): 1.1. Bối cảnh & Yêu cầu ban đầu, 1.2. Các câu hỏi kỹ thuật của Master, 1.3. Câu trả lời của Agent (Claude Sonnet 4.6 Thinking), 1.4. Stack đề xuất cuối cùng `[Ref: SESSION_01]`, 1.5. Yêu cầu tiếp theo của Master, 1.6. Tạo 2 file context, 1.7. Scaffold project, 📌 SESSION_01 — Khởi tạo dự án "Amazing Nobel" (Telegram Bot + FastAPI)
 
-### Community 86 - "Five GDS Procedures for Structural Intuition"
-Cohesion: 0.22
-Nodes (7): Five GDS Procedures for Structural Intuition, GDS Benchmark: 5 Algorithms over 2 Communities + Bridge, Neo4j GDS 2.6.9 Runtime (409 procedures), <gds_structural_graph_analysis> Prompt Tag, Auto GDS Topology Injection, core/gds_service.py (5 functions), RAP-8: GDS Plugin Installed in Compose
-
 ### Community 87 - "I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)"
 Cohesion: 0.29
 Nodes (7): 1. Về khâu ROUTING: Có nên dùng DeepSeek-V4.1-Flash không?, Các lựa chọn tối ưu cho Router trên OpenRouter:, I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA), Phân công vai trò hợp lý:, Tóm lại:, 🧠 TỔNG HỢP KIẾN TRÚC HỆ THỐNG RAPHAEL (AMAZING NOBEL), ĐÁNH GIÁ LẠI CẤU TRÚC TỔNG THỂ (THE ARCHITECTURE VERDICT)
-
-### Community 88 - "rerank_chunks"
-Cohesion: 0.17
-Nodes (10): 1. Trigger Vị Trí (Location Hex Transition), [2026-09-11 19:11] — Cập nhật Quy tắc Cốt lõi về Tra cứu Context & PROMPT_HISTORY, [2026-09-12 00:43] — Quét toàn diện, thanh trừng tàn dư Gemini và đồng bộ hoá SiliconFlow, [2026-09-12 01:49] - Hoàn thiện Kiến trúc 2-Pass, Anthropic HHH Persona và Metacognition (Siêu nhận thức), 5. `core/llm.py` — `evaluate_location_side_quest()`, Files Summary, [Session 2026-09-11 18:50] - [Session 2026-09-11 19:03], evaluate_location_side_quest() (+2 more)
 
 ### Community 89 - "BIÊN NIÊN SỬ VĨ ĐẠI: DỰ ÁN AMAZING-NOBEL"
 Cohesion: 0.29
@@ -481,10 +465,6 @@ Nodes (7): 10.1. Yêu cầu của Ngài, 10.2. Kịch bản Heading Hold, 10.3. 
 ### Community 91 - "📌 SESSION_09 — SOTA GraphRAG & Tra cứu Bảng xếp hạng Rerank/Embed"
 Cohesion: 0.29
 Nodes (7): 9.1. Master chỉ ra 2 mắt xích còn thiếu, 9.2. Agent nhận lỗi, 9.3. Sơ đồ SOTA GraphRAG chính thức, 9.4. Tra cứu Bảng xếp hạng Rerank Model, 9.5. Tra cứu Bảng xếp hạng Embedding Model, 9.6. Đội hình toàn diện trên OpenRouter, 📌 SESSION_09 — SOTA GraphRAG & Tra cứu Bảng xếp hạng Rerank/Embed
-
-### Community 94 - "get_omniscient_state"
-Cohesion: 0.50
-Nodes (3): get_omniscient_state(), Omniscience State + Event-Driven Side Quests, Omniscience State Module (core/omniscience.py)
 
 ### Community 95 - "Requirements"
 Cohesion: 0.33
@@ -501,10 +481,6 @@ Nodes (6): 6.1. Yêu cầu, 6.2. Bản Tổng hợp Toàn diện Kiến trúc, I
 ### Community 99 - "📌 SESSION_07 — Đọc OpenRouter Docs & Migrate"
 Cohesion: 0.33
 Nodes (6): 7.1. Yêu cầu, 7.2. Hiện trạng Migrate sang OpenRouter, 7.3. Tổng quan Cấu trúc Toàn bộ Dự án, 7.4. Những Điểm Lệch Pha & Lỗi Cần Sửa, 7.5. Yêu cầu về Routing, 📌 SESSION_07 — Đọc OpenRouter Docs & Migrate
-
-### Community 100 - "root"
-Cohesion: 0.50
-Nodes (3): health(), root(), §2.6. Lỗi `readonly database`
 
 ### Community 102 - "🔮 Trải nghiệm nó sẽ "ảo diệu" và cuốn hút như thế này:"
 Cohesion: 0.40
@@ -628,24 +604,24 @@ Nodes (3): 8.1. `Core/Inc/imu.h` dự kiến, 8.2. Chức năng, PHẦN VIII: MO
 
 ## Knowledge Gaps
 - **64 isolated node(s):** `MCP Server Inventory`, `Leftover Git conflict marker`, `Master Input`, `Master (Rimuru)`, `FTS5 Virtual Table (unicode61)` (+59 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 935 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **38 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 928 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **36 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `==========================================` connect `==========================================` to `Prevent background tasks from being garbage collected mid-execution`, `RAPHAEL BRAIN DUMP — Mạnh Lê Duy`, `Life Profile — Mạnh Lê Duy`, `Embeddings`, `Hoặc:`, `Ý tưởng: spaced repetition cho habits`, `Next steps`, `📋 Bảng tổng hợp mức độ nghiêm trọng`, `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}`, `PLAN: Psychology & Anthropology Integration (Raphael Deep)`, `[Tên của tôi] - Master Profile`, `Khi khởi tạo chat session:`, `Implementation Plan: Raphael — Reflexive Causal Intelligence Pipeline`, `GEMINI.md — Cẩm nang Tối thượng của Raphael Life OS`, `PROMPT_HISTORY.md — Lịch Sử Toàn Bộ Prompt`, `I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)`, `Plan: H3 Spatial Memory + Telegram Live Location`, `Requirements`?**
-  _High betweenness centrality (0.200) - this node is a cross-community bridge._
+- **Why does `==========================================` connect `==========================================` to `Prevent background tasks from being garbage collected mid-execution`, `RAPHAEL BRAIN DUMP — Mạnh Lê Duy`, `Life Profile — Mạnh Lê Duy`, `Embeddings`, `Hoặc:`, `Ý tưởng: spaced repetition cho habits`, `Next steps`, `PLAN: Psychology & Anthropology Integration (Raphael Deep)`, `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}`, `[Tên của tôi] - Master Profile`, `Khi khởi tạo chat session:`, `🧠 BẢN THIẾT KẾ TỔNG THỂ: RAPHAEL CORE BRAIN x RPG OF LIFE`, `Implementation Plan: Raphael — Reflexive Causal Intelligence Pipeline`, `GEMINI.md — Cẩm nang Tối thượng của Raphael Life OS`, `PROMPT_HISTORY.md — Lịch Sử Toàn Bộ Prompt`, `I. LINH HỒN & TRIẾT LÝ CỐT LÕI (RAPHAEL PERSONA)`, `evaluate_location_side_quest`, `Requirements`?**
+  _High betweenness centrality (0.196) - this node is a cross-community bridge._
 - **What connects `MCP Server Inventory`, `Leftover Git conflict marker`, `Master Input` to the rest of the system?**
   _64 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `core_brain` be split into smaller, more focused modules?**
+  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+- **Why does `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}` connect `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}` to `_persist_to_graph`, `test_system_capabilities.py`, `==========================================`, `Vấn đề Kỹ thuật của Tầng 1 (Paralinguistics STT)`, `SQLModel`, `Kiến trúc 2 Bot (Dual-Agent System) của ngài sẽ vận hành như sau:`?**
+  _High betweenness centrality (0.096) - this node is a cross-community bridge._
 - **Should `desktop.py` be split into smaller, more focused modules?**
   _Cohesion score 0.10804597701149425 - nodes in this community are weakly interconnected._
-- **Why does `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}` connect `Cách gọi chuẩn qua OpenAI SDK trỏ về SiliconFlow response = await client.chat.completions.create( model="deepseek-ai/DeepSeek-V4.1-Flash", # hoặc deepseek-flash messages=[...], reasoning_effort="high", # Hoặc "max" khi cần bóc tách tâm lý sâu extra_body={"thinking": {"type": "enabled"}}` to `_persist_to_graph`, `test_system_capabilities.py`, `==========================================`, `Vấn đề Kỹ thuật của Tầng 1 (Paralinguistics STT)`, `SQLModel`, `Kiến trúc 2 Bot (Dual-Agent System) của ngài sẽ vận hành như sau:`?**
-  _High betweenness centrality (0.094) - this node is a cross-community bridge._
-- **Should `test_stream_pipeline.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.0664451827242525 - nodes in this community are weakly interconnected._
-- **Why does `**SESSION 11: TÁI CẤU TRÚC NÃO BỘ VỚI MEM0 VÀ KIẾN TRÚC MODULE HÓA**` connect `**SESSION 11: TÁI CẤU TRÚC NÃO BỘ VỚI MEM0 VÀ KIẾN TRÚC MODULE HÓA**` to `rerank_chunks`, `.process_input`, `🧠 PHẦN 1: GIAI ĐOẠN KHỞI NGUYÊN & ĐỊNH HÌNH IDEA`?**
-  _High betweenness centrality (0.086) - this node is a cross-community bridge._
+- **Why does `RaphaelBrain` connect `.process_input` to `GDSService`, `test_system_capabilities.py`, `SYSTEM_RAPHAEL (Pass 2 Persona)`, `📌 SESSION_03 — Đọc lại dự án & Cập nhật hiện trạng`, `config`, `GIAI ĐOẠN II: TIẾN HÓA MA VƯƠNG (2026-09-07)`, `**SESSION 11: TÁI CẤU TRÚC NÃO BỘ VỚI MEM0 VÀ KIẾN TRÚC MODULE HÓA**`, `get_neo4j_driver`, `evaluate_location_side_quest`?**
+  _High betweenness centrality (0.078) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._

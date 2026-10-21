@@ -111,7 +111,6 @@ In addition to MCP servers, agents should leverage curated open-source **Agent S
 2. **`anthropics/skills`**: Foundational reference skills for code evaluation, sandbox management, and reasoning benchmarks.
 3. **Tensura Raphael Core Skills**:
    - **`web-search`** (This skill): Real-time external intelligence and technical documentation verification.
-   - **`inverted-mcp-builder`**: Construction and sandboxing of local MCP tools exposed to remote cloud models safely.
    - **`fastapi-sse-streaming`**: Real-time token streaming for low-latency Voice TTS and 3D Cosmos graph synchronization.
    - **`neo4j-gds-expert`**: Graph Data Science, in-memory projection, and 3-Tier causal GraphRAG algorithms.
    - **`deepseek-token-budgeter`**: Selective reasoning effort control (0 token pass-1, 1k-3k token deep psychological analysis pass-2).

@@ -3,7 +3,7 @@
 > System facts only. Process rules live in [AGENTS.md](../AGENTS.md).
 > **Sync rule (AGENTS.md Rule 6):** any merge that changes modules, data stores, model/endpoint config, or runtime flow must update this file in the same PR.
 
-Last verified: 2026-10-21 · code graph rebuilt at `c2671cc` (1,740 nodes / 2,753 edges); no runtime flow changed since.
+Last verified: 2026-10-21 · code graph rebuilt at `35afff4` (1,624 nodes / 2,528 edges); no runtime flow changed since — the unreferenced, unregistered `mcp_server.py` (`raphael-fs`) and four dead agent skills were removed, and none of them is a runtime component.
 
 ## 1. Topology
 
