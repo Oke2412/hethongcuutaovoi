@@ -1376,3 +1376,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** measured `graphify update .` at 1.9 s wall, and the CLI help states "re-extract code files and update the graph (no LLM needed)" - no API key is set on this host (`Tip: set GEMINI_API_KEY...` confirms the semantic path never ran), so the merge loop costs 0 tokens. Community naming during `update` is derived from the hub node ("renamed 19 community(ies) by their hub"), not from a model; only `graphify label` and `graphify extract --mode deep` spend tokens, so they stay out of the loop. `--force` matters after deletions because the shrink guard refuses to write a smaller graph; after the last three deletions `update` still wrote smaller graphs, so the guard is not a reliable safety net in either direction and the doctor check is the real gate. Confirmed the old graph carried no stale nodes from the deleted files (`smart_filter`, `check_source`, `tien_kiep`, `mcp_server.py`, `.archify` = 0 hits in `graph.json`; the single `genesis_ingest` match is a heading node inside `compressed_genesis_context.md`).
 
 **Next steps:** nothing pending on the graph; `compressed_genesis_context.md` (2.3 MB) remains the last large unreferenced artifact.
+
+### [2026-10-21 19:18] — Dedupe the repo rules file against the global rules
+
+**Scope:** process docs (branch `docs/dedupe-agents-rules`).
+
+**Context & objectives:** Master asked whether the workspace `AGENTS.md` duplicates the harness-global rules in `~/.dsh/AGENTS.md` and to strip the overlap.
+
+**Actions & changes:** rewrote `AGENTS.md` 3,796 -> 1,995 bytes, deleting every rule that the global file already states: four-pillar reporting (R3), research-before-deciding (R4), English-only (R5), branching and gitignore law (R2), the 100k compaction ceiling and "never log into AGENTS.md" (R1), and architecture-sync (R6). What remains is only the project delta: the doc map, the five-field `PROMPT_HISTORY.md` entry schema, the graph-refresh commands (`graphify update . --force` + `scripts/graph_doctor.py`), the single-skill rule with the skill catalog pointer, and "ARCHITECTURE wins on facts". Added a pointer for agents that never load the global file (Antigravity, Claude Code elsewhere) to the archived ruleset at `c2cba6c`.
+
+**Decisions & findings:** the old file was ~90% restatement - all six rules mapped onto global R1-R6 almost clause for clause, which is exactly what the global file forbids ("keep this file as the only copy: never paste these rules into a repository's AGENTS.md"). Every deleted obligation was checked against the global text before removal, so nothing became unenforced; the only genuinely project-specific content was the log filename plus field schema and the two graph commands (the global file says "the project's graph check", so the concrete command must live here). Trade-off recorded in the file header: an agent that does not read `~/.dsh/AGENTS.md` now relies on git history for the process rules.
+
+**Next steps:** none; keep future additions to this file to project deltas only.
