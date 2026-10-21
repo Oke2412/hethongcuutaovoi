@@ -7,9 +7,9 @@ and audio pipeline (tensurafrontend), connecting to RaphaelBrain, SQLite, and Ne
 import asyncio
 import json
 import logging
-import re
+import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -27,6 +27,30 @@ from db.models import AmbientTranscript
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="", tags=["Desktop Adapter"])
+
+#: Heartbeat cadence for the SSE stream. Must stay well under the 60 s idle
+#: timeout of most reverse proxies (Nginx / Tailscale / Cloudflare) while still
+#: costing nothing when the model is producing tokens.
+SSE_HEARTBEAT_SECONDS = 1.0
+
+SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+}
+
+
+def _sse(payload: Dict[str, Any]) -> str:
+    """Encode one SSE frame. The double newline is mandatory."""
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _split_hud(response_text: str) -> tuple[str, str]:
+    """Separate the spoken sentence from the trailing HUD metrics line."""
+    if "━━━━━━━━━━━━━━━━━━━━━" in response_text:
+        spoken_text, hud_part = response_text.split("━━━━━━━━━━━━━━━━━━━━━", 1)
+        return spoken_text.strip(), "━━━━━━━━━━━━━━━━━━━━━" + hud_part
+    return response_text.strip(), ""
 
 
 class ChatRequest(BaseModel):
@@ -79,9 +103,20 @@ async def chat_endpoint(request: ChatRequest) -> Any:
     # 2. Resolve target user ID
     uid_str = request.user_id or str(settings.allowed_user_id or 8763843475)
 
+    # 3. Streaming path: return the response object immediately and let the
+    #    pipeline push phase/tool/reasoning-token events while it thinks. The
+    #    previous implementation awaited the full turn (≈20 s of silence) and
+    #    then replayed the finished sentence word by word.
+    if request.stream:
+        return StreamingResponse(
+            _raphael_event_stream(uid_str, query_text),
+            media_type="text/event-stream",
+            headers=SSE_HEADERS,
+        )
+
     thinking_text = ""
     try:
-        # 3. Process via Raphael Core Brain with Metacognition
+        # 4. Process via Raphael Core Brain with Metacognition
         res = await brain.process_input(
             user_id=uid_str, text_content=query_text, return_thinking=True
         )
@@ -94,45 +129,8 @@ async def chat_endpoint(request: ChatRequest) -> Any:
         response_text = "《Báo cáo》 Hệ thống máy chủ gặp sự cố khi suy luận."
         keyboard = None
 
-    # 4. Separate spoken response from HUD metrics line
-    if "━━━━━━━━━━━━━━━━━━━━━" in response_text:
-        spoken_text, hud_part = response_text.split("━━━━━━━━━━━━━━━━━━━━━", 1)
-        spoken_text = spoken_text.strip()
-        hud_part = "━━━━━━━━━━━━━━━━━━━━━" + hud_part
-    else:
-        spoken_text = response_text.strip()
-        hud_part = ""
-
-    # 5. Handle Streaming Response (SSE for low-latency TTS)
-    if request.stream:
-        async def sse_generator():
-            # Break down response into words/phrases for smooth streaming to TTS
-            tokens = re.findall(r"\S+\s*", spoken_text)
-            if not tokens:
-                tokens = [spoken_text]
-
-            for token in tokens:
-                chunk = {
-                    "text": token,
-                    "response": token,
-                    "token": token,
-                    "done": False,
-                }
-                yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
-                await asyncio.sleep(0.02)
-
-            # Signal completion according to SSE standard
-            yield "data: [DONE]\n\n"
-
-        return StreamingResponse(
-            sse_generator(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
-            },
-        )
+    # 5. Separate spoken response from HUD metrics line
+    spoken_text, hud_part = _split_hud(response_text)
 
     # 6. Standard JSON Response with Metacognition Thinking field
     return JSONResponse(
@@ -146,6 +144,81 @@ async def chat_endpoint(request: ChatRequest) -> Any:
             "has_keyboard": keyboard is not None,
         }
     )
+
+
+async def _raphael_event_stream(user_id: str, query_text: str) -> AsyncIterator[str]:
+    """Bridge the brain turn to SSE.
+
+    The turn runs as an independent task that pushes progress into a queue; this
+    generator drains the queue and injects heartbeats while the model reasons, so
+    the client never sees a silent socket. Client disconnect stops *streaming*
+    but not the turn — state writes and metacognition logging must still land.
+    """
+    queue: asyncio.Queue = asyncio.Queue()
+    started = time.perf_counter()
+
+    def elapsed_ms() -> int:
+        return int((time.perf_counter() - started) * 1000)
+
+    async def sink(event: Dict[str, Any]) -> None:
+        await queue.put(event)
+
+    async def runner() -> None:
+        try:
+            res = await brain.process_input(
+                user_id=user_id,
+                text_content=query_text,
+                return_thinking=True,
+                on_event=sink,
+            )
+            if len(res) == 3:
+                response_text, keyboard, thinking_text = res
+            else:
+                response_text, keyboard = res
+                thinking_text = ""
+            spoken_text, hud_part = _split_hud(response_text)
+            await queue.put(
+                {
+                    "type": "final",
+                    "text": spoken_text,
+                    "response": spoken_text,
+                    "thinking": thinking_text,
+                    "hud": hud_part.strip(),
+                    "full_response": response_text,
+                    "has_keyboard": keyboard is not None,
+                    "elapsed_ms": elapsed_ms(),
+                }
+            )
+        except Exception as exc:
+            logger.error(f"Streaming turn failed: {exc}", exc_info=True)
+            await queue.put(
+                {
+                    "type": "error",
+                    "message": "《Báo cáo》 Hệ thống máy chủ gặp sự cố khi suy luận.",
+                    "elapsed_ms": elapsed_ms(),
+                }
+            )
+        finally:
+            await queue.put(None)
+
+    task = asyncio.create_task(runner())
+
+    try:
+        yield _sse({"type": "open", "elapsed_ms": 0})
+        while True:
+            try:
+                event = await asyncio.wait_for(queue.get(), timeout=SSE_HEARTBEAT_SECONDS)
+            except asyncio.TimeoutError:
+                yield _sse({"type": "heartbeat", "elapsed_ms": elapsed_ms()})
+                continue
+            if event is None:
+                break
+            yield _sse(event)
+        yield "data: [DONE]\n\n"
+    finally:
+        # Never cancel the turn: the scribe pass and metacognition writes own it.
+        if not task.done():
+            task.add_done_callback(lambda t: t.cancelled() or t.exception())
 
 
 @router.get("/graph/cosmos")

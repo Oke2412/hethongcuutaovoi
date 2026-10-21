@@ -418,6 +418,28 @@ TOOLS_DEF = [
     }
 ]
 
+# ---------------------------------------------------------------------------
+# Tool classification: state-write vs information-read
+# ---------------------------------------------------------------------------
+# Write tools never feed information back into the answer — in the profiled run
+# (docs/LATENCY_BREAKDOWN_22S.md §3) they returned 6 tokens after 0.1 ms of work.
+# The orchestrator still *thinks* about them (deciding what to record about
+# Master is part of reasoning); this set only lets the brain notice that a turn
+# asked for nothing but writes, so the writes can run concurrently with Pass 2.
+WRITE_TOOLS: frozenset[str] = frozenset(
+    {
+        "ingest_knowledge",
+        "cancel_quest",
+        "complete_quest",
+        "create_quest",
+        "manage_user_status",
+        "update_physical_status",
+        "manage_project",
+        "manage_capability",
+        "manage_credits",
+    }
+)
+
 async def query_causal_graph(user_id: int, entities: list[str]) -> str:
     """Query Neo4j for causal paths related to current entities and format as natural language."""
     from core.neo4j_client import get_neo4j_driver

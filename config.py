@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     deepseek_reasoning_effort: str = Field(default="low", alias="DEEPSEEK_REASONING_EFFORT")
     deepseek_max_tokens: int = Field(default=1500, alias="DEEPSEEK_MAX_TOKENS")
     deepseek_orchestrator_max_tokens: int = Field(default=1024, alias="DEEPSEEK_ORCHESTRATOR_MAX_TOKENS")
+    # Run a pure state-write tool turn concurrently with Pass 2 instead of in front
+    # of it. The write *decision* stays inside the orchestrator loop either way.
+    deepseek_defer_writes: bool = Field(default=True, alias="DEEPSEEK_DEFER_WRITES")
     siliconflow_api_key: str = Field(default="", alias="SILICONFLOW_API_KEY")
     reranker_api_url: str = Field(default="https://api.siliconflow.com/v1/rerank", alias="RERANKER_API_URL")
     groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
