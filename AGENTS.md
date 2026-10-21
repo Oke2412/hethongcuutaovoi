@@ -52,11 +52,11 @@ Absolutely use the `MERGE` command instead of `CREATE` in Cypher to avoid Node d
 
 ## 🧰 SKILLS CATALOG (INJECTION MAP)
 
-Root (harness-loaded): `.dsh/skills/<skill>/SKILL.md` in this repo. Mirror of `%USERPROFILE%\.gemini\config\skills\` (Antigravity origin). Load lazily — **never** load all 13 at once.
+Repo-local skills (harness-loaded): `.dsh/skills/<skill>/SKILL.md` — 11 skills. `graphify` is **not** repo-local: it lives in the global pool at `~/.agents/skills/graphify/` so every project gets it. Load lazily — **never** load all of them at once.
 
 | # | Skill | Inject | Load when |
 |---|-------|--------|-----------|
-| 1 | `graphify` | RAG | Any code/structure question; **mandatory first** when `graphify-out/` exists |
+| 1 | `graphify` (global: `~/.agents/skills/graphify/`) | RAG | Any code/structure question; **mandatory first** when `graphify-out/graph.json` exists → `graphify query` / `path` / `explain` |
 | 2 | `inter-agent-bridge` | System Prompt | Multi-agent / frontend↔backend handshake via `bridge/agent_chat.log` |
 | 3 | `tauri-v2-dev` | RAG | Tauri v2 + Rust work (`tauri-desktop`, Windows DWM, build/verify) |
 | 4 | `web-search` | Function Calling | Map to `web_search` + `web_fetch` (Tavily/Exa/Brave/DuckDuckGo) — Rule 2 STEP 2 |
@@ -79,12 +79,12 @@ Root (harness-loaded): `.dsh/skills/<skill>/SKILL.md` in this repo. Mirror of `%
 
 | Server | Command / transport | Status |
 |--------|--------------------|--------|
-| `graphify` | `~\.local\bin\graphify-mcp.exe <graph.json>` (stdio) | Configured in `~\.gemini\config\mcp_config.json` — its arg points at `D:\project\tensurafrontend`; repoint to `./graphify-out/graph.json` for this repo |
-| `fetch` | `uvx mcp-server-fetch` (stdio) | Configured — URL → markdown |
-| `chrome_devtools` | Built-in Antigravity tool schemas (`~\.gemini\antigravity\mcp\chrome_devtools`) | Available, not user-configured — 30+ tools (click, fill, navigate, lighthouse) |
+| `graphify` | `~/.local/bin/graphify-mcp <repo>/graphify-out/graph.json` (stdio) | **Registered** in `~/.dsh/profiles/web/cordis.patch.yml` (entry `mcp-graphify`); tools appear as `mcp__graphify__{query_graph,get_node,get_neighbors,get_community,god_nodes,graph_stats,shortest_path,...}` |
+| `fetch` | `uvx mcp-server-fetch` (stdio) | Not registered on this Linux host |
+| `chrome_devtools` | Antigravity built-in schemas (Windows-only) | Absent on this Linux host |
 | `raphael-fs` | `python mcp_server.py` (stdio, tool `read_local_file`) | **Code exists, NOT registered** — CWD-locked read-only filesystem server |
 
-**Plugin inventory:** `~\.gemini\config\plugins` is empty → no Antigravity plugins installed; this repo runs on skills + MCP servers only. Harness-side skills available here: `archify`, `gepeto`, `pinokio`.
+**Host reality (Linux):** there is no `~/.gemini/` config tree here — the Windows paths (`~\Local\bin`, `D:\project\tensurafrontend`) no longer exist. Harness MCP servers are registered per profile in `~/.dsh/profiles/<profile>/cordis.patch.yml`; the `graphify` entry points at this repo's `graphify-out/graph.json`, so it must be rebuilt after moving or cloning the repo.
 
 ## 🏗️ SYSTEM ARCHITECTURE (AGENT-DRIVEN RAG LOOP)
 
