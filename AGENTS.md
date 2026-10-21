@@ -45,34 +45,8 @@ This file, all rules, system prompts, tool schemas and LLM logic are written in 
 
 ---
 
-## Skills
+## Skills & MCP
 
-Repo-local: `.dsh/skills/<name>/SKILL.md` (11). Global pool: `~/.agents/skills/` (`graphify` only, shared across projects). Load lazily — never load several at once.
-
-| Skill | Scope | Load when |
-|---|---|---|
-| `graphify` | global | Any code/structure question. When `graphify-out/graph.json` exists, prefer the `mcp__graphify__*` tools (`query_graph`, `get_node`, `god_nodes`, `shortest_path`) over re-reading files. Rebuild with `graphify update .` |
-| `web-search` | repo | External verification for Rule 4 — `web_search` + `web_fetch` (Tavily/Exa/Brave/DuckDuckGo) |
-| `deepseek-token-budgeter` | repo | Always active: reasoning effort, token caps, BPE economy |
-| `agent-eval-harness` | repo | E2E benchmarks — `scripts/evaluate_pipeline_harness.py`, `scripts/test_hard_dataset_e2e.py` |
-| `database-migration-alembic` | repo | `db/models.py` changes, `migrate_sqlite.py`, FTS5 trigger sync |
-| `docker-homelab-devops` | repo | `docker-compose.yml`, healthchecks, live reload, container networking |
-| `fastapi-sse-streaming` | repo | `api/routes/desktop.py` SSE, token streaming, client disconnect |
-| `neo4j-gds-expert` | repo | `core/gds_service.py`, `core/neo4j_client.py`, `scripts/verify_gds_benchmark.py` — projections, page rank, Louvain, paths |
-| `inverted-mcp-builder` | repo | `mcp_server.py` — stdio MCP, path sandbox |
-| `playwright-browser-agent` | repo | Headless UI checks of the desktop/SSE surface (no scripts vendored here yet) |
-| `inter-agent-bridge` | repo | Only if `bridge/agent_chat.log` exists — it does not in this checkout |
-| `tauri-v2-dev` | repo | Windows Tauri work; `tauri-desktop/` is absent from this repo, so not applicable on this Linux host |
-
-## MCP servers
-
-Registered per profile in `~/.dsh/profiles/<profile>/cordis.patch.yml`. There is no `~/.gemini/` tree on this host — the old Windows paths are dead.
-
-| Server | Status |
-|---|---|
-| `graphify` | Registered as `mcp-graphify` (stdio, `~/.local/bin/graphify-mcp <repo>/graphify-out/graph.json`). Tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, `shortest_path`. Rebuild `graph.json` after cloning or moving the repo |
-| `raphael-fs` | Code exists (`mcp_server.py`, tool `read_local_file`) but is not registered — CWD-locked, read-only |
-| `fetch` | Not registered on this host |
-| `chrome_devtools` | Antigravity built-in, Windows-only — absent here |
+Catalog with per-skill triggers, inject mode and MCP server status: [docs/SKILLS_AND_MCP.md](docs/SKILLS_AND_MCP.md). Read it when a task starts, then load **one** matching skill — never the whole catalog. `deepseek-token-budgeter` is always on.
 
 Causal graph schema (3 layers, `MERGE` only, edge types) is defined in [docs/ARCHITECTURE.md §4](docs/ARCHITECTURE.md).
