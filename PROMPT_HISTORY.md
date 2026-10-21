@@ -1340,3 +1340,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 **Decisions & findings:** the harness-native tool set was left untouched as instructed; only catalog entries and MCP registrations were touched, which is also why `graphify` (registered as `mcp-graphify`) stays. Deleting the skills shrank the live catalog from 12 to 8 without a restart - the filesystem skill provider hot-reloads `SKILL.md` discovery. Verified afterwards that no `*.py`, `*.yml`, `*.md` outside `docs/tien_kiep/` still references the removed names. Kept `agent-eval-harness` because `scripts/evaluate_pipeline_harness.py` is real, and `docker-homelab-devops` because `docker-compose.yml` is real.
 
 **Next steps:** if a Tauri desktop client or an Antigravity handoff ever returns, re-add the corresponding skill instead of re-inventing it; `mcp_server.py` is recoverable from `843b439`.
+
+### [2026-10-21 18:58] — Delete the genesis archive, its chronicle pipeline, and the Archify diagrams
+
+**Scope:** repository size (branch `chore/delete-archive-chronicles`).
+
+**Context & objectives:** the 20 MB `docs/tien_kiep/` history archive, the eight scripts that generate or read it, and the 2.5 MB `.archify/` HTML diagrams were declared disposable by the Master.
+
+**Actions & changes:** deleted 23 tracked files, ~22.5 MB - `docs/tien_kiep/` (12 files: `TOTAL_HISTORY_MERGED.txt`, `pure_full_history.txt`, `pure_history_visaireal.txt`, `pure_history_sttap.txt`, `raw_chat_delta*.txt`, four `DEEPSEEK_CHRONICLE_*.md`, `MASTER_TIEN_KIEP.md`, `prompt_draft.md`), `.archify/` (3 self-contained HTML architecture diagrams), and `scripts/{chunked_chronicles, generate_all_chronicles, stream_chronicles, perfect_6turn_extraction, run_multi_turn_extraction, test_genesis, brain_dump_import, genesis_ingest}.py`. Rebuilt the graph: 1,624 -> 1,251 nodes, 2,528 -> 2,007 edges, 142 -> 104 communities.
+
+**Decisions & findings:** every deleted path was checked for inbound references first - the eight scripts referenced only each other and the archive, `genesis_ingest.py` was the only reader of `docs/tien_kiep/`, and `archify` had zero hits in any code, config or doc. `compressed_genesis_context.md` was NOT part of this request and stays. Four scripts now point at the deleted directory or at dead Windows paths (`extract_delta_for_deepseek.py`, `extract_strict_delta.py`, `smart_filter.py`, `debug_api.py`) plus `search_history.py`/`check_source.py`; they were left in place because the Master did not list them. All deletions remain recoverable from `1e0e721`.
+
+**Next steps:** decide on the five orphaned text-munging scripts above (they can no longer run), and consider whether `compressed_genesis_context.md` (2.3 MB) is next.
