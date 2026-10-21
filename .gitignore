@@ -40,3 +40,8 @@ chroma_db/
 .secrets/
 !package.json
 !tsconfig.json
+
+# Graphify / tooling churn
+graphify-out/cache/
+graphify-out/.graphify_*
+scratch/temp_ingest_*.txt

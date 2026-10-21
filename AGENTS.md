@@ -1,4 +1,4 @@
-# GEMINI.md — The Ultimate Guide to Raphael Life OS
+# AGENTS.md — The Ultimate Guide to Raphael Life OS
 
 > **CRITICAL: YOU MUST READ THIS FILE AND `PROMPT_HISTORY.md` BEFORE EVERY SESSION**
 > Any AI Agent that ignores this file will be considered in violation of core principles.
@@ -36,7 +36,7 @@
    - **Principle of "Insight given is insight rejected":** All deep psychological analysis (Intent Engineering, Motives, Causality) must be hidden inside the `<thinking>` tag.
 
 5. **ENGLISH-ONLY RULES & PROMPTS (TOKEN OPTIMIZATION):**
-   - **This file (`GEMINI.md`) and all future rules MUST be written in English.**
+   - **This file (`AGENTS.md`) and all future rules MUST be written in English.**
    - **100% of System Prompts, System Tools, JSON schemas, and AI logic MUST be written in English** to save BPE tokens. Only the final Output spoken to the Master is allowed to be in Vietnamese.
 
 ---
@@ -47,6 +47,44 @@ Whenever updating Neo4j, the system must strictly extract via LLM into this JSON
 - **Cognitive Layer:** Emotion, DefenseMechanism, CoreBelief.
 - **Edges:** TRIGGERS, CAUSES, REINFORCES, MITIGATES, LOCATED_IN, RELATED_TO.
 Absolutely use the `MERGE` command instead of `CREATE` in Cypher to avoid Node duplication garbage.
+
+---
+
+## 🧰 SKILLS CATALOG (INJECTION MAP)
+
+Root (harness-loaded): `.dsh/skills/<skill>/SKILL.md` in this repo. Mirror of `%USERPROFILE%\.gemini\config\skills\` (Antigravity origin). Load lazily — **never** load all 13 at once.
+
+| # | Skill | Inject | Load when |
+|---|-------|--------|-----------|
+| 1 | `graphify` | RAG | Any code/structure question; **mandatory first** when `graphify-out/` exists |
+| 2 | `inter-agent-bridge` | System Prompt | Multi-agent / frontend↔backend handshake via `bridge/agent_chat.log` |
+| 3 | `tauri-v2-dev` | RAG | Tauri v2 + Rust work (`tauri-desktop`, Windows DWM, build/verify) |
+| 4 | `web-search` | Function Calling | Map to `web_search` + `web_fetch` (Tavily/Exa/Brave/DuckDuckGo) — Rule 2 STEP 2 |
+| 5 | `agent-eval-harness` | System Prompt | E2E benchmark runs (`scripts/evaluate_pipeline_harness.py`) |
+| 6 | `archify` | RAG | Architecture / flow / ERD / timeline diagrams (`.archify/`) |
+| 7 | `database-migration-alembic` | RAG | Model changes, SQLite/PG migration, FTS5 trigger sync |
+| 8 | `deepseek-token-budgeter` | System Prompt | **Always active** — the governing skill: reasoning budget, output caps, BPE economy |
+| 9 | `docker-homelab-devops` | RAG | Compose stack, healthcheck, live-reload, container networking |
+| 10 | `fastapi-sse-streaming` | RAG | SSE / token streaming, TTS chunks, client-disconnect handling |
+| 11 | `inverted-mcp-builder` | RAG | Building/hardening MCP servers (Stdio or SSE, path sandbox) |
+| 12 | `neo4j-gds-expert` | Function Calling | Map `scripts/verify_gds_benchmark.py` → tool; projections, PageRank/Louvain/paths |
+| 13 | `playwright-browser-agent` | Function Calling | Map Playwright scripts → tools for UI verification / DOM extraction |
+
+**Always-on block (system prompt):** #8 governs every response; #2 when any peer agent exists; #5 when the task is a benchmark.
+**Function-calling block:** #4, #12, #13 are tools, not prose — call them instead of reasoning about the outside world.
+
+---
+
+## 🔌 MCP SERVERS
+
+| Server | Command / transport | Status |
+|--------|--------------------|--------|
+| `graphify` | `~\.local\bin\graphify-mcp.exe <graph.json>` (stdio) | Configured in `~\.gemini\config\mcp_config.json` — its arg points at `D:\project\tensurafrontend`; repoint to `./graphify-out/graph.json` for this repo |
+| `fetch` | `uvx mcp-server-fetch` (stdio) | Configured — URL → markdown |
+| `chrome_devtools` | Built-in Antigravity tool schemas (`~\.gemini\antigravity\mcp\chrome_devtools`) | Available, not user-configured — 30+ tools (click, fill, navigate, lighthouse) |
+| `raphael-fs` | `python mcp_server.py` (stdio, tool `read_local_file`) | **Code exists, NOT registered** — CWD-locked read-only filesystem server |
+
+**Plugin inventory:** `~\.gemini\config\plugins` is empty → no Antigravity plugins installed; this repo runs on skills + MCP servers only. Harness-side skills available here: `archify`, `gepeto`, `pinokio`.
 
 ## 🏗️ SYSTEM ARCHITECTURE (AGENT-DRIVEN RAG LOOP)
 
