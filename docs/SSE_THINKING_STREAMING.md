@@ -32,7 +32,7 @@ for chunk in response:
 
 So a single request already carries the information needed to keep a UI alive: **reasoning arrives first, answer second**. Nothing in the API forces silence.
 
-The constraint is product-side, not transport-side: rule 4 of `AGENTS.md` — *"Insight given is insight rejected"* — forbids showing chain-of-thought. Therefore reasoning is **counted and timed, never forwarded**.
+The constraint is product-side, not transport-side: the output contract in [ARCHITECTURE.md §6](ARCHITECTURE.md) — *"Insight given is insight rejected"* — forbids showing chain-of-thought. Therefore reasoning is **counted and timed, never forwarded**.
 
 | Channel | Content | Sent to client |
 |---|---|---|
