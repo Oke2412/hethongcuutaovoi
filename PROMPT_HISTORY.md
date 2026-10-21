@@ -1252,3 +1252,31 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - **Dọn repo:** `git rm -r .dsh/skills/graphify` → `.dsh/skills` còn 124 KB, 11 skill thật (đều có `SKILL.md`). `graph.json` để local (`.gitignore` đang chặn `*.json`) vì là artifact sinh lại được; `graph.html` + `GRAPH_REPORT.md` vẫn track như cũ.
 - **AGENTS.md:** sửa mục Skills (11 skill repo + graphify global), mục MCP (bỏ toàn bộ đường dẫn Windows `~/.gemini`, `D:\project\tensurafrontend`; ghi rõ MCP đăng ký theo profile `~/.dsh/profiles/<profile>/cordis.patch.yml`).
 **Files thay đổi:** AGENTS.md, PROMPT_HISTORY.md, xoá `.dsh/skills/graphify/` (233 file); sinh mới `graphify-out/graph.json` (không track)
+
+
+### [2026-10-21 17:25] — Split architecture out of AGENTS.md, embed new rules, re-sync skills + MCP
+
+**Scope:** repository rules and system documentation (branch `docs/agents-rules-restructure`).
+
+**Context & objectives**
+- `AGENTS.md` was 14.2 KB mixing process rules with a 76-line ASCII architecture diagram, so every session paid for it and the diagram had drifted (SiliconFlow-only model line, Windows MCP paths, dead `~/.gemini` tree).
+- Request: delete the async/Unicode rule, the mentor/HUD/thinking rule and the "traumatic memories" block; move splittable system facts into a dedicated architecture file linked from the rules; make "update it on every merge" a rule; re-align the skills and MCP tables with the real repo and host; embed three new rules (session-log compression, branching, four-pillar reporting); keep input tokens minimal.
+
+**Actions & changes**
+- Created `docs/ARCHITECTURE.md` (7.5 KB): topology diagram with a corrected model line, component table, tri-store table, 3-layer causal schema plus MERGE rule, model/endpoint table, output and interaction contract, known gaps.
+- Rewrote `AGENTS.md` 14.2 KB -> 5.4 KB (-62%): Rules 1-3 from the supplied spec in English, Rule 4 research (condensed, keeps `web_search` plus code verification), Rule 5 English-only, Rule 6 architecture-sync-on-merge with a fact/process authority split.
+- Removed from `AGENTS.md`: the two standalone rules, the "traumatic memories" section, the 76-line diagram, `archify`/`gepeto`/`pinokio` claims, dead Windows MCP paths, and the `PROMT_HISTORY.md` filename typo (now points at the real `PROMPT_HISTORY.md`).
+- Skills table now lists the 12 skills that actually exist (11 repo-local with `SKILL.md` plus global `graphify`) and flags the two that cannot apply here: `inter-agent-bridge` (no `bridge/agent_chat.log`) and `tauri-v2-dev` (no `tauri-desktop/`).
+- MCP table reflects the live registration (`mcp-graphify` in `~/.dsh/profiles/web/cordis.patch.yml`, 10 tools) and the regenerated `graphify-out/graph.json`.
+- Fixed the stale cross-reference in `docs/SSE_THINKING_STREAMING.md` (was "rule 4 of AGENTS.md", now ARCHITECTURE.md section 6).
+
+**Decisions & findings**
+- Rules and session logs are English per the supplied mandate; only replies to the Master stay Vietnamese.
+- The removed rule bodies were not deleted outright: their factual half (model/endpoint settings, HUD format, thinking contract, code conventions) lives in `docs/ARCHITECTURE.md`, otherwise the docs would contradict the code.
+- Corrected while moving: primary API is `https://api.deepseek.com` with SiliconFlow as fallback; `DEEPSEEK_REASONING_EFFORT` defaults to `low` and is a request-body field, not a dotted path.
+- `graphify` MCP confirmed live against the current `graph.json` (818 nodes / 1827 edges) and reports the graph is one commit behind HEAD.
+
+**Next steps**
+- Merge `docs/agents-rules-restructure` after review, then rebuild the graph (`graphify update .`) so MCP matches HEAD.
+- Decide whether `inter-agent-bridge` and `tauri-v2-dev` should remain vendored in this repo.
+- `docs/PLAN_pipeline.md` section 12 still describes the old rewrite target; left untouched as historical.

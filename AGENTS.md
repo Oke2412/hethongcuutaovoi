@@ -1,169 +1,77 @@
-# AGENTS.md — The Ultimate Guide to Raphael Life OS
+# AGENTS.md — Agent Rules · Raphael Life OS (Amazing Nobel)
 
-> **CRITICAL: YOU MUST READ THIS FILE AND `PROMPT_HISTORY.md` BEFORE EVERY SESSION**
-> Any AI Agent that ignores this file will be considered in violation of core principles.
+> Read this file and the tail of [PROMPT_HISTORY.md](PROMPT_HISTORY.md) at the start of every session.
+> This file holds **process only**. System facts — topology, stores, graph schema, models, endpoints — live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Never duplicate them here.
 
----
-
-## 🎯 About the Project
-**Project Name:** Amazing Nobel
-**Goal:** A "system" style personal AI (Raphael Lord of Wisdom) — tracking physical state, progress, capabilities, and providing reminders through Psychology & Causal analysis. (Insight given is insight rejected).
-**Architecture:** 100% Agentic Chat. RAG + GraphRAG (Neo4j) Memory. FastAPI + Docker Compose Backend.
+**Repo:** a personal "life OS" AI (Raphael) tracking physical state, progress and capabilities, answering through causal + psychological analysis over tri-store memory. Telegram bot + desktop SSE client on a FastAPI backend.
 
 ---
 
-## ⚠️ CORE WORKING RULES (MANDATORY)
+## Rule 1 — Compress the session, log it outside this file
 
-1. **BRANCH MANAGEMENT (CRITICAL):**
-   - **WHENEVER** working on a new feature, function, or logic modification, **ALWAYS create a new branch** (`git checkout -b feature/...`).
-   - ONLY push the branch after finishing the code. **NEVER code directly on the `main` branch.**
-   - Always run `git status` and `git pull origin main` at the start of every session.
+1. At the end of a session or milestone, compress what happened into a dense summary; never keep the raw transcript.
+2. Do **not** append session logs to this file. Every log goes to [`PROMPT_HISTORY.md`](PROMPT_HISTORY.md), the single session log.
+3. Append new entries at the **bottom**, chronological and incremental.
+4. Each entry carries: `Timestamp & scope` · `Context & objectives` · `Actions & changes` · `Decisions & findings` · `Next steps`.
 
-2. **MANDATORY RESEARCH BEFORE ANY DECISION (CRITICAL MANDATORY):**
-   - **STRICTLY PROHIBITED TO MAKE ARBITRARY DECISIONS / GUESSING:** Before **ANY** assessment, answer, or code/architecture decision, the Agent **MUST** perform these 2 full research steps:
-     1. **STEP 1 - Read `PROMPT_HISTORY.md`:** Carefully read the entire history of recent sessions to thoroughly understand the Master's intent and what previous agents have done. MUST append your own session summary to the end of `PROMPT_HISTORY.md` after every work session.
-     2. **STEP 2 - Web Search (`search_web`):** Must use `search_web` to verify official technical docs, latest SOTA leaderboards, and API docs before making a decision.
-   - **NO EXCEPTIONS.** All Agent decisions must be based on the two sources above!
+## Rule 2 — Git branching
 
-3. **STRUCTURE AND SOURCE CODE:**
-   - Use `async/await` throughout. Type hints are mandatory.
-   - **Unicode Handling:** DO NOT use PowerShell `Set-Content` or here-strings to write files containing Vietnamese/Emojis. Use Python scripts to avoid breaking UTF-8 fonts.
-   - DO NOT use ConversationHandler or hardcoded menus. Everything is handled via NLP.
+1. Never commit or push directly to `main`.
+2. Every feature, fix, refactor and experiment gets its own dedicated branch.
+3. Use semantic names: `feature/<topic>`, `fix/<topic>`, `docs/<topic>`. `temp`, `test`, `new-branch` are prohibited.
+4. `.gitignore` stays authoritative: no `node_modules/`, `venv/`, `__pycache__/`, `.env`, build artifacts or large binaries. Check `git status` before every commit.
 
-4. **PSYCHOLOGY & CAUSALITY (RAPHAEL DEEP):**
-   - Output Mode: Calm, natural like a Mentor. Apply the 3 Anthropic HHH pillars. Keep it brief (1-2 sentences), straight to the point.
-   - Always attach the HUD: `⚡E | 😐M | ❤️H | 💎Cr | 📍H3`
-   - **Principle of "Insight given is insight rejected":** All deep psychological analysis (Intent Engineering, Motives, Causality) must be hidden inside the `<thinking>` tag.
+## Rule 3 — Report in four pillars
 
-5. **ENGLISH-ONLY RULES & PROMPTS (TOKEN OPTIMIZATION):**
-   - **This file (`AGENTS.md`) and all future rules MUST be written in English.**
-   - **100% of System Prompts, System Tools, JSON schemas, and AI logic MUST be written in English** to save BPE tokens. Only the final Output spoken to the Master is allowed to be in Vietnamese.
+Every task, command run or edit ends with:
+**What was done** (actions, files, tools, features) · **How it was done** (method, steps, architecture/algorithm decisions, commands) · **Codebase impact** (files, packages, dirs, env vars, build deps) · **Impact & contribution** (why, operational benefit, side effects, risk).
+No superficial summaries — enough depth for immediate review.
 
----
+## Rule 4 — Research before deciding
 
-### 🗂️ MANDATORY 3-LAYER JSON RULES (NEO4J SCHEMA)
-Whenever updating Neo4j, the system must strictly extract via LLM into this JSON format:
-- **Physical Layer:** Person, Location, Object, LifeEvent.
-- **Cognitive Layer:** Emotion, DefenseMechanism, CoreBelief.
-- **Edges:** TRIGGERS, CAUSES, REINFORCES, MITIGATES, LOCATED_IN, RELATED_TO.
-Absolutely use the `MERGE` command instead of `CREATE` in Cypher to avoid Node duplication garbage.
+No guessing. Before any assessment, answer or design decision:
+1. Read the recent sessions in `PROMPT_HISTORY.md`.
+2. Verify external facts (APIs, models, official docs) with `web_search` / `web_fetch`; verify internal claims by reading the code.
+Name the source behind the decision.
 
----
+## Rule 5 — English only
 
-## 🧰 SKILLS CATALOG (INJECTION MAP)
+This file, all rules, system prompts, tool schemas and LLM logic are written in English to save BPE tokens. Only the reply to the Master may be Vietnamese.
 
-Repo-local skills (harness-loaded): `.dsh/skills/<skill>/SKILL.md` — 11 skills. `graphify` is **not** repo-local: it lives in the global pool at `~/.agents/skills/graphify/` so every project gets it. Load lazily — **never** load all of them at once.
+## Rule 6 — Keep the architecture doc in sync
 
-| # | Skill | Inject | Load when |
-|---|-------|--------|-----------|
-| 1 | `graphify` (global: `~/.agents/skills/graphify/`) | RAG | Any code/structure question; **mandatory first** when `graphify-out/graph.json` exists → `graphify query` / `path` / `explain` |
-| 2 | `inter-agent-bridge` | System Prompt | Multi-agent / frontend↔backend handshake via `bridge/agent_chat.log` |
-| 3 | `tauri-v2-dev` | RAG | Tauri v2 + Rust work (`tauri-desktop`, Windows DWM, build/verify) |
-| 4 | `web-search` | Function Calling | Map to `web_search` + `web_fetch` (Tavily/Exa/Brave/DuckDuckGo) — Rule 2 STEP 2 |
-| 5 | `agent-eval-harness` | System Prompt | E2E benchmark runs (`scripts/evaluate_pipeline_harness.py`) |
-| 6 | `archify` | RAG | Architecture / flow / ERD / timeline diagrams (`.archify/`) |
-| 7 | `database-migration-alembic` | RAG | Model changes, SQLite/PG migration, FTS5 trigger sync |
-| 8 | `deepseek-token-budgeter` | System Prompt | **Always active** — the governing skill: reasoning budget, output caps, BPE economy |
-| 9 | `docker-homelab-devops` | RAG | Compose stack, healthcheck, live-reload, container networking |
-| 10 | `fastapi-sse-streaming` | RAG | SSE / token streaming, TTS chunks, client-disconnect handling |
-| 11 | `inverted-mcp-builder` | RAG | Building/hardening MCP servers (Stdio or SSE, path sandbox) |
-| 12 | `neo4j-gds-expert` | Function Calling | Map `scripts/verify_gds_benchmark.py` → tool; projections, PageRank/Louvain/paths |
-| 13 | `playwright-browser-agent` | Function Calling | Map Playwright scripts → tools for UI verification / DOM extraction |
-
-**Always-on block (system prompt):** #8 governs every response; #2 when any peer agent exists; #5 when the task is a benchmark.
-**Function-calling block:** #4, #12, #13 are tools, not prose — call them instead of reasoning about the outside world.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the single source of system facts. **Every merge** that changes modules, data stores, model/endpoint config or runtime flow updates it in the same branch. On conflict: ARCHITECTURE.md wins on facts, this file wins on process.
 
 ---
 
-## 🔌 MCP SERVERS
+## Skills
 
-| Server | Command / transport | Status |
-|--------|--------------------|--------|
-| `graphify` | `~/.local/bin/graphify-mcp <repo>/graphify-out/graph.json` (stdio) | **Registered** in `~/.dsh/profiles/web/cordis.patch.yml` (entry `mcp-graphify`); tools appear as `mcp__graphify__{query_graph,get_node,get_neighbors,get_community,god_nodes,graph_stats,shortest_path,...}` |
-| `fetch` | `uvx mcp-server-fetch` (stdio) | Not registered on this Linux host |
-| `chrome_devtools` | Antigravity built-in schemas (Windows-only) | Absent on this Linux host |
-| `raphael-fs` | `python mcp_server.py` (stdio, tool `read_local_file`) | **Code exists, NOT registered** — CWD-locked read-only filesystem server |
+Repo-local: `.dsh/skills/<name>/SKILL.md` (11). Global pool: `~/.agents/skills/` (`graphify` only, shared across projects). Load lazily — never load several at once.
 
-**Host reality (Linux):** there is no `~/.gemini/` config tree here — the Windows paths (`~\Local\bin`, `D:\project\tensurafrontend`) no longer exist. Harness MCP servers are registered per profile in `~/.dsh/profiles/<profile>/cordis.patch.yml`; the `graphify` entry points at this repo's `graphify-out/graph.json`, so it must be rebuilt after moving or cloning the repo.
+| Skill | Scope | Load when |
+|---|---|---|
+| `graphify` | global | Any code/structure question. When `graphify-out/graph.json` exists, prefer the `mcp__graphify__*` tools (`query_graph`, `get_node`, `god_nodes`, `shortest_path`) over re-reading files. Rebuild with `graphify update .` |
+| `web-search` | repo | External verification for Rule 4 — `web_search` + `web_fetch` (Tavily/Exa/Brave/DuckDuckGo) |
+| `deepseek-token-budgeter` | repo | Always active: reasoning effort, token caps, BPE economy |
+| `agent-eval-harness` | repo | E2E benchmarks — `scripts/evaluate_pipeline_harness.py`, `scripts/test_hard_dataset_e2e.py` |
+| `database-migration-alembic` | repo | `db/models.py` changes, `migrate_sqlite.py`, FTS5 trigger sync |
+| `docker-homelab-devops` | repo | `docker-compose.yml`, healthchecks, live reload, container networking |
+| `fastapi-sse-streaming` | repo | `api/routes/desktop.py` SSE, token streaming, client disconnect |
+| `neo4j-gds-expert` | repo | `core/gds_service.py`, `core/neo4j_client.py`, `scripts/verify_gds_benchmark.py` — projections, page rank, Louvain, paths |
+| `inverted-mcp-builder` | repo | `mcp_server.py` — stdio MCP, path sandbox |
+| `playwright-browser-agent` | repo | Headless UI checks of the desktop/SSE surface (no scripts vendored here yet) |
+| `inter-agent-bridge` | repo | Only if `bridge/agent_chat.log` exists — it does not in this checkout |
+| `tauri-v2-dev` | repo | Windows Tauri work; `tauri-desktop/` is absent from this repo, so not applicable on this Linux host |
 
-## 🏗️ SYSTEM ARCHITECTURE (AGENT-DRIVEN RAG LOOP)
+## MCP servers
 
-```text
-===========================================================================================================
-                                     [ 📱 MASTER / USER ]
-                  (Input: Text, Photos, Audio, Live Location H3 Resolution 9)
-===========================================================================================================
-          |                                                                                  ^
-          | (Data Stream)                                                                    | (Execution)
-          v                                                                                  |
-+---------------------------------------------------------------------------------------------------------+
-|                                🛡️ TELEGRAM ADAPTER (bot/main.py & handlers)                               |
-|   - Detects Commands, Messages, Images.                                                                 |
-|   - Background Trigger: Calculates H3 (Hex) coords -> Compares old/new Hex -> Fires Background Task.    |
-+---------------------------------------------------------------------------------------------------------+
-          |                                                                                  ^
-          v                                                                                  |
-===========================================================================================================
-                               🧠 CORE BRAIN (core/brain.py) - THE ORCHESTRATOR
-===========================================================================================================
-|                                                                                                         |
-|  [ ⚡ OMNI-AGENTIC LOOP ] (DeepSeek V4.1 Flash via SiliconFlow API)                                     |
-|  - Agent continuously loops (while loop) to read context.                                               |
-|  - If lacking data, Agent AUTOMATICALLY emits Tool Call: `search_memory_and_causality()`                |
-|                                                                                                         |
-=========================================================================================|=================
-                                                                                         | (Tool Calling)
-             +-----------------------------------+---------------------------------------+
-             |                                   |                                       |
-             v                                   v                                       v
-+--------------------------+        +--------------------------+            +--------------------------+
-| 🗄️ SQLITE (Database)      |        | 🧬 NEO4J (Causal Graph)  |            | 🧠 MEM0 (Vector Memory)  |
-|--------------------------|        |--------------------------|            |--------------------------|
-| - Users & MessageLogs    |        | - Causal Nodes           |            | - Qwen3-Embedding-8B     |
-| - FTS5 Sparse Search     |        | - H3 Grid Cells          |            |   (4096 Dimensions)      |
-|   (Exact Keyword Search) |        | - [:VISITED] Relations   |            | - Semantic Storage       |
-+--------------------------+        +--------------------------+            +--------------------------+
-             |                                   |                                       |
-             | (Top 5 Chunks)                    | (Graph Paths)                         | (Top 5 Chunks)
-             +-----------------------------------+---------------------------------------+
-                                                 |
-                                                 v
-===========================================================================================================
-                               ⚖️ SCORER & FILTER (Qwen3-Reranker-8B)
-                Scores and compresses context. Pumps results back to LLM as Tool Result.
-===========================================================================================================
-                                                 |
-                                                 v (Injected back into Loop Context)
-===========================================================================================================
-                       ⚡ DEEPSEEK-V4.1-FLASH (CORE CAUSAL & PSYCHOLOGICAL REASONING)
-===========================================================================================================
-|                                                                                                         |
-|  [ HIDDEN <thinking> BLOCK ] (Strictly hidden from Master)                                              |
-|  1. Causal Impact: What sensitive past Node does this event trigger? What is the chain reaction?        |
-|  2. Psychology Dynamics: What is the Master's hidden motive? (Avoidance, venting, making excuses?)      |
-|  3. Intent Engineering: Where is Current State? What is Ideal State? What is the Delta?                 |
-|  4. Synthesis: Aggregate the 3 weights above to output Action / Advice.                                 |
-|  [ METACOGNITION ]                                                                                      |
-|  - The entire content of the AI's <thinking> block is saved back into SQLite, Mem0, and Neo4j           |
-|    (as an event attached to the Master's Input). This allows the AI to learn from the past and          |
-|    explain its own decisions if questioned by the Master in the future.                                 |
-|                                                                                                         |
-===========================================================================================================
-                                                 |
-                   +-----------------------------+-------------------------------+
-                   |                                                             |
-                   v                                                             v
-===========================================================================================================
-         [ 🗣️ RAPHAEL'S VOICE (Output) ]                      [ ⚔️ BACKGROUND TRIGGER (Side Quests) ]
-===========================================================================================================
-| - Format: Concise (1-2 short sentences).     | - Location Hex Transition (Entering a new H3 cell)   |
-| - Tone: Calm, respectful, HHH (Anthropic).   | - Energy/Mood Shift (Detecting energy depletion)     |
-| - HUD: ⚡E | 😐M | ❤️H | 💎Cr | 📍H3             | - Auto-writes SystemQuest to DB, attaches Penalty    |
-| - Action: Push user towards Ideal State.     | - Auto-pushes Notification to Telegram to demand debt|
-===========================================================================================================
-```
+Registered per profile in `~/.dsh/profiles/<profile>/cordis.patch.yml`. There is no `~/.gemini/` tree on this host — the old Windows paths are dead.
 
-## ⚠️ AGENT TRAUMATIC MEMORIES (MANDATORY TO REMEMBER)
-- **API Domain SiliconFlow:** https://api.siliconflow.com (ABSOLUTELY NOT .cn).
-- **Core Model:** deepseek-ai/deepseek-v4.1-flash. This model SUPPORTS Thinking Tokens via the hidden `<thinking>` tag. You CAN pass `extra_body={"reasoning_effort": "high"}` to activate deep psychological analysis, or set it to `"none"` if the Master prefers to save costs. It is entirely configurable.
-- **Token Optimization:** MANDATORY that 100% of System Prompts, System Tools, schemas, and logic fed to the LLM MUST be written in ENGLISH. Vietnamese consumes a massive amount of BPE Tokens. Only the Output to the Master should be in Vietnamese.
+| Server | Status |
+|---|---|
+| `graphify` | Registered as `mcp-graphify` (stdio, `~/.local/bin/graphify-mcp <repo>/graphify-out/graph.json`). Tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, `shortest_path`. Rebuild `graph.json` after cloning or moving the repo |
+| `raphael-fs` | Code exists (`mcp_server.py`, tool `read_local_file`) but is not registered — CWD-locked, read-only |
+| `fetch` | Not registered on this host |
+| `chrome_devtools` | Antigravity built-in, Windows-only — absent here |
+
+Causal graph schema (3 layers, `MERGE` only, edge types) is defined in [docs/ARCHITECTURE.md §4](docs/ARCHITECTURE.md).
