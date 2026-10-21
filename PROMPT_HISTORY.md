@@ -1238,3 +1238,17 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - **Tests:** 4/4 PASS (classification, async dispatch, sequential fallback, SSE frame order).
 **Files thay đổi:** core/brain.py, core/llm.py, config.py, tests/test_stream_pipeline.py, docs/SSE_THINKING_STREAMING.md, PROMPT_HISTORY.md
 ---
+
+### [2026-10-21 17:10] — Đưa graphify Thành Skill Global + Dựng Lại graph.json + Đăng Ký MCP
+**Agent:** DeepSeek Harness (deepseek-flash)
+**Prompt:** "tìm và add skill graphify vào bể skill global" → "Build graphify-out/graph.json để bật query/path/explain + MCP. Dọn bản vendored 5.8 MB khỏi repo (xoá .dsh/skills/graphify/, sửa mục graphify trong AGENTS.md trỏ về skill global + graphify-mcp ./graphify-out/graph.json) — làm trên branch riêng theo Rule 1, kèm entry PROMPT_HISTORY."
+**Branch:** feature/graphify-global-skill
+**Kết quả / Quyết định:**
+- **Root cause skill không load được:** bản vendored `.dsh/skills/graphify/` (5.8 MB, 233 file) là source package Python, file hướng dẫn tên `skill.md` chữ thường. Harness chỉ nhận `<dir>/SKILL.md` (chữ hoa) hoặc `<root>/<name>.md` → skill chưa bao giờ vào catalog.
+- **Cài global:** `pip install --user --break-system-packages graphifyy` (0.9.93, mới nhất PyPI) → `~/.local/lib/python3.14/site-packages`, CLI `~/.local/bin/graphify` + `graphify-mcp`. Sau đó `graphify install --platform agents` → `~/.agents/skills/graphify/{SKILL.md, references/×8}` (một trong 4 root harness scan: project-dsh, project-agents, user-dsh, user-agents). Catalog cập nhật live, skill `graphify` xuất hiện không cần restart.
+- **Dựng graph.json không tốn token LLM:** graph.html đã nhúng sẵn `RAW_NODES`/`RAW_EDGES`/`LEGEND` (818 node/1827 edge/47 community). Viết lại bằng đúng writer của graphify: NetworkX Graph → `graphify.export.to_json()` với `community_labels`, đồng thời chạy AST extraction (`graphify.extract.extract`, 76 file code) để gắn `source_location` cho **413/441** node code. Kết quả: `graphify-out/graph.json` 510 KB, 818 node / 1827 edge / 47 community khớp 100% report.
+- **Kiểm chứng:** `graphify query "..."` (BFS depth 2, in kèm source + line + community), `graphify explain "GDSService"` (19 kết nối), `graphify path "GDSService" "SystemQuest"` (4 hops), `graphify diagnose multigraph` (1827 edge post-build) — tất cả chạy.
+- **MCP:** `graphify-mcp` thiếu extra `mcp` → cài `graphifyy[mcp]` (mcp 2.3.0, starlette 1.9, uvicorn). Probe stdio handshake OK: server `graphify` 0.9.93, 10 tool (query_graph, get_node, get_neighbors, get_community, god_nodes, graph_stats, shortest_path, list_prs, get_pr_impact, triage_prs). Đăng ký vào `~/.dsh/profiles/web/cordis.patch.yml` entry `mcp-graphify` (`@deepseek-ai/dsh-mcp-client`, stdio, trỏ `…/hethongcuutaovoi/graphify-out/graph.json`); YAML 4 entry parse OK. Tool sẽ hiện thành `mcp__graphify__*` ở lần khởi động harness kế tiếp (instance đang chạy đã "HMR is disposed").
+- **Dọn repo:** `git rm -r .dsh/skills/graphify` → `.dsh/skills` còn 124 KB, 11 skill thật (đều có `SKILL.md`). `graph.json` để local (`.gitignore` đang chặn `*.json`) vì là artifact sinh lại được; `graph.html` + `GRAPH_REPORT.md` vẫn track như cũ.
+- **AGENTS.md:** sửa mục Skills (11 skill repo + graphify global), mục MCP (bỏ toàn bộ đường dẫn Windows `~/.gemini`, `D:\project\tensurafrontend`; ghi rõ MCP đăng ký theo profile `~/.dsh/profiles/<profile>/cordis.patch.yml`).
+**Files thay đổi:** AGENTS.md, PROMPT_HISTORY.md, xoá `.dsh/skills/graphify/` (233 file); sinh mới `graphify-out/graph.json` (không track)
