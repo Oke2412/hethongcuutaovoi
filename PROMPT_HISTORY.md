@@ -1280,3 +1280,15 @@ Please read the `PROMPT_HISTORY.md` file and append a new entry summarizing your
 - Merge `docs/agents-rules-restructure` after review, then rebuild the graph (`graphify update .`) so MCP matches HEAD.
 - Decide whether `inter-agent-bridge` and `tauri-v2-dev` should remain vendored in this repo.
 - `docs/PLAN_pipeline.md` section 12 still describes the old rewrite target; left untouched as historical.
+
+### [2026-10-21 17:34] — Add a 100k-token compaction ceiling to Rule 1
+
+**Scope:** `AGENTS.md` (branch `docs/agents-rules-restructure`).
+
+**Context & objectives:** add a rule that forces context compaction once the live context passes 100k tokens.
+
+**Actions & changes:** Rule 1 gained item 5: at 100k tokens or right after a harness auto-compaction, write the dense checkpoint to `PROMPT_HISTORY.md`, drop finished work and stale tool output, then continue from `AGENTS.md` + `docs/ARCHITECTURE.md` + the checkpoint. `AGENTS.md` 5.36 KB -> 5.78 KB.
+
+**Decisions & findings:** the harness already compacts on its own (`compaction-basic` consumes post-step pressure), so the rule keys off both the 100k mark and the post-compaction moment; the point is to reload rules + architecture after compaction instead of trusting a truncated transcript.
+
+**Next steps:** unchanged - merge `docs/agents-rules-restructure`, then rebuild the graph.

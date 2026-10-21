@@ -13,6 +13,7 @@
 2. Do **not** append session logs to this file. Every log goes to [`PROMPT_HISTORY.md`](PROMPT_HISTORY.md), the single session log.
 3. Append new entries at the **bottom**, chronological and incremental.
 4. Each entry carries: `Timestamp & scope` · `Context & objectives` · `Actions & changes` · `Decisions & findings` · `Next steps`.
+5. **100k-token ceiling:** once the live context passes **100k tokens** — or immediately after the harness auto-compacts — compact: write the dense checkpoint to `PROMPT_HISTORY.md` per this rule, drop finished branches of work and stale tool output, then continue from `AGENTS.md` + `docs/ARCHITECTURE.md` + that checkpoint. Never keep working from a truncated transcript.
 
 ## Rule 2 — Git branching
 
